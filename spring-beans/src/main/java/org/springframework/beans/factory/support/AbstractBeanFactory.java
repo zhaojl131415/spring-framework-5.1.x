@@ -242,14 +242,12 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		final String beanName = transformedBeanName(name);
 		Object bean;
 
+		// Eagerly check singleton cache for manually registered singletons.
 		/**
 		 * 创建一个bean，先从容器中获取一次
 		 * 如果容器中不存在，然后再判断这个bean是否正在被创建
 		 * 没有正在被创建，那spring就创建这个对象
 		 */
-
-		// Eagerly check singleton cache for manually registered singletons.
-		// 从容器中获取
 		Object sharedInstance = getSingleton(beanName);
 		if (sharedInstance != null && args == null) {
 
@@ -268,7 +266,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		else {
 			// Fail if we're already creating this bean instance:
 			// We're assumably within a circular reference.
-			// 验证这个bean是否正在被创建
+			// 验证这个bean是否在创建过程中, 循环依赖会出现创建过程中的情况
 			if (isPrototypeCurrentlyInCreation(beanName)) {
 				throw new BeanCurrentlyInCreationException(beanName);
 			}
@@ -308,15 +306,20 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			}
 
 			/**
-			 * 判断调用调用getBean方法时,表示是否仅仅进行类型检查获取bean
+			 * 判断调用getBean方法时,表示是否仅仅进行类型检查获取bean
 			 * 如果不是仅仅只做类型检查,而是创建bean,则需要调用markBeanAsCreated
 			 */
 			if (!typeCheckOnly) {
 				markBeanAsCreated(beanName);
 			}
 
+
 			try {
-				// 从容器中获取beanName对应的GenericBeanDefinition对象,并将其转换为RootBeanDefinition对象
+				/**
+				 * 合并BeanDefinition对象
+				 *
+				 * 从容器中获取beanName对应的GenericBeanDefinition对象,并将其转换为RootBeanDefinition对象
+				 */
 				final RootBeanDefinition mbd = getMergedLocalBeanDefinition(beanName);
 				// 检查当前创建的BeanDefinition是不是抽象的
 				checkMergedBeanDefinition(mbd, beanName, args);
@@ -1424,6 +1427,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	}
 
 	/**
+	 * 从指定的BeanDefinition中解析Bean的Class
 	 * Resolve the bean class for the specified bean definition,
 	 * resolving a bean class name into a Class reference (if necessary)
 	 * and storing the resolved Class in the bean definition for further use.

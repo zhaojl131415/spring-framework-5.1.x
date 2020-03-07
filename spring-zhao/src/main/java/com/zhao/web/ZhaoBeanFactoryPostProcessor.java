@@ -46,8 +46,8 @@ public class ZhaoBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
 	 */
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-//		AbstractBeanDefinition beanDefinition = (AbstractBeanDefinition) beanFactory.getBeanDefinition("commodityService");
-//		beanDefinition.setBeanClass(OrderService.class);
+		AbstractBeanDefinition beanDefinition = (AbstractBeanDefinition) beanFactory.getBeanDefinition("commodityService");
+		beanDefinition.setBeanClass(OrderService.class);
 		System.out.println("---------");
 	}
 }

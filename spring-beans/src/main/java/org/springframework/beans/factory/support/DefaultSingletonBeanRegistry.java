@@ -71,9 +71,23 @@ import org.springframework.util.StringUtils;
 public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements SingletonBeanRegistry {
 
     // Spring的三级缓存
+
 	// 1、singletonObjects 单例池，spring bean实例化完成了，存入单例池，需要就去get
-	// 2、singletonFactories 为了解决循环依赖，提前暴露一个工厂
-	// 3、earlySingletonObjects 效率问题，因为spring bean是单例的，所以不用去二级缓存中通过工厂创建，可以在三级缓存中取
+
+	// 2、singletonFactories 单例工厂: 为了解决循环依赖，提前暴露一个工厂
+	// 单例工厂中缓存了对应的单例对象（IndexService），所以工厂能生产这个对象（IndexService），
+	// 在生产对象（IndexService）对象之前可以做一些事情，比如代理（aop），
+	// 如果缓存的是对象（IndexService），我们需要用的时候只能原封不动的拿出来，而不能对他进行改造，
+	// 单例工厂的作用就在于在需要的时候可以进行改造。
+
+	// 3、earlySingletonObjects 早期对象java object: 效率问题，
+	// java object，通过二级缓存中的工厂生成的Object，
+	// 作用在于效率问题，因为spring bean是单例的，所以不用去二级缓存中通过工厂创建，可以在三级缓存中取
+	// 防止循环引用时二级缓存中的工厂重复创建对象，生成的对象如果每次都要去代理会很麻烦，
+	// 如果需要被代理aop，工厂一次性就全部代理了，生成了新的Object之后，
+	// 加入三级缓存，单例工厂则从二级缓存中移除。
+	// 只有当object执行完生命周期成为spring bean之后才存入一级缓存中。
+
 	/** Cache of singleton objects: bean name to bean instance. 单例对象的缓存:key：bean名，value：bean实例。*/
 	// 一级缓存：单例缓存池：正常情况下，所有单例bean被容器初始化完成之后，缓存在这个map中
 	private final Map<String, Object> singletonObjects = new ConcurrentHashMap<>(256);
@@ -203,8 +217,10 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 				 */
 				singletonObject = this.earlySingletonObjects.get(beanName);
 				// allowEarlyReference 是否允许循环依赖
+				// 如 singletonObject 为空, 且允许循环依赖
 				if (singletonObject == null && allowEarlyReference) {
 					// 获取二级缓存中的工厂
+					// 二级缓存是在bean创建时, 如果允许循环依赖时加入进来的.
 					ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
 					if (singletonFactory != null) {
 						// 通过二级缓存的工厂接口实现类创建一个bean

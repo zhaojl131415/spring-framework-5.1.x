@@ -16,8 +16,8 @@ import org.springframework.stereotype.Component;
 @Aspect
 public class ZhaoAspect {
 
-//	@Pointcut("execution(* com.zhao..*.*)")
-	@Pointcut("within(com.zhao.service.UserService)")
+	@Pointcut("execution(* com.zhao..*.*)")
+//	@Pointcut("within(com.zhao.service.UserService)")
 	public void pointcut() {
 
 	}
