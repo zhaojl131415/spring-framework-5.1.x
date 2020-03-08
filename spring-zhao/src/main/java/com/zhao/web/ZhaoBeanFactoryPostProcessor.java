@@ -33,7 +33,7 @@ import org.springframework.stereotype.Component;
  * 14、put单例池容器
  *
  */
-@Component
+//@Component
 public class ZhaoBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
 	/**
 	 * Modify the application context's internal bean factory after its standard

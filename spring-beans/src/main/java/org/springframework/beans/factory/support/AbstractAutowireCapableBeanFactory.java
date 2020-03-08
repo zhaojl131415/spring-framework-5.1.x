@@ -1884,7 +1884,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		try {
-			// 执行InitializingBean, 初始化 xml中指定的: init-method = "XXX" 方法
+			// 执行实现InitializingBean接口中的afterPropertiesSet(), 初始化 xml中指定的: init-method = "XXX" 方法
 			invokeInitMethods(beanName, wrappedBean, mbd);
 		}
 		catch (Throwable ex) {

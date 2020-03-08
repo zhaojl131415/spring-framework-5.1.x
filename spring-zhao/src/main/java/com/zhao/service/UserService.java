@@ -19,7 +19,7 @@ import javax.annotation.PostConstruct;
  * @description TODO
  * @date 2020-01-07 17:33
  */
-@Component
+//@Component
 //@Lazy
 //@DependsOn
 public class UserService implements ApplicationContextAware, InitializingBean, BeanNameAware {

@@ -1,6 +1,8 @@
 package com.zhao.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Lookup;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 /**
@@ -13,16 +15,36 @@ import org.springframework.stereotype.Component;
 public class CommodityService {
 
 	@Autowired
-	UserService userService;
+//	Service service;
+	Service service1;
+//	Service service2;
 
-
-	public CommodityService() {
-		System.out.println("CommodityService create");
+	public void test() {
+//		System.out.println(service);
+		System.out.println(service1);
+//		System.out.println(service2);
 	}
 
+//	public CommodityService() {
+//		System.out.println("CommodityService create");
+//	}
+//
+//	@Lookup
+//	public abstract OrderService orderAbc();
+//
+//	public void testOrderScope() {
+//		System.out.println(orderAbc().hashCode());
+//	}
 
-	public void testAop() {
-		System.out.println("commodity test aop");
-		userService.testAop();
-	}
+
+
+
+
+//	@Autowired
+//	UserService userService;
+//
+//	public void testAop() {
+//		System.out.println("commodity test aop");
+//		userService.testAop();
+//	}
 }

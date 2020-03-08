@@ -1,6 +1,7 @@
 package com.zhao.test;
 
 import com.zhao.config.AppConfig;
+import com.zhao.factoryBean.Z;
 import com.zhao.service.CommodityService;
 import com.zhao.service.OrderService;
 import com.zhao.service.UserService;
@@ -15,15 +16,21 @@ import org.springframework.context.support.GenericApplicationContext;
  * @date 2020-01-07 17:37
  */
 public class Test {
-
 	public static void main(String[] args) throws BeansException {
 		// spring 上下文初始化，扫描并实例化spring bean
 		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
+		System.out.println(ac.getBean("zhaoFactoryBean"));
+		System.out.println(ac.getBean("zhaoFactoryBean"));
+		System.out.println(ac.getBean("zhaoFactoryBean"));
+		System.out.println(ac.getBean("&zhaoFactoryBean"));
 
+//		ac.getBean(CommodityService.class).testOrderScope();
+//		ac.getBean(CommodityService.class).testOrderScope();
 		/**
 		 * 相当于上一行代码
 		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext();
 		ac.register(AppConfig.class);
+		ac.getBeanFactory().registerSingleton("z", new Z());
 		ac.refresh();
 		 */
 
@@ -41,7 +48,7 @@ public class Test {
 		 */
 
 //		System.out.println(ac.getBean(OrderService.class));
-		System.out.println(ac.getBean(UserService.class));
+//		System.out.println(ac.getBean(UserService.class));
 //		System.out.println(ac.getBean(CommodityService.class));
 
 

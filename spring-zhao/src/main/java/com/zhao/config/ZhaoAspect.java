@@ -13,10 +13,10 @@ import org.springframework.stereotype.Component;
  * @date 2020-01-17 15:29
  */
 @Component
-@Aspect
+//@Aspect
 public class ZhaoAspect {
 
-	@Pointcut("execution(* com.zhao..*.*)")
+	@Pointcut("execution(* com.zhao..*.* ())")
 //	@Pointcut("within(com.zhao.service.UserService)")
 	public void pointcut() {
 
