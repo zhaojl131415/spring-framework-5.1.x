@@ -17,12 +17,17 @@ import org.springframework.context.support.GenericApplicationContext;
  */
 public class Test {
 	public static void main(String[] args) throws BeansException {
+
+
+
+
+
 		// spring 上下文初始化，扫描并实例化spring bean
 		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
-		System.out.println(ac.getBean("zhaoFactoryBean"));
-		System.out.println(ac.getBean("zhaoFactoryBean"));
-		System.out.println(ac.getBean("zhaoFactoryBean"));
-		System.out.println(ac.getBean("&zhaoFactoryBean"));
+//		System.out.println(ac.getBean("zhaoFactoryBean"));
+//		System.out.println(ac.getBean("zhaoFactoryBean"));
+//		System.out.println(ac.getBean("zhaoFactoryBean"));
+//		System.out.println(ac.getBean("&zhaoFactoryBean"));
 
 //		ac.getBean(CommodityService.class).testOrderScope();
 //		ac.getBean(CommodityService.class).testOrderScope();
