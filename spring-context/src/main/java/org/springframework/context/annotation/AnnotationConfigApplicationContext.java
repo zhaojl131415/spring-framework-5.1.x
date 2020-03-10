@@ -53,7 +53,10 @@ import org.springframework.util.Assert;
  */
 public class AnnotationConfigApplicationContext extends GenericApplicationContext implements AnnotationConfigRegistry {
 
-	/** 注解bean定义读取器，主要作用是用来读取被注解的了bean **/
+	/**
+	 * 注解bean定义读取器，主要作用是用来读取被注解的了bean
+	 * AnnotatedGenericBeanDefinition
+	 */
 	private final AnnotatedBeanDefinitionReader reader;
 
 	/** 扫描器，它仅仅是在我们外部手动调用 .scan 等方法才有用，常规方式是不会用到scanner对象的 **/

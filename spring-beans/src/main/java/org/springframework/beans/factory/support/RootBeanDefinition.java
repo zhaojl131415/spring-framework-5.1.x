@@ -50,6 +50,13 @@ import org.springframework.util.Assert;
  * @author Juergen Hoeller
  * @see GenericBeanDefinition
  * @see ChildBeanDefinition
+ *
+ *
+ * 与ChildBeanDefinition一起使用
+ * 可以作为父BD(RootBeanDefinition)出现,也可以作为真实的BD,但是不能作为子BD,所以才有了子BD(ChildBeanDefinition)
+ * 为什么RootBeanDefinition不能作为子BD出现?
+ * 1 如果给RootBeanDefinition设置父BD,会抛异常(见org.springframework.beans.factory.support.RootBeanDefinition#setParentName(java.lang.String)方法)
+ * 2
  */
 @SuppressWarnings("serial")
 public class RootBeanDefinition extends AbstractBeanDefinition {

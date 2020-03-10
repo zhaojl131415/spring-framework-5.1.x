@@ -2,10 +2,12 @@ package com.zhao.test;
 
 import com.zhao.config.AppConfig;
 import com.zhao.factoryBean.Z;
-import com.zhao.service.CommodityService;
-import com.zhao.service.OrderService;
-import com.zhao.service.UserService;
+import com.zhao.service.*;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
+import org.springframework.beans.factory.support.ChildBeanDefinition;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 
@@ -14,16 +16,43 @@ import org.springframework.context.support.GenericApplicationContext;
  * @version 1.0
  * @description TODO
  * @date 2020-01-07 17:37
- */
-public class Test {
+ */public class Test {
 	public static void main(String[] args) throws BeansException {
+		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext();
+		ac.register(AppConfig.class);
+
+		RootBeanDefinition rbd = new RootBeanDefinition();
+		rbd.setScope(BeanDefinition.SCOPE_SINGLETON);
+		rbd.setLazyInit(false);
+		rbd.setAutowireCandidate(true);
+		rbd.setPrimary(false);
+		rbd.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_NO);
+		rbd.setAbstract(true);
+		ac.registerBeanDefinition("rbd", rbd);
+
+		ChildBeanDefinition bdA = new ChildBeanDefinition("rbd");
+		bdA.setBeanClass(AService.class);
+		ac.registerBeanDefinition("aService", bdA);
+
+		ChildBeanDefinition bdB = new ChildBeanDefinition("rbd");
+		bdB.setBeanClass(BService.class);
+		ac.registerBeanDefinition("bService", bdB);
+
+		ChildBeanDefinition bdC = new ChildBeanDefinition("aService");
+		bdC.setBeanClass(CService.class);
+		ac.registerBeanDefinition("cService", bdC);
+
+		ac.refresh();
+
+		System.out.println(ac.getBean("aService"));
+		System.out.println(ac.getBean("bService"));
+		System.out.println(ac.getBean("cService"));
 
 
-
-
+//		System.out.println(ac.getBean(UserService.class));
 
 		// spring 上下文初始化，扫描并实例化spring bean
-		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
+//		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
 //		System.out.println(ac.getBean("zhaoFactoryBean"));
 //		System.out.println(ac.getBean("zhaoFactoryBean"));
 //		System.out.println(ac.getBean("zhaoFactoryBean"));

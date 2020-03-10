@@ -89,6 +89,20 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 
 	/**
 	 * 设置父BeanDefinition名字
+	 * 只要用于ChildBeanDefinition上指定RootBeanDefinition
+	 *
+	 *       RootBeanDefinition rbd = new RootBeanDefinition();
+	 *       rbd.setScope(BeanDefinition.SCOPE_SINGLETON);
+	 *       rbd.setLazyInit(false);
+	 *       rbd.setAutowireCandidate(true);
+	 *       rbd.setPrimary(false);
+	 *       rbd.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_NO);
+	 *       ac.registerBeanDefinition("rbd", rbd);
+	 *
+	 *       ChildBeanDefinition bdA = new ChildBeanDefinition("rbd");
+	 *       bdA.setBeanClass(AService.class);
+	 *       ac.registerBeanDefinition("aService", bdA);
+	 *
 	 * Set the name of the parent definition of this bean definition, if any.
 	 */
 	void setParentName(@Nullable String parentName);
@@ -240,8 +254,15 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	String getFactoryMethodName();
 
 	/**
+	 * 通过xml可以指定:<constructor-arg name="id" value="1"/>或<constructor-arg index="0" value="1"/>
+	 * 示例:
+	 * <bean id="aService" class="com.zhao.AService">
+	 *     <constructor-arg index="0" value="1"/> index:表示构造函数参数的下标
+	 *     <constructor-arg name="name" value="zhao"/> name:表示构造函数参数的名称
+	 * </bean>
+	 * 注解方式还不知道怎么指定
 	 *
-	 * 构造函数参数
+	 * 获取给构造函数的各个参数指定的值
 	 * Return the constructor argument values for this bean.
 	 * <p>The returned instance can be modified during bean factory post-processing.
 	 * @return the ConstructorArgumentValues object (never {@code null})
@@ -249,6 +270,7 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	ConstructorArgumentValues getConstructorArgumentValues();
 
 	/**
+	 * 获取是否给构造函数的各个参数指定值
 	 * Return if there are constructor argument values defined for this bean.
 	 * @since 5.0.2
 	 */
@@ -257,6 +279,12 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	}
 
 	/**
+	 * 获取给属性指定的值
+	 * xml:
+	 * <bean id="aService" class="com.zhao.AService">
+	 *     <property name="name" value="zhao"></property>
+	 * </bean>
+	 * 注解: @Value
 	 * Return the property values to be applied to a new instance of the bean.
 	 * <p>The returned instance can be modified during bean factory post-processing.
 	 * @return the MutablePropertyValues object (never {@code null})
@@ -264,6 +292,7 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	MutablePropertyValues getPropertyValues();
 
 	/**
+	 * 获取是否给属性指定值
 	 * Return if there are property values values defined for this bean.
 	 * @since 5.0.2
 	 */
@@ -272,12 +301,14 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	}
 
 	/**
+	 * 设置初始化方法名
 	 * Set the name of the initializer method.
 	 * @since 5.1
 	 */
 	void setInitMethodName(@Nullable String initMethodName);
 
 	/**
+	 * 获取初始化方法名
 	 * Return the name of the initializer method.
 	 * @since 5.1
 	 */
@@ -285,12 +316,14 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	String getInitMethodName();
 
 	/**
+	 * 设置销毁方法名
 	 * Set the name of the destroy method.
 	 * @since 5.1
 	 */
 	void setDestroyMethodName(@Nullable String destroyMethodName);
 
 	/**
+	 * 获取销毁方法名
 	 * Return the name of the destroy method.
 	 * @since 5.1
 	 */
@@ -319,12 +352,14 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	int getRole();
 
 	/**
+	 * 设置描述 @Description()
 	 * Set a human-readable description of this bean definition.
 	 * @since 5.1
 	 */
 	void setDescription(@Nullable String description);
 
 	/**
+	 * 获取对类的描述
 	 * Return a human-readable description of this bean definition.
 	 */
 	@Nullable
@@ -334,6 +369,7 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	// Read-only attributes
 
 	/**
+	 * 判断是否单例
 	 * Return whether this a <b>Singleton</b>, with a single, shared instance
 	 * returned on all calls.
 	 * @see #SCOPE_SINGLETON
@@ -341,6 +377,7 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	boolean isSingleton();
 
 	/**
+	 * 判断是否原型
 	 * Return whether this a <b>Prototype</b>, with an independent instance
 	 * returned for each call.
 	 * @since 3.0
@@ -349,11 +386,15 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	boolean isPrototype();
 
 	/**
+	 * 判断是否抽象,
+	 * bd存在的意义是为了实例化一个bean出来, 抽象类不能直接通过new实例化
+	 * @LookUp ???
 	 * Return whether this bean is "abstract", that is, not meant to be instantiated.
 	 */
 	boolean isAbstract();
 
 	/**
+	 * 获取对文件的描述
 	 * Return a description of the resource that this bean definition
 	 * came from (for the purpose of showing context in case of errors).
 	 */
@@ -361,6 +402,7 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	String getResourceDescription();
 
 	/**
+	 *
 	 * Return the originating BeanDefinition, or {@code null} if none.
 	 * Allows for retrieving the decorated bean definition, if any.
 	 * <p>Note that this method returns the immediate originator. Iterate through the

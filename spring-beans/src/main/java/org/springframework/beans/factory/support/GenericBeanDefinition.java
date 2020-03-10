@@ -36,6 +36,13 @@ import org.springframework.util.ObjectUtils;
  * @see #setParentName
  * @see RootBeanDefinition
  * @see ChildBeanDefinition
+ *
+ * 可以替换掉ChildBeanDefinition,但是不能替换掉RootBeanDefinition
+ * 这里跟spring初始化时,BD合并有关
+ * 因为mergeBD必须要RootBeanDefinition接收
+ * RootBeanDefinition bd = getMergedLocalBeanDefinition(beanName);
+ *
+ * 既可以作为父BD,也可以作为子BD
  */
 @SuppressWarnings("serial")
 public class GenericBeanDefinition extends AbstractBeanDefinition {

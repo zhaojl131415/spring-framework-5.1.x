@@ -53,6 +53,8 @@ import org.springframework.util.StringUtils;
  * @see GenericBeanDefinition
  * @see RootBeanDefinition
  * @see ChildBeanDefinition
+ *
+ * BeanDefinition的模板类,类似于AQS的意义
  */
 @SuppressWarnings("serial")
 public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccessor
@@ -129,6 +131,30 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	public static final int DEPENDENCY_CHECK_ALL = 3;
 
 	/**
+	 * 在没有setDestroyMethodName中没有指定销毁方法名,而是指定为INFER_METHOD,
+	 * 尝试推断方法名,如果存在 "close" and "shutdown"方法,即默认指定为销毁方法
+	 * 可以通过实现后置处理器BeanDefinitionPostProcessor接口重写方法调用:
+	 * @Component
+	 * public class CommodityService {
+	 * 	// 本来可以通过@PreDestroy显示指定,这里演示的是没有通过@PreDestroy显示指定, 而通过INFER_METHOD默认匹配close,
+	 * 	// 感觉很鸡肋,
+	 * 	1 本身一个注解就可以解决的事儿,
+	 * 	2 而且就算是没有注解, 通过后置处理器一样显示指定方法名也可以, 没必要通过这个常量去匹配方法名一定要 "close" and "shutdown"
+	 *  // @PreDestroy
+	 * 	public void close() {
+	 * 		System.out.println("close");
+	 * 	}
+	 * }
+	 *
+	 * @Component
+	 * public class ZhaoBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
+	 * 	@Override
+	 * 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+	 * 		BeanDefinition beanDefinition = (BeanDefinition) beanFactory.getBeanDefinition("commodityService");
+	 * 		beanDefinition.setDestroyMethodName(AbstractBeanDefinition.INFER_METHOD);
+	 * 	}
+	 * }
+	 *
 	 * Constant that indicates the container should attempt to infer the
 	 * {@link #setDestroyMethodName destroy method name} for a bean as opposed to
 	 * explicit specification of a method name. The value {@value} is specifically
@@ -526,6 +552,10 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	}
 
 	/**
+	 * 当前类是个抽象类,它的继承类既可以作为BeanDefinition模板,也可以作为一个真实的BeanDefinition
+	 *
+	 * 见有道云笔记: http://note.youdao.com/noteshare?id=7e2dfba4d5a3bec00214f1ec323a8347
+	 *
 	 * Set if this bean is "abstract", i.e. not meant to be instantiated itself but
 	 * rather just serving as parent for concrete child bean definitions.
 	 * <p>Default is "false". Specify true to tell the bean factory to not try to

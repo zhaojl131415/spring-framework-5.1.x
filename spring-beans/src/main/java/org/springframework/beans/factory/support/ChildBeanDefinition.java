@@ -42,10 +42,19 @@ import org.springframework.util.ObjectUtils;
  * @author Juergen Hoeller
  * @see GenericBeanDefinition
  * @see RootBeanDefinition
+ *
+ *
+ * 可能会被GenericBeanDefinition替代
+ * 不能单纯的定义一个bean,必须要指定一个父BD,不能作为最顶层的父BD
  */
 @SuppressWarnings("serial")
 public class ChildBeanDefinition extends AbstractBeanDefinition {
 
+	/**
+	 * 父bd的名字
+	 * 这个值在当前这个类里面一般都是通过构造方法设置的, 没有提供无参的构造方法
+	 * 这是ChildBeanDefinition最大的局限性
+	 */
 	@Nullable
 	private String parentName;
 

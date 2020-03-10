@@ -35,19 +35,9 @@ import org.springframework.stereotype.Component;
  */
 //@Component
 public class ZhaoBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
-	/**
-	 * Modify the application context's internal bean factory after its standard
-	 * initialization. All bean definitions will have been loaded, but no beans
-	 * will have been instantiated yet. This allows for overriding or adding
-	 * properties even to eager-initializing beans.
-	 *
-	 * @param beanFactory the bean factory used by the application context
-	 * @throws BeansException in case of errors
-	 */
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		AbstractBeanDefinition beanDefinition = (AbstractBeanDefinition) beanFactory.getBeanDefinition("commodityService");
-		beanDefinition.setBeanClass(OrderService.class);
-		System.out.println("---------");
+		BeanDefinition beanDefinition = (BeanDefinition) beanFactory.getBeanDefinition("commodityService");
+		beanDefinition.setDestroyMethodName(AbstractBeanDefinition.INFER_METHOD);
 	}
 }

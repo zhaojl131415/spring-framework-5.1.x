@@ -3,7 +3,11 @@ package com.zhao.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Lookup;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Description;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PreDestroy;
+import java.beans.ConstructorProperties;
 
 /**
  * @author zhaojinliang
@@ -13,36 +17,19 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class CommodityService {
-
-	@Autowired
-//	Service service;
-	Service service1;
-//	Service service2;
-
-	public void test() {
-//		System.out.println(service);
-		System.out.println(service1);
-//		System.out.println(service2);
+	@PreDestroy
+	public void close() {
+		System.out.println("close");
 	}
-
-//	public CommodityService() {
-//		System.out.println("CommodityService create");
-//	}
-//
-//	@Lookup
-//	public abstract OrderService orderAbc();
-//
-//	public void testOrderScope() {
-//		System.out.println(orderAbc().hashCode());
-//	}
-
-
-
-
 
 //	@Autowired
 //	UserService userService;
-//
+
+
+//	public CommodityService(UserService userService) {
+//		this.userService = userService;
+//	}
+
 //	public void testAop() {
 //		System.out.println("commodity test aop");
 //		userService.testAop();
