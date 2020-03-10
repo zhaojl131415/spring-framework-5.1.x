@@ -52,6 +52,8 @@ public interface ClassMetadata {
 	boolean isAbstract();
 
 	/**
+	 * 返回底层类是否代表一个具体类，既不是接口也不是抽象类。
+	 * 跟mybatis相关
 	 * Return whether the underlying class represents a concrete class,
 	 * i.e. neither an interface nor an abstract class.
 	 */
@@ -63,6 +65,7 @@ public interface ClassMetadata {
 	boolean isFinal();
 
 	/**
+	 * 判断类是否独立 是否为顶级类或嵌套内部静态类
 	 * Determine whether the underlying class is independent, i.e. whether
 	 * it is a top-level class or a nested class (static inner class) that
 	 * can be constructed independently from an enclosing class.

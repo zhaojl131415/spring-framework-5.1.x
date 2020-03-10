@@ -53,6 +53,13 @@ final class PostProcessorRegistrationDelegate {
 	}
 
 
+	/**
+	 * 执行bean工厂后置处理器
+	 *
+	 * 先执行spring内置的，然后执行自定义的
+	 * @param beanFactory
+	 * @param beanFactoryPostProcessors
+	 */
 	public static void invokeBeanFactoryPostProcessors(
 			ConfigurableListableBeanFactory beanFactory, List<BeanFactoryPostProcessor> beanFactoryPostProcessors) {
 
@@ -62,13 +69,15 @@ final class PostProcessorRegistrationDelegate {
 
 		if (beanFactory instanceof BeanDefinitionRegistry) {
 			BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
-			// 存放BeanFactoryPostProcessor
+			// 存放自定义的BeanFactoryPostProcessor
 			List<BeanFactoryPostProcessor> regularPostProcessors = new ArrayList<>();
 			// 存放BeanDefinitionRegistryPostProcessor和内置的BeanFactoryPostProcessor
 			List<BeanDefinitionRegistryPostProcessor> registryProcessors = new ArrayList<>();
 			// 方法调用时候传进来的List<BeanFactoryPostProcessor> 一般没有
 			// 这里如果是通过api直接提供的才会有
 			for (BeanFactoryPostProcessor postProcessor : beanFactoryPostProcessors) {
+				// 判断是否spring内置bean工厂内置处理器
+				// 如果有自定义的类实现了BeanDefinitionRegistryPostProcessor，先执行谁的？看order
 				if (postProcessor instanceof BeanDefinitionRegistryPostProcessor) {
 					BeanDefinitionRegistryPostProcessor registryProcessor =
 							(BeanDefinitionRegistryPostProcessor) postProcessor;
@@ -138,7 +147,9 @@ final class PostProcessorRegistrationDelegate {
 			}
 
 			// Now, invoke the postProcessBeanFactory callback of all processors handled so far.
+			// 执行spring内置的Bean工厂后置处理器
 			invokeBeanFactoryPostProcessors(registryProcessors, beanFactory);
+			// 执行自定义的Bean工厂后置处理器
 			invokeBeanFactoryPostProcessors(regularPostProcessors, beanFactory);
 		}
 

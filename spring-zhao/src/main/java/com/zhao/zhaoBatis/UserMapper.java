@@ -8,9 +8,9 @@ package com.zhao.zhaoBatis;
  */
 public interface UserMapper {
 
-	@Select("select * from user")
+	@ZhaoSelect("select * from user")
 	public void queryUser();
 
-	@Select("select * from order")
+	@ZhaoSelect("select * from order")
 	public void queryOrder();
 }

@@ -29,6 +29,9 @@ import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
  * @author Juergen Hoeller
  * @since 3.0.1
  * @see org.springframework.context.annotation.ConfigurationClassPostProcessor
+ *
+ * 执行时机：是在还没有完成扫描之前就开始执行了，
+ * 如果有什么需要在spring完成扫描之前做的事，可以通过实现这个接口
  */
 public interface BeanDefinitionRegistryPostProcessor extends BeanFactoryPostProcessor {
 

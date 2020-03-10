@@ -1,5 +1,8 @@
 package com.zhao.zhaoBatis;
 
+import com.zhao.config.AppConfig;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
 /**
  * @author zhaojinliang
  * @version 1.0
@@ -9,12 +12,21 @@ package com.zhao.zhaoBatis;
 public class ZhaoBatisTest {
 
 	public static void main(String[] args) {
-		// 能够得到一个实现了UserMapper的代理对象
-		UserMapper userMapper = (UserMapper) ZhaoBatisFactory.getMapper(UserMapper.class);
+		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext();
+		ac.register(AppConfig.class);
+		ac.refresh();
 
-		// 完成了查询
-		userMapper.queryUser();
-		// 完成了查询
-		userMapper.queryOrder();
+		ZhaoScanner scanner = new ZhaoScanner(ac);
+		scanner.addIncludeFilter(null);
+		int scan = scanner.scan("com.zhao.zhaoBatis");
+		System.out.println(scan);
+
+//		// 能够得到一个实现了UserMapper的代理对象
+//		UserMapper userMapper = (UserMapper) ZhaoBatisFactory.getMapper(UserMapper.class);
+//
+//		// 完成了查询
+//		userMapper.queryUser();
+//		// 完成了查询
+//		userMapper.queryOrder();
 	}
 }

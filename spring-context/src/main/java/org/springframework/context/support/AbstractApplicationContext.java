@@ -543,7 +543,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				// Invoke factory processors registered as beans in the context.
 				/**
 				 * 扫描 --> class -->  BeanDefinition --> put beanDefinitionMap
-				 * 执行自定义和spring内置的BeanFactoryProcessor（bean的工厂后置处理器）
+				 * 执行spring内置和自定义的BeanFactoryProcessor（bean的工厂后置处理器）
 				 */
 				invokeBeanFactoryPostProcessors(beanFactory);
 

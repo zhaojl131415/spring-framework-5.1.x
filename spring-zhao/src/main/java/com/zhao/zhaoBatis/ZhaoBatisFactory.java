@@ -23,7 +23,7 @@ public class ZhaoBatisFactory {
 					// 数据库连接和查询伪代码实现
 					System.out.println("conn db");
 
-					String sql = method.getAnnotation(Select.class).value();
+					String sql = method.getAnnotation(ZhaoSelect.class).value();
 
 					System.out.println(sql);
 

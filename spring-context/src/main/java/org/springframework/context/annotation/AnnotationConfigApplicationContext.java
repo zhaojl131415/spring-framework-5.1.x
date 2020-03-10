@@ -70,9 +70,12 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	public AnnotationConfigApplicationContext() {
 		//会隐式调用父类的构造方法，初始化DefaultListableBeanFactory
 
-		//初始化一个Bean读取器
+		//初始化一个Bean读取器,AnnotatedGenericBeanDefinition读取并解析AppConfig出BeanDefinition,存入BeanDefinitionMap
+		// AppConfig包含一些包路径扫描信息，得到这些信息才能扫描这些路径下的bean
+		// AnnotatedBeanDefinitionReader其实就是封装了一个AnnotatedGenericBeanDefinition去读取需要注册的bean
 		this.reader = new AnnotatedBeanDefinitionReader(this);
-		//初始化一个扫描器，它仅仅是在我们外部手动调用 .scan 等方法才有用，常规方式是不会用到scanner对象的
+		//初始化一个扫描器，它仅仅是在我们外部手动调用 ac.scan 等方法才有用，常规方式是不会用到scanner对象的，
+		// 等同于@ComponentScan("com.zhao")
 		this.scanner = new ClassPathBeanDefinitionScanner(this);
 	}
 
