@@ -51,6 +51,7 @@ abstract class ConfigurationClassUtils {
 
 	private static final String CONFIGURATION_CLASS_LITE = "lite";
 
+	// ConfigurationClassPostProcessor的全限定名 + "." + "configurationClass"
 	private static final String CONFIGURATION_CLASS_ATTRIBUTE =
 			Conventions.getQualifiedAttributeName(ConfigurationClassPostProcessor.class, "configurationClass");
 
@@ -85,9 +86,12 @@ abstract class ConfigurationClassUtils {
 		if (className == null || beanDef.getFactoryMethodName() != null) {
 			return false;
 		}
-
+		// 存元数据信息
 		AnnotationMetadata metadata;
+		// 配置类的BD类型为：AnnotatedGenericBeanDefinition
+		// AnnotatedGenericBeanDefinition extends GenericBeanDefinition implements AnnotatedBeanDefinition
 		if (beanDef instanceof AnnotatedBeanDefinition &&
+				// 判断名字：可能内部类
 				className.equals(((AnnotatedBeanDefinition) beanDef).getMetadata().getClassName())) {
 			// Can reuse the pre-parsed metadata from the given BeanDefinition...
 			metadata = ((AnnotatedBeanDefinition) beanDef).getMetadata();
@@ -111,10 +115,11 @@ abstract class ConfigurationClassUtils {
 				return false;
 			}
 		}
-
+		// 判断是否全配置类 setAttribute = full
 		if (isFullConfigurationCandidate(metadata)) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
 		}
+		// setAttribute = lite
 		else if (isLiteConfigurationCandidate(metadata)) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_LITE);
 		}
@@ -123,6 +128,7 @@ abstract class ConfigurationClassUtils {
 		}
 
 		// It's a full or lite configuration candidate... Let's determine the order value, if any.
+		// 它是一个完整的或精简的配置候选…我们来确定一下排序值，如果有的话。
 		Integer order = getOrder(metadata);
 		if (order != null) {
 			beanDef.setAttribute(ORDER_ATTRIBUTE, order);
@@ -189,8 +195,10 @@ abstract class ConfigurationClassUtils {
 	/**
 	 * Determine whether the given bean definition indicates a full {@code @Configuration}
 	 * class, through checking {@link #checkConfigurationClassCandidate}'s metadata marker.
+	 * 通过检查{#checkConfigurationClassCandidate}的元数据标记，确定给定的bean定义是否指示完整的{@Configuration}类。
 	 */
 	public static boolean isFullConfigurationClass(BeanDefinition beanDef) {
+		// BeanDefinition extends AttributeAccessor, BeanMetadataElement
 		return CONFIGURATION_CLASS_FULL.equals(beanDef.getAttribute(CONFIGURATION_CLASS_ATTRIBUTE));
 	}
 

@@ -73,6 +73,9 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		//初始化一个Bean读取器,AnnotatedGenericBeanDefinition读取并解析AppConfig出BeanDefinition,存入BeanDefinitionMap
 		// AppConfig包含一些包路径扫描信息，得到这些信息才能扫描这些路径下的bean
 		// AnnotatedBeanDefinitionReader其实就是封装了一个AnnotatedGenericBeanDefinition去读取需要注册的bean
+
+		// 初始化后置处理器放入bdmap中，在AnnotatedBeanDefinitionReader初始化函数中
+		// 调用AnnotationConfigUtils.registerAnnotationConfigProcessors把spring后置处理器放入bdmap中
 		this.reader = new AnnotatedBeanDefinitionReader(this);
 		//初始化一个扫描器，它仅仅是在我们外部手动调用 ac.scan 等方法才有用，常规方式是不会用到scanner对象的，
 		// 等同于@ComponentScan("com.zhao")

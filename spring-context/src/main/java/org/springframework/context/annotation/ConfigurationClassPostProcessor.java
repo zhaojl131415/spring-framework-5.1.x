@@ -218,9 +218,12 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 
 	/**
 	 * Derive further bean definitions from the configuration classes in the registry.
+	 *
+	 * 从registry中的配置类（AppConfig.class）中
 	 */
 	@Override
 	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) {
+		// 生成系统id，表示唯一id
 		int registryId = System.identityHashCode(registry);
 		if (this.registriesPostProcessed.contains(registryId)) {
 			throw new IllegalStateException(
@@ -231,7 +234,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 					"postProcessBeanFactory already called on this post-processor against " + registry);
 		}
 		this.registriesPostProcessed.add(registryId);
-
+		//
 		processConfigBeanDefinitions(registry);
 	}
 
@@ -258,21 +261,37 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	}
 
 	/**
+	 * 基于register中的配置类（AppConfig.class）构建和验证配置模型。
 	 * Build and validate a configuration model based on the registry of
 	 * {@link Configuration} classes.
 	 */
 	public void processConfigBeanDefinitions(BeanDefinitionRegistry registry) {
 		List<BeanDefinitionHolder> configCandidates = new ArrayList<>();
+		// 获取所有内置的BeanDefinition名
+		// 这里肯定包含AnnotationConfigUtils.registerAnnotationConfigProcessors()中指定的那几个后置处理器对应的BD和配置类（AppConfig）的BD
 		String[] candidateNames = registry.getBeanDefinitionNames();
 
+		/**
+		 * 这里其实只要取出配置类就可以了，但是为什么要循环呢?
+		 * 因为首先spring并不知道配置类的名字，只能一个个遍历
+		 * 其次配置类可以是多个：这里如果注册多个就是多个配置类ac.register(AppConfig.class);
+ 		 */
 		for (String beanName : candidateNames) {
+			// 根据beanName去bdMap中获取BeanDefinition
 			BeanDefinition beanDef = registry.getBeanDefinition(beanName);
+			/**
+			 * 其实这里就是判断beanDef中有没有setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, "full或lite")
+			 * 第一次进来肯定都不是，会在 else if中的ConfigurationClassUtils.checkConfigurationClassCandidate中setAttribute
+			 */
+			// 判断bd是否为全配置类：full
 			if (ConfigurationClassUtils.isFullConfigurationClass(beanDef) ||
+					// 判断有没有被解析过 lite
 					ConfigurationClassUtils.isLiteConfigurationClass(beanDef)) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Bean definition has already been processed as a configuration class: " + beanDef);
 				}
 			}
+			// 检查配置类：判断spring有没有解析过
 			else if (ConfigurationClassUtils.checkConfigurationClassCandidate(beanDef, this.metadataReaderFactory)) {
 				configCandidates.add(new BeanDefinitionHolder(beanDef, beanName));
 			}
@@ -308,6 +327,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		}
 
 		// Parse each @Configuration class
+		// 解析每个@Configuration类
 		ConfigurationClassParser parser = new ConfigurationClassParser(
 				this.metadataReaderFactory, this.problemReporter, this.environment,
 				this.resourceLoader, this.componentScanBeanNameGenerator, registry);

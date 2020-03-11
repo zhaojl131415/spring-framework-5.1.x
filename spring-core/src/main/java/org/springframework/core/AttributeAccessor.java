@@ -21,11 +21,13 @@ import org.springframework.lang.Nullable;
 /**
  * Interface defining a generic contract for attaching and accessing metadata
  * to/from arbitrary objects.
+ * 接口，定义用于向任意对象附加和访问元数据的通用契约。
  *
  * @author Rob Harrop
  * @since 2.0
  *
  * 提供对BeanDefinition元数据操作的api
+ * 可以理解为维护了一个map
  */
 public interface AttributeAccessor {
 
@@ -41,6 +43,7 @@ public interface AttributeAccessor {
 	void setAttribute(String name, @Nullable Object value);
 
 	/**
+	 * 维护了一个map
 	 * Get the value of the attribute identified by {@code name}.
 	 * Return {@code null} if the attribute doesn't exist.
 	 * @param name the unique attribute key

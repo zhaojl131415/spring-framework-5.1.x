@@ -21,12 +21,12 @@ public class ZhaoBatisTest {
 		int scan = scanner.scan("com.zhao.zhaoBatis");
 		System.out.println(scan);
 
-//		// 能够得到一个实现了UserMapper的代理对象
-//		UserMapper userMapper = (UserMapper) ZhaoBatisFactory.getMapper(UserMapper.class);
-//
-//		// 完成了查询
-//		userMapper.queryUser();
-//		// 完成了查询
-//		userMapper.queryOrder();
+		// 能够得到一个实现了UserMapper的代理对象
+		UserMapper userMapper = (UserMapper) ZhaoBatisFactory.getMapper(UserMapper.class);
+
+		// 完成了查询
+		userMapper.queryUser();
+		// 完成了查询
+		userMapper.queryOrder();
 	}
 }

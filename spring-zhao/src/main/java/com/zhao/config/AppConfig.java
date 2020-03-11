@@ -1,6 +1,7 @@
 package com.zhao.config;
 
 import com.zhao.zhaoBatis.ZhaoMapper;
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
@@ -20,6 +21,7 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 //@Configurable
 @ComponentScan(basePackages ="com.zhao",
 		includeFilters = @Filter(ZhaoMapper.class))
+@MapperScan
 @EnableAspectJAutoProxy
 public class AppConfig {
 }

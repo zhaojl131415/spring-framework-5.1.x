@@ -74,7 +74,13 @@ class ComponentScanAnnotationParser {
 
 
 	public Set<BeanDefinitionHolder> parse(AnnotationAttributes componentScan, final String declaringClass) {
+		/**
+		 * 为什么不用applicationContext初始化方法中的那个this.scanner = new ClassPathBeanDefinitionScanner(this);,
+		 * 而要重新实例化一个?
+		 * spring提供给程序员用的是不允许改的，但是spring内部的扫描规则你可以配置。
+ 		 */
 		ClassPathBeanDefinitionScanner scanner = new ClassPathBeanDefinitionScanner(this.registry,
+				// @ComponentScan(value = "com.zhao", useDefaultFilters = false) 使用默认的过滤
 				componentScan.getBoolean("useDefaultFilters"), this.environment, this.resourceLoader);
 
 		Class<? extends BeanNameGenerator> generatorClass = componentScan.getClass("nameGenerator");
