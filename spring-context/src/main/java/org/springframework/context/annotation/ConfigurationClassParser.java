@@ -302,6 +302,7 @@ class ConfigurationClassParser {
 		}
 
 		// Process any @Import annotations 处理所有@Import注释
+		// mybatis @MapperScan注解中@Import(MapperScannerRegistrar.class)
 		processImports(configClass, sourceClass, getImports(sourceClass), true);
 
 		// Process any @ImportResource annotations 处理所有@ImportResource注释
@@ -578,7 +579,7 @@ class ConfigurationClassParser {
 						// 处理 ImportBeanDefinitionRegistrar 扩展点，主要是实例化
 						ImportBeanDefinitionRegistrar registrar =
 								BeanUtils.instantiateClass(candidateClass, ImportBeanDefinitionRegistrar.class);
-						// 实例化 ImportBeanDefinitionRegistrar 之后，判断是否有AwareMethods：
+						// 实例化 ImportBeanDefinitionRegistrar 之后，判断是否继承Aware接口, 执行AwareMethods：
 						// Mybatis 中 @MapperScan：MapperScannerRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoaderAware
 						ParserStrategyUtils.invokeAwareMethods(
 								registrar, this.environment, this.resourceLoader, this.registry);

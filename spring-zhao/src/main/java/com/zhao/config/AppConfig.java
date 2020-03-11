@@ -19,8 +19,10 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
  */
 // https://www.cnblogs.com/CodeBear/p/10336704.html
 //@Configurable
-@ComponentScan(basePackages ="com.zhao",
-		includeFilters = @Filter(ZhaoMapper.class))
+@ComponentScan(basePackages ="com.zhao"
+//		,useDefaultFilters = false
+//		,includeFilters = @Filter(ZhaoMapper.class)
+)
 @MapperScan
 @EnableAspectJAutoProxy
 public class AppConfig {

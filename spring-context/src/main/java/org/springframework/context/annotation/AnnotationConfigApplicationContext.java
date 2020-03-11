@@ -109,7 +109,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		this();
 		/**
 		 * 把传入的类进行注册，注册配置类等同于ac.register(AppConfig.class)
-		 * 这里有两个情况：1、传入传统的配置类 2、传入bean（虽然一般没有人会这么做）
+		 * 这里有两个情况：1、传入传统的配置类 2、传入bean（ac.register(ZhaoService.class);虽然一般没有人会这么做）
 		 * 看到后面会知道spring把传统的带上@Configuration的配置类称之为FULL配置类，不带@Configuration的称之为Lite配置类
 		 * 但是我们这里先把带上@Configuration的配置类称之为传统配置类，不带的称之为普通bean
 		 */

@@ -58,33 +58,39 @@ final class PostProcessorRegistrationDelegate {
 	 *
 	 * 先执行spring内置的，然后执行自定义的
 	 * @param beanFactory
-	 * @param beanFactoryPostProcessors
+	 * @param beanFactoryPostProcessors 一般情况没值, 有值一般也就两种类型, 这里如果是通过api直接提供的才会有, 比如:
+	 *                                  ac.addBeanFactoryPostProcessor(new ZhaoBeanFactoryPostProcessor());
+	 *                                  ac.addBeanFactoryPostProcessor(new ZhaoBeanDefinitionRegistryPostProcessor());
+	 *
 	 */
 	public static void invokeBeanFactoryPostProcessors(
 			ConfigurableListableBeanFactory beanFactory, List<BeanFactoryPostProcessor> beanFactoryPostProcessors) {
 
-		// Invoke BeanDefinitionRegistryPostProcessors first, if any.
+		// Invoke BeanDefinitionRegistryPostProcessors first, if any. 如果有的话，先调用BeanDefinitionRegistryPostProcessors。
 		// 所有存在的BeanDefinitionRegistryPostProcessors的名字
 		Set<String> processedBeans = new HashSet<>();
 
 		if (beanFactory instanceof BeanDefinitionRegistry) {
 			BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
-			// 存放自定义的BeanFactoryPostProcessor
+			// 存放自定义的BeanFactoryPostProcessor:现在不调用
 			List<BeanFactoryPostProcessor> regularPostProcessors = new ArrayList<>();
-			// 存放BeanDefinitionRegistryPostProcessor和内置的BeanFactoryPostProcessor
+			// 存放自定义的BeanDefinitionRegistryPostProcessor:现在就调用
+			// 存放所有spring内置的BeanFactoryPostProcessor
 			List<BeanDefinitionRegistryPostProcessor> registryProcessors = new ArrayList<>();
-			// 方法调用时候传进来的List<BeanFactoryPostProcessor> 一般没有
-			// 这里如果是通过api直接提供的才会有
+			// 方法调用时候传进来的List<BeanFactoryPostProcessor>, 方法传参处有详细说明
 			for (BeanFactoryPostProcessor postProcessor : beanFactoryPostProcessors) {
 				// 判断是否spring内置bean工厂内置处理器
-				// 如果有自定义的类实现了BeanDefinitionRegistryPostProcessor，先执行谁的？看order
+				// 如果有自定义的类实现了BeanDefinitionRegistryPostProcessor，先执行谁的？看Ordered
 				if (postProcessor instanceof BeanDefinitionRegistryPostProcessor) {
+					// 这里可能包含BeanDefinitionRegistry的子类
 					BeanDefinitionRegistryPostProcessor registryProcessor =
 							(BeanDefinitionRegistryPostProcessor) postProcessor;
+					// 执行自定义的BeanDefinitionRegistryPostProcessor.postProcessBeanDefinitionRegistry方法
 					registryProcessor.postProcessBeanDefinitionRegistry(registry);
 					registryProcessors.add(registryProcessor);
 				}
 				else {
+					// 不属于BeanDefinitionRegistryPostProcessor, 就属于BeanFactoryPostProcessor
 					regularPostProcessors.add(postProcessor);
 				}
 			}
@@ -101,6 +107,7 @@ final class PostProcessorRegistrationDelegate {
 
 			// First, invoke the BeanDefinitionRegistryPostProcessors that implement PriorityOrdered.
 			// 首先，调用实现PriorityOrdered的BeanDefinitionRegistryPostProcessors
+			// 通俗的讲 这一步就可以理解为找女朋友要找身材好的大长腿女孩
 			// 根据BeanDefinitionRegistryPostProcessor类型从BeanDefinitionMap中找到名字
 			// ConfigurationClassPostProcessor
 			String[] postProcessorNames =
@@ -119,7 +126,8 @@ final class PostProcessorRegistrationDelegate {
 			sortPostProcessors(currentRegistryProcessors, beanFactory);
 			// registryProcessors存的是已经找到的的类
 			registryProcessors.addAll(currentRegistryProcessors);
-			// 策略模式：执行的是 ConfigurationClassPostProcessor.postProcessBeanDefinitionRegistry, 完成扫描，扫描指定目录下的@Compent的bean
+			// 策略模式：执行的是 ConfigurationClassPostProcessor.postProcessBeanDefinitionRegistry
+			// 完成扫描，扫描指定目录下的@Compent的bean
 			invokeBeanDefinitionRegistryPostProcessors(currentRegistryProcessors, registry);
 			// 执行完，清空currentRegistryProcessors，给第二、三步用
 			currentRegistryProcessors.clear();
@@ -127,6 +135,7 @@ final class PostProcessorRegistrationDelegate {
 
 			// Next, invoke the BeanDefinitionRegistryPostProcessors that implement Ordered.
 			// 接下来，调用实现Ordered的BeanDefinitionRegistryPostProcessors
+			// 通俗的讲 这一步就可以理解为找大长腿女孩
 			postProcessorNames = beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
 			for (String ppName : postProcessorNames) {
 				// 这里还会找到第一步中找到的ConfigurationClassPostProcessor, 但是第一步中已经执行过了，所以这里要!processedBeans.contains(ppName)
@@ -148,6 +157,7 @@ final class PostProcessorRegistrationDelegate {
 
 			// Finally, invoke all other BeanDefinitionRegistryPostProcessors until no further ones appear.
 			// 最后，调用所有其他的BeanDefinitionRegistryPostProcessors实现类，直到没有。
+			// 通俗的讲 这一步就可以理解为只要是个女孩就行
 			boolean reiterate = true;
 			while (reiterate) {
 				reiterate = false;
@@ -161,15 +171,17 @@ final class PostProcessorRegistrationDelegate {
 				}
 				sortPostProcessors(currentRegistryProcessors, beanFactory);
 				registryProcessors.addAll(currentRegistryProcessors);
+				// 策略模式：执行postProcessBeanDefinitionRegistry
 				invokeBeanDefinitionRegistryPostProcessors(currentRegistryProcessors, registry);
 				currentRegistryProcessors.clear();
 			}
 			//-----------------------------------------------------------------------------------------------
 
 			// Now, invoke the postProcessBeanFactory callback of all processors handled so far.
-			// 执行spring内置的Bean工厂后置处理器
+			// 执行spring内置的BeanFactoryPostProcessor.postProcessBeanFactory
+			// 执行自定义的BeanDefinitionRegistryPostProcessor.postProcessBeanFactory
 			invokeBeanFactoryPostProcessors(registryProcessors, beanFactory);
-			// 执行自定义的Bean工厂后置处理器
+			// 执行自定义的BeanFactoryPostProcessor.postProcessBeanFactory
 			invokeBeanFactoryPostProcessors(regularPostProcessors, beanFactory);
 		}
 

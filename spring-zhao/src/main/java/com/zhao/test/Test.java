@@ -3,6 +3,8 @@ package com.zhao.test;
 import com.zhao.config.AppConfig;
 import com.zhao.factoryBean.Z;
 import com.zhao.service.*;
+import com.zhao.web.ZhaoBeanDefinitionRegistryPostProcessor;
+import com.zhao.web.ZhaoBeanFactoryPostProcessor;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -20,33 +22,35 @@ import org.springframework.context.support.GenericApplicationContext;
 	public static void main(String[] args) throws BeansException {
 		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext();
 		ac.register(AppConfig.class);
-
-		RootBeanDefinition rbd = new RootBeanDefinition();
-		rbd.setScope(BeanDefinition.SCOPE_SINGLETON);
-		rbd.setLazyInit(false);
-		rbd.setAutowireCandidate(true);
-		rbd.setPrimary(false);
-		rbd.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_NO);
-		rbd.setAbstract(true);
-		ac.registerBeanDefinition("rbd", rbd);
-
-		ChildBeanDefinition bdA = new ChildBeanDefinition("rbd");
-		bdA.setBeanClass(AService.class);
-		ac.registerBeanDefinition("aService", bdA);
-
-		ChildBeanDefinition bdB = new ChildBeanDefinition("rbd");
-		bdB.setBeanClass(BService.class);
-		ac.registerBeanDefinition("bService", bdB);
-
-		ChildBeanDefinition bdC = new ChildBeanDefinition("aService");
-		bdC.setBeanClass(CService.class);
-		ac.registerBeanDefinition("cService", bdC);
+		ac.register(ZhaoService.class);
+		ac.addBeanFactoryPostProcessor(new ZhaoBeanFactoryPostProcessor());
+		ac.addBeanFactoryPostProcessor(new ZhaoBeanDefinitionRegistryPostProcessor());
+//		RootBeanDefinition rbd = new RootBeanDefinition();
+//		rbd.setScope(BeanDefinition.SCOPE_SINGLETON);
+//		rbd.setLazyInit(false);
+//		rbd.setAutowireCandidate(true);
+//		rbd.setPrimary(false);
+//		rbd.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_NO);
+//		rbd.setAbstract(true);
+//		ac.registerBeanDefinition("rbd", rbd);
+//
+//		ChildBeanDefinition bdA = new ChildBeanDefinition("rbd");
+//		bdA.setBeanClass(AService.class);
+//		ac.registerBeanDefinition("aService", bdA);
+//
+//		ChildBeanDefinition bdB = new ChildBeanDefinition("rbd");
+//		bdB.setBeanClass(BService.class);
+//		ac.registerBeanDefinition("bService", bdB);
+//
+//		ChildBeanDefinition bdC = new ChildBeanDefinition("aService");
+//		bdC.setBeanClass(CService.class);
+//		ac.registerBeanDefinition("cService", bdC);
 
 		ac.refresh();
 
-		System.out.println(ac.getBean("aService"));
-		System.out.println(ac.getBean("bService"));
-		System.out.println(ac.getBean("cService"));
+		System.out.println(ac.getBean("zhaoService"));
+//		System.out.println(ac.getBean("bService"));
+//		System.out.println(ac.getBean("cService"));
 
 
 //		System.out.println(ac.getBean(UserService.class));

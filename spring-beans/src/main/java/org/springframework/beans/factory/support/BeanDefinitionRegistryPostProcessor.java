@@ -31,7 +31,17 @@ import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
  * @see org.springframework.context.annotation.ConfigurationClassPostProcessor
  *
  * 执行时机：是在还没有完成扫描之前就开始执行了，
- * 如果有什么需要在spring完成扫描之前做的事，可以通过实现这个接口
+ * 如果有什么需要在spring完成扫描之前做的事，可以通过实现这个接口(
+ * mybatis: mybatis-spring-2.0.4-sources.jar!/org/mybatis/spring/mapper/MapperScannerConfigurer.java
+ * 	public class MapperScannerConfigurer
+ *     implements BeanDefinitionRegistryPostProcessor, InitializingBean, ApplicationContextAware, BeanNameAware {
+ *
+ * 在如下方法中实现在spring完成扫描开始执行:
+ * org.springframework.context.support.PostProcessorRegistrationDelegate#invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory, List)中
+ * 	registryProcessor.postProcessBeanDefinitionRegistry(registry)
+ * 	invokeBeanDefinitionRegistryPostProcessors()
+ * 	invokeBeanFactoryPostProcessors()
+ *
  */
 public interface BeanDefinitionRegistryPostProcessor extends BeanFactoryPostProcessor {
 
