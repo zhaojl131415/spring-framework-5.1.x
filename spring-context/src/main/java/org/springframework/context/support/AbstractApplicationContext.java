@@ -742,7 +742,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory beanFactory) {
 		// 这个地方需要注意getBeanFactoryPostProcessors()是获取手动给spring的BeanFactoryProcessor
-		// 自定义并不仅仅是程序员自己写的
+		// 自定义并不仅仅是程序员自己写的, 第三方的(比如:mybatis)
 		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
 
 		// Detect a LoadTimeWeaver and prepare for weaving, if found in the meantime

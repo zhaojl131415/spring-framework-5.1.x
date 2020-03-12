@@ -23,7 +23,7 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 //		,useDefaultFilters = false
 //		,includeFilters = @Filter(ZhaoMapper.class)
 )
-@MapperScan
+//@MapperScan
 @EnableAspectJAutoProxy
 public class AppConfig {
 }

@@ -1,6 +1,5 @@
 package com.zhao.web;
 
-import com.zhao.service.OrderService;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -33,12 +32,12 @@ import org.springframework.stereotype.Component;
  * 14、put单例池容器
  *
  */
-//@Component
-public class ZhaoBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
+@Component
+public class ZhaoBeanFactoryPostProcessor1 implements BeanFactoryPostProcessor {
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-//		BeanDefinition beanDefinition = (BeanDefinition) beanFactory.getBeanDefinition("commodityService");
-//		beanDefinition.setDestroyMethodName(AbstractBeanDefinition.INFER_METHOD);
+		BeanDefinition beanDefinition = (BeanDefinition) beanFactory.getBeanDefinition("commodityService");
+		beanDefinition.setDestroyMethodName(AbstractBeanDefinition.INFER_METHOD);
 		System.out.println("ZhaoBeanFactoryPostProcessor.postProcessBeanFactory");
 	}
 }

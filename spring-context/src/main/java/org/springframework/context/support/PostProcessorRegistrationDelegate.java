@@ -56,6 +56,21 @@ final class PostProcessorRegistrationDelegate {
 	/**
 	 * 执行bean工厂后置处理器
 	 *
+	 *
+	 * 这里的步骤为:
+	 * 1 先执行BeanDefinitionRegistryPostProcessor的实现类
+	 * 		1.1 执行通过api自定义的.postProcessBeanDefinitionRegistry():ac.addBeanFactoryPostProcessor(new ZhaoBeanDefinitionRegistryPostProcessor());
+	 * 		1.2 执行所有的(spring内置和@Component注解自定义的)PriorityOrdered的.postProcessBeanDefinitionRegistry()
+	 * 		1.3 执行所有的(spring内置和@Component注解自定义的)Ordered的.postProcessBeanDefinitionRegistry()
+	 * 		1.4 执行所有的(spring内置和@Component注解自定义的)剩余的.postProcessBeanDefinitionRegistry()
+	 * 		1.5	执行所有的(spring内置和@Component注解自定义的)的.postProcessBeanFactory()
+	 * 		1.6	执行api自定义的.postProcessBeanFactory()
+	 * 2 再执行BeanDefinitionPostProcessor的实现类
+	 * 		2.1 执行PriorityOrdered的.postProcessBeanFactory
+	 * 		2.2 执行Ordered的.postProcessBeanFactory
+	 * 		2.3 执行剩余的.postProcessBeanFactory
+	 *
+	 *
 	 * 先执行spring内置的，然后执行自定义的
 	 * @param beanFactory
 	 * @param beanFactoryPostProcessors 一般情况没值, 有值一般也就两种类型, 这里如果是通过api直接提供的才会有, 比如:
@@ -77,6 +92,8 @@ final class PostProcessorRegistrationDelegate {
 			// 存放自定义的BeanDefinitionRegistryPostProcessor:现在就调用
 			// 存放所有spring内置的BeanFactoryPostProcessor
 			List<BeanDefinitionRegistryPostProcessor> registryProcessors = new ArrayList<>();
+
+			//----------------------------------------------1.1----------------------------------------------
 			// 方法调用时候传进来的List<BeanFactoryPostProcessor>, 方法传参处有详细说明
 			for (BeanFactoryPostProcessor postProcessor : beanFactoryPostProcessors) {
 				// 判断是否spring内置bean工厂内置处理器
@@ -94,6 +111,7 @@ final class PostProcessorRegistrationDelegate {
 					regularPostProcessors.add(postProcessor);
 				}
 			}
+			//-----------------------------------------------------------------------------------------------
 
 			// Do not initialize FactoryBeans here: We need to leave all regular beans
 			// uninitialized to let the bean factory post-processors apply to them!
@@ -105,6 +123,7 @@ final class PostProcessorRegistrationDelegate {
 			// 当前？因为这里spring使用了策略模式，不同策略执行时机不同
 			List<BeanDefinitionRegistryPostProcessor> currentRegistryProcessors = new ArrayList<>();
 
+			//----------------------------------------------1.2----------------------------------------------
 			// First, invoke the BeanDefinitionRegistryPostProcessors that implement PriorityOrdered.
 			// 首先，调用实现PriorityOrdered的BeanDefinitionRegistryPostProcessors
 			// 通俗的讲 这一步就可以理解为找女朋友要找身材好的大长腿女孩
@@ -133,6 +152,7 @@ final class PostProcessorRegistrationDelegate {
 			currentRegistryProcessors.clear();
 			//-----------------------------------------------------------------------------------------------
 
+			//----------------------------------------------1.3----------------------------------------------
 			// Next, invoke the BeanDefinitionRegistryPostProcessors that implement Ordered.
 			// 接下来，调用实现Ordered的BeanDefinitionRegistryPostProcessors
 			// 通俗的讲 这一步就可以理解为找大长腿女孩
@@ -155,6 +175,7 @@ final class PostProcessorRegistrationDelegate {
 			currentRegistryProcessors.clear();
 			//-----------------------------------------------------------------------------------------------
 
+			//----------------------------------------------1.4----------------------------------------------
 			// Finally, invoke all other BeanDefinitionRegistryPostProcessors until no further ones appear.
 			// 最后，调用所有其他的BeanDefinitionRegistryPostProcessors实现类，直到没有。
 			// 通俗的讲 这一步就可以理解为只要是个女孩就行
@@ -177,10 +198,12 @@ final class PostProcessorRegistrationDelegate {
 			}
 			//-----------------------------------------------------------------------------------------------
 
+			//----------------------------------------------1.5----------------------------------------------
 			// Now, invoke the postProcessBeanFactory callback of all processors handled so far.
 			// 执行spring内置的BeanFactoryPostProcessor.postProcessBeanFactory
 			// 执行自定义的BeanDefinitionRegistryPostProcessor.postProcessBeanFactory
 			invokeBeanFactoryPostProcessors(registryProcessors, beanFactory);
+			//----------------------------------------------1.6----------------------------------------------
 			// 执行自定义的BeanFactoryPostProcessor.postProcessBeanFactory
 			invokeBeanFactoryPostProcessors(regularPostProcessors, beanFactory);
 		}
@@ -195,7 +218,7 @@ final class PostProcessorRegistrationDelegate {
 		// uninitialized to let the bean factory post-processors apply to them!
 		// 不要在这里初始化factorybean:我们需要保持所有常规bean未初始化，以便让bean factory后处理器应用于它们!
 		/**
-		 * 这里是找BeanFactoryPostProcessor的实现类，前面找的是BeanDefinitionRegistryPostProcessor,
+		 * 这里是找BeanFactoryPostProcessor的实现类，前面找的是BeanDefinitionRegistryPostProcessor的实现类,
 		 * 二者的关系是：BeanDefinitionRegistryPostProcessor extends BeanFactoryPostProcessor,
 		 * 也就是说先找子类的，再找父类的
 		 */
@@ -226,11 +249,13 @@ final class PostProcessorRegistrationDelegate {
 			}
 		}
 
+		//----------------------------------------------2.1----------------------------------------------
 		// First, invoke the BeanFactoryPostProcessors that implement PriorityOrdered.
 		// 首先，调用实现PriorityOrdered的BeanFactoryPostProcessors。
 		sortPostProcessors(priorityOrderedPostProcessors, beanFactory);
 		invokeBeanFactoryPostProcessors(priorityOrderedPostProcessors, beanFactory);
 
+		//----------------------------------------------2.2----------------------------------------------
 		// Next, invoke the BeanFactoryPostProcessors that implement Ordered.
 		// 接下来，调用实现Ordered的BeanFactoryPostProcessors
 		List<BeanFactoryPostProcessor> orderedPostProcessors = new ArrayList<>();
@@ -240,6 +265,7 @@ final class PostProcessorRegistrationDelegate {
 		sortPostProcessors(orderedPostProcessors, beanFactory);
 		invokeBeanFactoryPostProcessors(orderedPostProcessors, beanFactory);
 
+		//----------------------------------------------2.3----------------------------------------------
 		// Finally, invoke all other BeanFactoryPostProcessors.
 		// 最后，调用所有其他BeanFactoryPostProcessors。
 		List<BeanFactoryPostProcessor> nonOrderedPostProcessors = new ArrayList<>();
