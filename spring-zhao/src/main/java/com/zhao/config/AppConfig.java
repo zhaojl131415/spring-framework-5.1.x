@@ -1,14 +1,8 @@
 package com.zhao.config;
 
-import com.zhao.zhaoBatis.ZhaoMapper;
-import org.mybatis.spring.annotation.MapperScan;
-import org.springframework.beans.factory.annotation.Configurable;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.ComponentScan.Filter;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.context.annotation.FilterType;
-import org.springframework.core.type.filter.AnnotationTypeFilter;
-
+import com.zhao.service.X;
+import com.zhao.service.Y;
+import org.springframework.context.annotation.*;
 
 
 /**
@@ -19,11 +13,27 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
  */
 // https://www.cnblogs.com/CodeBear/p/10336704.html
 //@Configurable
-@ComponentScan(basePackages ="com.zhao"
+//@ComponentScan(basePackages ="com.zhao"
 //		,useDefaultFilters = false
 //		,includeFilters = @Filter(ZhaoMapper.class)
-)
+//)
 //@MapperScan
-@EnableAspectJAutoProxy
+//@EnableAspectJAutoProxy
+@ComponentScan("com.zhao")
+@Configuration
 public class AppConfig {
+
+	@Bean
+	public X x() {
+		System.out.println("x init");
+		return new X();
+	}
+
+	@Bean
+	public Y y() {
+		x();
+		System.out.println("y init");
+		return new Y();
+	}
 }
+

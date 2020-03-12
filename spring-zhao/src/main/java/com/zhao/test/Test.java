@@ -18,13 +18,16 @@ import org.springframework.context.support.GenericApplicationContext;
  * @version 1.0
  * @description TODO
  * @date 2020-01-07 17:37
- */public class Test {
+ */
+public class Test {
 	public static void main(String[] args) throws BeansException {
-		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext();
-		ac.register(AppConfig.class);
-		ac.register(ZhaoService.class);
-		ac.addBeanFactoryPostProcessor(new ZhaoBeanFactoryPostProcessor());
-		ac.addBeanFactoryPostProcessor(new ZhaoBeanDefinitionRegistryPostProcessor());
+		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
+		System.out.println(ac.getBean(X.class));
+//		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext();
+//		ac.register(AppConfig.class);
+//		ac.register(ZhaoService.class);
+//		ac.addBeanFactoryPostProcessor(new ZhaoBeanFactoryPostProcessor());
+//		ac.addBeanFactoryPostProcessor(new ZhaoBeanDefinitionRegistryPostProcessor());
 //		RootBeanDefinition rbd = new RootBeanDefinition();
 //		rbd.setScope(BeanDefinition.SCOPE_SINGLETON);
 //		rbd.setLazyInit(false);
@@ -46,9 +49,9 @@ import org.springframework.context.support.GenericApplicationContext;
 //		bdC.setBeanClass(CService.class);
 //		ac.registerBeanDefinition("cService", bdC);
 
-		ac.refresh();
+//		ac.refresh();
 
-		System.out.println(ac.getBean("zhaoService"));
+//		System.out.println(ac.getBean("zhaoService"));
 //		System.out.println(ac.getBean("bService"));
 //		System.out.println(ac.getBean("cService"));
 

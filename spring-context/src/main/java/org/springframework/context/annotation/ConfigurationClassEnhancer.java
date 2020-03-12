@@ -95,6 +95,8 @@ class ConfigurationClassEnhancer {
 	 * @return the enhanced subclass
 	 */
 	public Class<?> enhance(Class<?> configClass, @Nullable ClassLoader classLoader) {
+		// 判断配置类有没有被代理过，就是判断有没有实现这个接口
+		// 代理对象会实现一个接口EnhancedConfiguration
 		if (EnhancedConfiguration.class.isAssignableFrom(configClass)) {
 			if (logger.isDebugEnabled()) {
 				logger.debug(String.format("Ignoring request to enhance %s as it has " +
@@ -106,6 +108,7 @@ class ConfigurationClassEnhancer {
 			}
 			return configClass;
 		}
+		// 创建proxy对象
 		Class<?> enhancedClass = createClass(newEnhancer(configClass, classLoader));
 		if (logger.isTraceEnabled()) {
 			logger.trace(String.format("Successfully enhanced %s; enhanced class name is: %s",
@@ -115,6 +118,7 @@ class ConfigurationClassEnhancer {
 	}
 
 	/**
+	 * 创建一个新的CGLIB {@link增强器}实例。
 	 * Creates a new CGLIB {@link Enhancer} instance.
 	 */
 	private Enhancer newEnhancer(Class<?> configSuperClass, @Nullable ClassLoader classLoader) {
@@ -122,6 +126,7 @@ class ConfigurationClassEnhancer {
 		enhancer.setSuperclass(configSuperClass);
 		enhancer.setInterfaces(new Class<?>[] {EnhancedConfiguration.class});
 		enhancer.setUseFactory(false);
+		// 命名策略
 		enhancer.setNamingPolicy(SpringNamingPolicy.INSTANCE);
 		enhancer.setStrategy(new BeanFactoryAwareGeneratorStrategy(classLoader));
 		enhancer.setCallbackFilter(CALLBACK_FILTER);
@@ -334,6 +339,7 @@ class ConfigurationClassEnhancer {
 			// proxy that intercepts calls to getObject() and returns any cached bean instance.
 			// This ensures that the semantics of calling a FactoryBean from within @Bean methods
 			// is the same as that of referring to a FactoryBean within XML. See SPR-6602.
+			// 判断是不是一个factorybean
 			if (factoryContainsBean(beanFactory, BeanFactory.FACTORY_BEAN_PREFIX + beanName) &&
 					factoryContainsBean(beanFactory, beanName)) {
 				Object factoryBean = beanFactory.getBean(BeanFactory.FACTORY_BEAN_PREFIX + beanName);
@@ -345,7 +351,30 @@ class ConfigurationClassEnhancer {
 					return enhanceFactoryBean(factoryBean, beanMethod.getReturnType(), beanFactory, beanName);
 				}
 			}
-
+			// 当前是否调用工厂方法
+			/**
+			 * 假设有如下代码：
+			 * 	@Bean
+			 * 	public X x() {
+			 * 		System.out.println("x init");
+			 * 		return new X();
+			 * 	}
+			 *
+			 * 	@Bean
+			 * 	public Y y() {
+			 * 		x();
+			 * 		System.out.println("y init");
+			 * 		return new Y();
+			 * 	}
+			 * 	从上面代码我们能看到在y()中调用了x();这里有点类似循环引用
+			 *
+			 * 	执行到y()的时候，这里可以理解为当前正在创建Y bean的方法是y()，但是在方法里面调用了x()去创建X bean,
+			 * 	因为cglib代理是执行父类的方法，在代理类中会有super.x();super.y();这样的方法，
+			 * 	判断当前创建bean的方法和当前执行的方法是否一样
+			 * 	如果执行到自己的方法时，也就是x bean的代理类中执行super.x();y bean的代理类中执行super.y();
+			 * 	这种是通过判断条件进入if，执行if内部代码,调用父类方法创建bean；
+			 * 	而y bean的代理类中执行到x()时，条件通不过，执行后面代码，调用自己逻辑去创建bean
+			 */
 			if (isCurrentlyInvokedFactoryMethod(beanMethod)) {
 				// The factory is calling the bean method in order to instantiate and register the bean
 				// (i.e. via a getBean() call) -> invoke the super implementation of the method to actually
@@ -360,9 +389,10 @@ class ConfigurationClassEnhancer {
 									"these container lifecycle issues; see @Bean javadoc for complete details.",
 							beanMethod.getDeclaringClass().getSimpleName(), beanMethod.getName()));
 				}
+				// 调用父类方法
 				return cglibMethodProxy.invokeSuper(enhancedConfigInstance, beanMethodArgs);
 			}
-
+			// 解决Bean引用，如果是一个@Bean引用了另一@Bean
 			return resolveBeanReference(beanMethod, beanMethodArgs, beanFactory, beanName);
 		}
 
@@ -390,6 +420,7 @@ class ConfigurationClassEnhancer {
 						}
 					}
 				}
+
 				Object beanInstance = (useArgs ? beanFactory.getBean(beanName, beanMethodArgs) :
 						beanFactory.getBean(beanName));
 				if (!ClassUtils.isAssignableValue(beanMethod.getReturnType(), beanInstance)) {
@@ -473,6 +504,7 @@ class ConfigurationClassEnhancer {
 		 * to happen on Groovy classes).
 		 */
 		private boolean isCurrentlyInvokedFactoryMethod(Method method) {
+			// 判断是否正在被创建，可参照循环依赖
 			Method currentlyInvoked = SimpleInstantiationStrategy.getCurrentlyInvokedFactoryMethod();
 			return (currentlyInvoked != null && method.getName().equals(currentlyInvoked.getName()) &&
 					Arrays.equals(method.getParameterTypes(), currentlyInvoked.getParameterTypes()));

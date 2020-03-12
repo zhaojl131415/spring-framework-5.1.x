@@ -63,12 +63,12 @@ final class PostProcessorRegistrationDelegate {
 	 * 		1.2 执行所有的(spring内置和@Component注解自定义的)PriorityOrdered的.postProcessBeanDefinitionRegistry()
 	 * 		1.3 执行所有的(spring内置和@Component注解自定义的)Ordered的.postProcessBeanDefinitionRegistry()
 	 * 		1.4 执行所有的(spring内置和@Component注解自定义的)剩余的.postProcessBeanDefinitionRegistry()
-	 * 		1.5	执行所有的(spring内置和@Component注解自定义的)的.postProcessBeanFactory()
-	 * 		1.6	执行api自定义的.postProcessBeanFactory()
+	 * 		1.5	执行所有的(spring内置和api自定义和@Component注解自定义的)的BeanDefinitionRegistryPostProcessor.postProcessBeanFactory()
+	 * 		1.6	执行api自定义的BeanDefinitionPostProcessor.postProcessBeanFactory()
 	 * 2 再执行BeanDefinitionPostProcessor的实现类
-	 * 		2.1 执行PriorityOrdered的.postProcessBeanFactory
-	 * 		2.2 执行Ordered的.postProcessBeanFactory
-	 * 		2.3 执行剩余的.postProcessBeanFactory
+	 * 		2.1 执行PriorityOrdered的.postProcessBeanFactory()
+	 * 		2.2 执行Ordered的.postProcessBeanFactory()
+	 * 		2.3 执行剩余的.postProcessBeanFactory()
 	 *
 	 *
 	 * 先执行spring内置的，然后执行自定义的

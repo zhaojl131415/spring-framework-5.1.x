@@ -218,7 +218,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 
 	/**
 	 * Derive further bean definitions from the configuration classes in the registry.
-	 *
+	 * 重写BeanDefinitionRegistryPostProcessor.postProcessBeanDefinitionRegistry()
 	 * 从registry中的配置类（AppConfig.class）中
 	 */
 	@Override
@@ -241,10 +241,13 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	/**
 	 * Prepare the Configuration classes for servicing bean requests at runtime
 	 * by replacing them with CGLIB-enhanced subclasses.
+	 * 重写BeanFactoryPostProcessor.postProcessBeanFactory()
 	 */
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
+		// 生成系统唯一id
 		int factoryId = System.identityHashCode(beanFactory);
+		// 判断是否包含，包含抛异常
 		if (this.factoriesPostProcessed.contains(factoryId)) {
 			throw new IllegalStateException(
 					"postProcessBeanFactory already called on this post-processor against " + beanFactory);
@@ -385,16 +388,22 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	}
 
 	/**
+	 *
 	 * Post-processes a BeanFactory in search of Configuration class BeanDefinitions;
 	 * any candidates are then enhanced by a {@link ConfigurationClassEnhancer}.
 	 * Candidate status is determined by BeanDefinition attribute metadata.
 	 * @see ConfigurationClassEnhancer
 	 */
 	public void enhanceConfigurationClasses(ConfigurableListableBeanFactory beanFactory) {
+		// 用于存放全配置类 也就是加了@Configuration的
 		Map<String, AbstractBeanDefinition> configBeanDefs = new LinkedHashMap<>();
+		// beanFactory.getBeanDefinitionNames() 相当于bdmap中的key
 		for (String beanName : beanFactory.getBeanDefinitionNames()) {
+			// 根据名字获取bd
 			BeanDefinition beanDef = beanFactory.getBeanDefinition(beanName);
+			// 判断是否为全配置类，解析配置类的时候 加了@Configuration = full，没加 = lite
 			if (ConfigurationClassUtils.isFullConfigurationClass(beanDef)) {
+				// 判断是否为抽象的
 				if (!(beanDef instanceof AbstractBeanDefinition)) {
 					throw new BeanDefinitionStoreException("Cannot enhance @Configuration bean definition '" +
 							beanName + "' since it is not stored in an AbstractBeanDefinition subclass");
@@ -408,20 +417,31 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 				configBeanDefs.put(beanName, (AbstractBeanDefinition) beanDef);
 			}
 		}
+		// 如果没有全配置类为空，直接返回
 		if (configBeanDefs.isEmpty()) {
 			// nothing to enhance -> return immediately
 			return;
 		}
 
+		// 下面代码是遍历全配置类，完成代理
 		ConfigurationClassEnhancer enhancer = new ConfigurationClassEnhancer();
+		// 遍历全配置类
 		for (Map.Entry<String, AbstractBeanDefinition> entry : configBeanDefs.entrySet()) {
+			// 获取配置类的BD
 			AbstractBeanDefinition beanDef = entry.getValue();
-			// If a @Configuration class gets proxied, always proxy the target class
+			// If a @Configuration class gets proxied, always proxy the target class 如果代理了@Configuration类，则始终代理目标类
 			beanDef.setAttribute(AutoProxyUtils.PRESERVE_TARGET_CLASS_ATTRIBUTE, Boolean.TRUE);
 			try {
-				// Set enhanced subclass of the user-specified bean class
+				// Set enhanced subclass of the user-specified bean class 设置用户指定bean类的增强子类
+				/**
+				 * 得到这个配置类的class对象, 因为代理必须要得到class对象，不管用什么代理方法，
+				 * cglib --- asm
+				 * jdk动态代理： 需要得到一个接口
+				 */
+				// target class
 				Class<?> configClass = beanDef.resolveBeanClass(this.beanClassLoader);
 				if (configClass != null) {
+					// proxy class
 					Class<?> enhancedClass = enhancer.enhance(configClass, this.beanClassLoader);
 					if (configClass != enhancedClass) {
 						if (logger.isTraceEnabled()) {
