@@ -32,12 +32,12 @@ import org.springframework.stereotype.Component;
  * 14、put单例池容器
  *
  */
-@Component
+//@Component
 public class ZhaoBeanFactoryPostProcessor1 implements BeanFactoryPostProcessor {
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		BeanDefinition beanDefinition = (BeanDefinition) beanFactory.getBeanDefinition("commodityService");
 		beanDefinition.setDestroyMethodName(AbstractBeanDefinition.INFER_METHOD);
-		System.out.println("ZhaoBeanFactoryPostProcessor.postProcessBeanFactory");
+		System.out.println("ZhaoBeanFactoryPostProcessor1.postProcessBeanFactory");
 	}
 }

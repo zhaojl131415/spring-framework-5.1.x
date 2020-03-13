@@ -8,6 +8,6 @@ import org.springframework.stereotype.Component;
  * @description TODO
  * @date 2020-03-08 11:10
  */
-@Component
+//@Component
 public class Service2 implements Service {
 }

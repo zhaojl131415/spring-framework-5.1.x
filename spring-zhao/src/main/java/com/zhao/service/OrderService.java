@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
  * @description TODO
  * @date 2020-01-16 10:52
  */
-@Component
-@Scope("prototype")
+//@Component
+//@Scope("prototype")
 public class OrderService {
 
 

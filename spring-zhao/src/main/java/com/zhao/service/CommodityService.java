@@ -17,7 +17,7 @@ import java.beans.ConstructorProperties;
  */
 @Component
 public class CommodityService {
-	@PreDestroy
+//	@PreDestroy
 	public void close() {
 		System.out.println("close");
 	}
@@ -26,8 +26,8 @@ public class CommodityService {
 //	UserService userService;
 
 
-//	public CommodityService(UserService userService) {
-//		this.userService = userService;
+//	public CommodityService() {
+//		System.out.println("CommodityService init");
 //	}
 
 //	public void testAop() {

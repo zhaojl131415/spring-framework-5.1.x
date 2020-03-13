@@ -21,8 +21,8 @@ import org.springframework.context.support.GenericApplicationContext;
  */
 public class Test {
 	public static void main(String[] args) throws BeansException {
-		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
-		System.out.println(ac.getBean(X.class));
+//		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
+//		System.out.println(ac.getBean(X.class));
 //		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext();
 //		ac.register(AppConfig.class);
 //		ac.register(ZhaoService.class);
@@ -59,13 +59,14 @@ public class Test {
 //		System.out.println(ac.getBean(UserService.class));
 
 		// spring 上下文初始化，扫描并实例化spring bean
-//		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
+		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
 //		System.out.println(ac.getBean("zhaoFactoryBean"));
 //		System.out.println(ac.getBean("zhaoFactoryBean"));
 //		System.out.println(ac.getBean("zhaoFactoryBean"));
 //		System.out.println(ac.getBean("&zhaoFactoryBean"));
 
-//		ac.getBean(CommodityService.class).testOrderScope();
+		System.out.println(ac.getBean(CommodityService.class));
+		ac.getBean(CommodityService.class).close();
 //		ac.getBean(CommodityService.class).testOrderScope();
 		/**
 		 * 相当于上一行代码

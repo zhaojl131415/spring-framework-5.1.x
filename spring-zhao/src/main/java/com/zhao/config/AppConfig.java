@@ -1,5 +1,6 @@
 package com.zhao.config;
 
+import com.zhao.cglib.ZhaoAopBeanPostProcessor;
 import com.zhao.service.X;
 import com.zhao.service.Y;
 import org.springframework.context.annotation.*;
@@ -18,22 +19,23 @@ import org.springframework.context.annotation.*;
 //		,includeFilters = @Filter(ZhaoMapper.class)
 //)
 //@MapperScan
-@EnableAspectJAutoProxy
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 @ComponentScan("com.zhao")
 @Configuration
+@Import(ZhaoAopBeanPostProcessor.class)
 public class AppConfig {
-
-	@Bean
-	public X x() {
-		System.out.println("x init");
-		return new X();
-	}
-
-	@Bean
-	public Y y() {
-		x();
-		System.out.println("y init");
-		return new Y();
-	}
+//
+//	@Bean
+//	public X x() {
+//		System.out.println("x init");
+//		return new X();
+//	}
+//
+//	@Bean
+//	public Y y() {
+//		x();
+//		System.out.println("y init");
+//		return new Y();
+//	}
 }
 
