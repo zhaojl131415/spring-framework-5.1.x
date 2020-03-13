@@ -57,6 +57,10 @@ import org.springframework.util.StringValueResolver;
  * @see org.springframework.context.MessageSourceAware
  * @see org.springframework.context.ApplicationContextAware
  * @see org.springframework.context.support.AbstractApplicationContext#refresh()
+ *
+ *
+ * 这个后置处理器主要是为了执行postProcessBeforeInitialization方法，
+ * 但是作为后置处理器，必须要实现postProcessAfterInitialization方法，只是没什么要执行的，所以直接返回了
  */
 class ApplicationContextAwareProcessor implements BeanPostProcessor {
 

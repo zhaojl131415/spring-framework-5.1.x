@@ -86,6 +86,7 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 					}
 				}
 			}
+			// ctor.newInstance(args)
 			return BeanUtils.instantiateClass(constructorToUse);
 		}
 		else {

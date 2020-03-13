@@ -543,12 +543,12 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				// Invoke factory processors registered as beans in the context.
 				/**
 				 * 扫描 --> class --> parse --> BeanDefinition --> put beanDefinitionMap
-				 * 执行spring内置和自定义的BeanFactoryProcessor（bean的工厂后置处理器）
+				 * 执行spring内置和自定义的BeanFactoryPostProcessor（bean工厂后置处理器）
 				 */
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				// Register bean processors that intercept bean creation.
-				// 注册BeanPostProcessor（bean的后置处理器）
+				// 注册BeanPostProcessor（bean后置处理器）
 				registerBeanPostProcessors(beanFactory);
 
 				// Initialize message source for this context.
@@ -569,7 +569,6 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 				// Instantiate all remaining (non-lazy-init) singletons.
 				/**
-				 *
 				 * 遍历BeanDefinitionMap，取出BeanDefinition对象，
 				 * 验证BeanDefinition对象是否单列，是否Lazy等
 				 * 通过BeanDefinition.getBeanClass推断构造方法，通过构造方法反射实例化对象

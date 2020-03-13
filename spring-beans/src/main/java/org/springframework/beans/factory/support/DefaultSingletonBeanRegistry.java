@@ -101,6 +101,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	private final Map<String, Object> earlySingletonObjects = new HashMap<>(16);
 
 	/** Set of registered singletons, containing the bean names in registration order. */
+	// 一组已注册的单例，包含按注册顺序排列的bean名称。
 	private final Set<String> registeredSingletons = new LinkedHashSet<>(256);
 
 	/** Names of beans that are currently in creation. */
@@ -178,9 +179,13 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	protected void addSingletonFactory(String beanName, ObjectFactory<?> singletonFactory) {
 		Assert.notNull(singletonFactory, "Singleton factory must not be null");
 		synchronized (this.singletonObjects) {
+			// 判断一级缓存（单例缓存池）是否包含这个对象
 			if (!this.singletonObjects.containsKey(beanName)) {
+				// 把单例工厂(包含已经实例好的bean对象)放入二级缓存
 				this.singletonFactories.put(beanName, singletonFactory);
+				// 三级缓存
 				this.earlySingletonObjects.remove(beanName);
+				// 单例对象注册
 				this.registeredSingletons.add(beanName);
 			}
 		}
@@ -198,7 +203,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 * <p>Checks already instantiated singletons and also allows for an early
 	 * reference to a currently created singleton (resolving a circular reference).
 	 * @param beanName the name of the bean to look for
-	 * @param allowEarlyReference whether early references should be created or not
+	 * @param allowEarlyReference whether early references should be created or not 是否应该创建早期引用
 	 * @return the registered singleton object, or {@code null} if none found
 	 */
 	@Nullable
@@ -223,14 +228,19 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					// 二级缓存是在bean创建时, 如果允许循环依赖时加入进来的.
 					ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
 					if (singletonFactory != null) {
-						// 通过二级缓存的工厂接口实现类创建一个bean
+						/**
+						 * 通过二级缓存的工厂接口（() -> getEarlyBeanReference(beanName, mbd, bean)）
+						 * 调用后置处理器，提前完成aop，创建一个完成了sop的完成的spring bean
+						 */
 						singletonObject = singletonFactory.getObject();
-						// 放到三级缓存， 为了效率，不用每次都通过二级缓存的工厂创建
-						// 例如：BService、CService、DService都依赖AService，
-						// 创建BService的Bean时，发现BService依赖了AService，此时AService去一级缓存中获取，
-						// 如果获取不到，再去三级缓存中获取，如果还没有，通过二级缓存的工厂来创建，
-						// 创建完之后存入三级缓存，并删除二级缓存中的工厂，
-						// 之后创建CService、DService的Bean时，就可以直接从三级缓存中获取，不用再通过二级缓存的工厂创建
+						/**
+						 * 放到三级缓存， 为了效率，不用每次都通过二级缓存的工厂创建
+						 * 例如：BService、CService、DService都依赖AService，
+						 * 创建BService的Bean时，发现BService依赖了AService，此时AService去一级缓存中获取，
+						 * 如果获取不到，再去三级缓存中获取，如果还没有，通过二级缓存的工厂来创建，
+						 * 创建完之后存入三级缓存，并删除二级缓存中的工厂，
+						 * 之后创建CService、DService的Bean时，就可以直接从三级缓存中获取，不用再通过二级缓存的工厂创建
+						 */
 						this.earlySingletonObjects.put(beanName, singletonObject);
 						// 存入三级缓存后，不再需要通过二级缓存的工厂创建bean，所以为了节省空间，从二级缓存中移除，不移除就不会垃圾回收
 						this.singletonFactories.remove(beanName);
@@ -292,7 +302,8 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					 * 							// Also remove any beans that received a temporary reference to the bean.
 					 * 							destroySingleton(beanName);
 					 * 							throw ex;
-					 *                        }* 					});
+					 *                        }
+					 *                   });
 					 */
 					singletonObject = singletonFactory.getObject();
 					newSingleton = true;
@@ -400,6 +411,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	}
 
 	/**
+	 * 返回当前是否正在创建指定的单例bean(在整个工厂内)。
 	 * Return whether the specified singleton bean is currently in creation
 	 * (within the entire factory).
 	 * @param beanName the name of the bean
@@ -415,8 +427,10 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 * @see #isSingletonCurrentlyInCreation
 	 */
 	protected void beforeSingletonCreation(String beanName) {
-		// 如果inCreationCheckExclusions不包含beanName，则singletonsCurrentlyInCreation添加beanName
-		// 加入singletonsCurrentlyInCreation失败抛出异常
+		/**
+		 * 判断inCreationCheckExclusions是否包含beanName，如果不包含则往singletonsCurrentlyInCreation里添加beanName
+		 * 加入singletonsCurrentlyInCreation失败抛出异常
+ 		 */
 		if (!this.inCreationCheckExclusions.contains(beanName) && !this.singletonsCurrentlyInCreation.add(beanName)) {
 			throw new BeanCurrentlyInCreationException(beanName);
 		}

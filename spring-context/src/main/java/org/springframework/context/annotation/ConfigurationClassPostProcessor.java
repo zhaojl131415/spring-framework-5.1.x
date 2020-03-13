@@ -260,6 +260,10 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		}
 
 		enhanceConfigurationClasses(beanFactory);
+		/**
+		 * 添加了BeanPostProcessor
+		 * 区分于BeanFactoryPostProcessor以及子类BeanDefinitionRegistryPostProcessor
+		 */
 		beanFactory.addBeanPostProcessor(new ImportAwareBeanPostProcessor(beanFactory));
 	}
 

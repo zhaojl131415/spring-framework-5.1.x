@@ -827,7 +827,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		for (String beanName : beanNames) {
 			// 合并父BeanDefinition，beanDefinitionMap.get(beanName)
 			RootBeanDefinition bd = getMergedLocalBeanDefinition(beanName);
-			// 判断当前BeanDefinition是否抽象，是否单例，是否Lazy初始化
+			// 判断当前BeanDefinition是否非抽象，是否单例，是否非Lazy初始化
 			if (!bd.isAbstract() && bd.isSingleton() && !bd.isLazyInit()) {
 				// 判断是否为工厂bean
 				if (isFactoryBean(beanName)) {
@@ -851,7 +851,10 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 					}
 				}
 				else {
-					// 开始实例普通的bean
+					/**
+					 * 开始实例bean,这里其实是应该创建bean，为什么要getbean？
+					 * 1、getBean()是个通用方法，很多地方都有使用，这里跟循环依赖有关
+					 */
 					getBean(beanName);
 				}
 			}
@@ -1121,8 +1124,9 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			ResolvableType requiredType, @Nullable Object[] args, boolean nonUniqueAsNull) throws BeansException {
 
 		Assert.notNull(requiredType, "Required type must not be null");
+		// 获取bean所有的名字
 		String[] candidateNames = getBeanNamesForType(requiredType);
-
+		// 如果名字数量大于1，需要做别名处理
 		if (candidateNames.length > 1) {
 			List<String> autowireCandidates = new ArrayList<>(candidateNames.length);
 			for (String beanName : candidateNames) {
@@ -1134,7 +1138,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 				candidateNames = StringUtils.toStringArray(autowireCandidates);
 			}
 		}
-
+		// 如果名字数量等于1，说明没有别名，直接调用getBean
 		if (candidateNames.length == 1) {
 			String beanName = candidateNames[0];
 			return new NamedBeanHolder<>(beanName, (T) getBean(beanName, requiredType.toClass(), args));
