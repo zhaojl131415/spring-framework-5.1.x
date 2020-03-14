@@ -110,6 +110,7 @@ public class AnnotationAwareAspectJAutoProxyCreator extends AspectJAwareAdvisorA
 		// defined on the interface. We could potentially relax the restriction about
 		// not advising aspects in the future.
 		return (super.isInfrastructureClass(beanClass) ||
+				// 判断这个beanClass是否为Aspect
 				(this.aspectJAdvisorFactory != null && this.aspectJAdvisorFactory.isAspect(beanClass)));
 	}
 

@@ -60,10 +60,10 @@ public class Test {
 
 		// spring 上下文初始化，扫描并实例化spring bean
 		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
+		System.out.println(ac.getBean("zhaoFactoryBean"));
 //		System.out.println(ac.getBean("zhaoFactoryBean"));
 //		System.out.println(ac.getBean("zhaoFactoryBean"));
-//		System.out.println(ac.getBean("zhaoFactoryBean"));
-//		System.out.println(ac.getBean("&zhaoFactoryBean"));
+		System.out.println(ac.getBean("&zhaoFactoryBean"));
 
 		System.out.println(ac.getBean(CommodityService.class));
 		ac.getBean(CommodityService.class).close();
