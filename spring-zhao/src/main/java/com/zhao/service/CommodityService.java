@@ -15,7 +15,7 @@ import java.beans.ConstructorProperties;
  * @description TODO
  * @date 2020-01-07 17:34
  */
-@Component
+//@Component
 public class CommodityService {
 //	@PreDestroy
 	public void close() {

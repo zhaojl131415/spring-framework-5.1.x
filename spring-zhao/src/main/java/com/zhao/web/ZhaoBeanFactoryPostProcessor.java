@@ -6,6 +6,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
+import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.stereotype.Component;
 
 /**
@@ -37,8 +38,7 @@ import org.springframework.stereotype.Component;
 public class ZhaoBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-//		BeanDefinition beanDefinition = (BeanDefinition) beanFactory.getBeanDefinition("commodityService");
-//		beanDefinition.setDestroyMethodName(AbstractBeanDefinition.INFER_METHOD);
-		System.out.println("ZhaoBeanFactoryPostProcessor.postProcessBeanFactory");
+		GenericBeanDefinition definition = (GenericBeanDefinition) beanFactory.getBeanDefinition("orderService");
+		definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_NO);
 	}
 }

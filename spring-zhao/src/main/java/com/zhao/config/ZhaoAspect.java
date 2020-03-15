@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  * @description TODO
  * @date 2020-01-17 15:29
  */
-@Component
+//@Component
 //@Aspect
 public class ZhaoAspect {
 

@@ -191,6 +191,11 @@ public abstract class BeanUtils {
 	 * returns the Java constructor corresponding to the Kotlin primary constructor
 	 * (as defined in the Kotlin specification). Otherwise, in particular for non-Kotlin
 	 * classes, this simply returns {@code null}.
+	 *
+	 * 返回提供的类的主构造函数。
+	 * 对于Kotlin类，它返回与Kotlin主构造函数(如Kotlin规范中定义的那样)对应的Java构造函数。
+	 * 否则，特别是对于非kotlin类，它只返回{@code null}。
+	 *
 	 * @param clazz the class to check
 	 * @since 5.0
 	 * @see <a href="https://kotlinlang.org/docs/reference/classes.html#constructors">Kotlin docs</a>

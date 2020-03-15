@@ -19,10 +19,10 @@ import org.springframework.context.annotation.*;
 //		,includeFilters = @Filter(ZhaoMapper.class)
 //)
 //@MapperScan
-@EnableAspectJAutoProxy(proxyTargetClass = true)
+//@EnableAspectJAutoProxy(proxyTargetClass = true)
 @ComponentScan("com.zhao")
 @Configuration
-@Import(ZhaoAopBeanPostProcessor.class)
+//@Import(ZhaoAopBeanPostProcessor.class)
 public class AppConfig {
 //
 //	@Bean

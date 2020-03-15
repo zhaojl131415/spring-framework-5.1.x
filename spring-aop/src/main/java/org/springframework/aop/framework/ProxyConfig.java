@@ -84,6 +84,7 @@ public class ProxyConfig implements Serializable {
 	}
 
 	/**
+	 * 返回代理是否应该执行积极的优化。
 	 * Return whether proxies should perform aggressive optimizations.
 	 */
 	public boolean isOptimize() {
@@ -148,13 +149,17 @@ public class ProxyConfig implements Serializable {
 
 
 	/**
+	 * 从其他配置对象复制配置。
 	 * Copy configuration from the other config object.
 	 * @param other object to copy configuration from
 	 */
 	public void copyFrom(ProxyConfig other) {
 		Assert.notNull(other, "Other ProxyConfig object must not be null");
+		// 是否强制使用cglib
 		this.proxyTargetClass = other.proxyTargetClass;
+		// 是否使用优化策略
 		this.optimize = other.optimize;
+		//
 		this.exposeProxy = other.exposeProxy;
 		this.frozen = other.frozen;
 		this.opaque = other.opaque;

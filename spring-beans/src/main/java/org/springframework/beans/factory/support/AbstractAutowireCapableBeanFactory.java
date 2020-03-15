@@ -60,6 +60,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.InjectionPoint;
 import org.springframework.beans.factory.UnsatisfiedDependencyException;
+import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -1198,6 +1199,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	}
 
 	/**
+	 * 创建一个对象方式:
+	 * new
+	 * 反射:构造方法
+	 *
 	 * Create a new instance for the specified bean, using an appropriate instantiation strategy:
 	 * factory method, constructor autowiring, or simple instantiation.
 	 * @param beanName the name of the bean
@@ -1239,11 +1244,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		/**
-		 * 当多次构建同一个bean时,可以使用此处的快捷路径,即无需再次推断应该使用哪种方法构建实例,以提高效率.
-		 * 比如在多次构建同一个prototype类型的bean时,就可以走此处的捷径.
+		 * 当多次构建同一个bean时, 可以使用此处的快捷路径, 即无需再次推断应该使用哪种方法构建实例, 以提高效率.
+		 * 比如在多次构建同一个prototype类型的bean时, 就可以按照上次创建实例的方式创建实例, 不用再次推断构造方法.
 		 * 这里的resolved 和 mbd.constructorArgumentsResolved将会在bean第一次实例化过程中被设置
 		 */
-		// Shortcut when re-creating the same bean...
+		// Shortcut when re-creating the same bean... 重新创建相同的bean时的快捷方式…
 		// 表示创建对象的构造方法没有被解析过
 		boolean resolved = false;
 		// 判断有没有必须进行依赖注入
@@ -1253,6 +1258,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		 * 若传进来的args不为null,那么就可以直接选出对应的构造函数
 		 */
 		if (args == null) {
+			// 锁对象:new Object()
 			synchronized (mbd.constructorArgumentLock) {
 				// 判断BeanDefinition中resolvedConstructorOrFactoryMethod不为null, 表示已经找到了创建对象的方式
 				// resolvedConstructorOrFactoryMethod用来缓存已经解析过的构造函数或工厂方法
@@ -1266,6 +1272,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 		// 如果被解析过
 		if (resolved) {
+			// 这里只有原型的对象, 才会走到这里, 单例bean只有执行一次createBean(), 不可能会走到这里
 			if (autowireNecessary) {
 				// 通过有参的构造函数进行反射调用
 				return autowireConstructor(beanName, mbd, null, null);
@@ -1276,17 +1283,34 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 		}
 
-		// Candidate constructors for autowiring?
+		// Candidate constructors for autowiring? 自动装配的候选构造函数?
 		/**
-		 * 第二次调用后置处理器(SmartInstantiationAwareBeanPostProcessor)推断出所有构造方法
-		 * 这里所说的推断构造方法是指：推断出有质疑的构造方法。
-		 * 简而言之，如果只提供了一个构造方法，这里就返回为空，没有质疑。如果提供了多个构造方法，这里就会都查询出来。
+		 * 第二次调用后置处理器(SmartInstantiationAwareBeanPostProcessor)推断构造方法
+		 *
+		 * 自动注入:
+		 * 	AbstractBeanDefinition definition = (AbstractBeanDefinition) beanFactory.getBeanDefinition("orderService");
+		 * 	definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_CONSTRUCTOR); 通过构造方法自动注入, 这里会返回多个, 最终按照参数最多的构造方法创建bean
+		 * 	definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_NO); 默认, 返回空, 按照默认手动注入逻辑创建bean
+		 *
+		 * 手动注入:
+		 * 	@AutoWired
+		 * 	如果在构造方法上添加注解@AutoWired,就按照这个方法创建bean, 如果没有指定推断构造方法,
+		 * 	如果提供多个构造方法, 其中包含无参构造方法和N个添加了@Autowired(required = false)的方法, 会返回(N+1), 但最终还是会选择无参构造方法生成对象
+		 * 	如果提供多个构造方法, 其中包含无参构造方法和N个添加了@Autowired的方法, 会报错
+		 * 	如果提供多个构造方法, 其中包含无参构造方法和1个添加了@Autowired的方法, 会返回这1个@Autowired的方法, 但是这个构造方法后续生成对象时可能会因为参数不匹配报错
+		 * 	如果提供多个构造方法, 其中包含无参构造方法, 没有@Autowired指定其他方法, spring也不知道按照哪个构造方法创建对象, 所以干脆不推断, 返回为空.
+		 * 	如果提供多个构造方法, 其中没有无参构造方法, spring会报错
+		 * 	如果只提供了一个无参构造方法，因为没有指定, 不需要推断, 后面直接按照默认无参构造方法, 这里也就返回为空
+		 * 	如果只提供了一个有参构造方法, 会返回这个有参构造方法
+		 *
+		 *
+		 * 	这里的结果只有三个:null/1/n/异常
  		 */
 		Constructor<?>[] ctors = determineConstructorsFromBeanPostProcessors(beanClass, beanName);
-		// 通过后置处理器解析出构造器对象不为null
+		// 通过后置处理器解析出构造方法不为null或者自动装配模式为:AUTOWIRE_CONSTRUCTOR
 		if (ctors != null || mbd.getResolvedAutowireMode() == AUTOWIRE_CONSTRUCTOR ||
 				mbd.hasConstructorArgumentValues() || !ObjectUtils.isEmpty(args)) {
-			// 构造方法不为空，推断合理的构造方法
+			// 构造方法不为空，推断合理的构造方法, 并反射生成bean
 			return autowireConstructor(beanName, mbd, ctors, args);
 		}
 
@@ -1298,7 +1322,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		// No special handling: simply use no-arg constructor. 不需要特殊处理:只需使用无参数构造函数。
-		// ctor.newInstance(args)
+		// 没有推断出构造方法, 生成bean方法参数中没有构造方法, 会使用默认的无参构造方法生成bean ctor.newInstance(args)
 		return instantiateBean(beanName, mbd);
 	}
 
@@ -1370,7 +1394,15 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (beanClass != null && hasInstantiationAwareBeanPostProcessors()) {
 			for (BeanPostProcessor bp : getBeanPostProcessors()) {
 				if (bp instanceof SmartInstantiationAwareBeanPostProcessor) {
+					// 在AutowiredAnnotationBeanPostProcessor这个后置处理器
 					SmartInstantiationAwareBeanPostProcessor ibp = (SmartInstantiationAwareBeanPostProcessor) bp;
+					/**
+					 * 推断构造方法,
+					 * 如果提供了两个合格的构造方法, 会抛异常
+					 * 如果提供了多个模糊的构造方法, 推断出0个, 这里返回空, 后面创建实例会使用默认的无参构造方法
+					 * 如果提供了一个精确的构造方法(@AutoWired), 不是默认的, 会推断出这个, 后面创建实例会使用这个构造方法
+					 * 如果提供了多个的精确构造方法(@AutoWired(required = false)), 会推断出多个
+					 */
 					Constructor<?>[] ctors = ibp.determineCandidateConstructors(beanClass, beanName);
 					if (ctors != null) {
 						return ctors;
@@ -1382,6 +1414,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	}
 
 	/**
+	 * 使用给定bean的默认构造函数实例化它。
 	 * Instantiate the given bean using its default constructor.
 	 * @param beanName the name of the bean
 	 * @param mbd the bean definition for the bean

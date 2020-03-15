@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
  * @description TODO
  * @date 2020-03-08 11:56
  */
-@Component
+//@Component
 public class ZhaoFactoryBean implements FactoryBean {
 	@Override
 	public Object getObject() throws Exception {
