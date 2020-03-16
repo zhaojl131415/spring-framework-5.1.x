@@ -51,6 +51,7 @@ public class InjectionMetadata {
 
 	private final Class<?> targetClass;
 
+	// 需要注入的元素集合
 	private final Collection<InjectedElement> injectedElements;
 
 	@Nullable
@@ -63,10 +64,12 @@ public class InjectionMetadata {
 	}
 
 
+	// todo: injectedElements 和 checkedElements 的用意?
 	public void checkConfigMembers(RootBeanDefinition beanDefinition) {
 		Set<InjectedElement> checkedElements = new LinkedHashSet<>(this.injectedElements.size());
 		for (InjectedElement element : this.injectedElements) {
 			Member member = element.getMember();
+			// 是外部管理的配置成员吗?
 			if (!beanDefinition.isExternallyManagedConfigMember(member)) {
 				beanDefinition.registerExternallyManagedConfigMember(member);
 				checkedElements.add(element);

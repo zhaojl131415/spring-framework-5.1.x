@@ -237,6 +237,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 	 */
 	@Override
 	public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
+		// 注入元数据: @Autowired
 		InjectionMetadata metadata = findAutowiringMetadata(beanName, beanType, null);
 		metadata.checkConfigMembers(beanDefinition);
 	}
@@ -445,7 +446,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 
 	/**
 	 * 这个方法有几处调用
-	 * 1、刚实例化生成bean后，第三次调用后置处理器，会先调用此方法，找出自动装配元数据
+	 * 1、刚实例化生成bean后，第三次调用后置处理器，会先调用此方法，找出添加了@AutoWired的自动装配元数据
 	 * 2、在填充属性方法中，第六次调用后置处理器，会调用此方法，获取上一次调用此方法找出的自动装配元数据，如果上一次没找到，就再找一次
 	 * @param beanName
 	 * @param clazz
@@ -458,7 +459,9 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 		String cacheKey = (StringUtils.hasLength(beanName) ? beanName : clazz.getName());
 		// Quick check on the concurrent map first, with minimal locking.
 		// 首先快速检查并发映射，并使用最少的锁。
+		// 注入元数据: 这里缓存应该是为了原型对象服务的, 因为对于单例对象而言, 反正都是要查找注入的元数据, 实例化前后没有什么区别
 		InjectionMetadata metadata = this.injectionMetadataCache.get(cacheKey);
+		// 判断是否需要刷新:metadata是否为空
 		if (InjectionMetadata.needsRefresh(metadata, clazz)) {
 			synchronized (this.injectionMetadataCache) {
 				metadata = this.injectionMetadataCache.get(cacheKey);
@@ -475,26 +478,30 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 	}
 
 	private InjectionMetadata buildAutowiringMetadata(final Class<?> clazz) {
+		// 用于存储所有需要注入的元素
 		List<InjectionMetadata.InjectedElement> elements = new ArrayList<>();
 		Class<?> targetClass = clazz;
 
 		do {
 			final List<InjectionMetadata.InjectedElement> currElements = new ArrayList<>();
-
+			// 遍历bean的所有field
 			ReflectionUtils.doWithLocalFields(targetClass, field -> {
+				// 查找field的注解属性
 				AnnotationAttributes ann = findAutowiredAnnotation(field);
 				if (ann != null) {
+					// 如果找到字段上的注入属性, 判断字段是否为静态的
 					if (Modifier.isStatic(field.getModifiers())) {
 						if (logger.isInfoEnabled()) {
 							logger.info("Autowired annotation is not supported on static fields: " + field);
 						}
 						return;
 					}
+					// 推断注解里required的值
 					boolean required = determineRequiredStatus(ann);
 					currElements.add(new AutowiredFieldElement(field, required));
 				}
 			});
-
+			// 遍历bean的所有Methods, 跟上一段代码类似
 			ReflectionUtils.doWithLocalMethods(targetClass, method -> {
 				Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(method);
 				if (!BridgeMethodResolver.isVisibilityBridgeMethodPair(method, bridgedMethod)) {
@@ -524,15 +531,16 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 			targetClass = targetClass.getSuperclass();
 		}
 		while (targetClass != null && targetClass != Object.class);
-
+		// 实例化一个注入元数据, 存储类和类对应的所有需要注入的元素
 		return new InjectionMetadata(clazz, elements);
 	}
 
 	@Nullable
 	private AnnotationAttributes findAutowiredAnnotation(AccessibleObject ao) {
-		if (ao.getAnnotations().length > 0) {  // autowiring annotations have to be local
-			// @AutoWired @Value
+		if (ao.getAnnotations().length > 0) {  // autowiring annotations have to be local 自动装配注解必须是本地的
+			// this.autowiredAnnotationTypes: @AutoWired @Value
 			for (Class<? extends Annotation> type : this.autowiredAnnotationTypes) {
+				// 获取@AutoWired/@Value注解的属性
 				AnnotationAttributes attributes = AnnotatedElementUtils.getMergedAnnotationAttributes(ao, type);
 				if (attributes != null) {
 					return attributes;

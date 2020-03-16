@@ -614,7 +614,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		synchronized (mbd.postProcessingLock) {
 			if (!mbd.postProcessed) {
 				try {
-					// 第三次调用后置处理器(MergedBeanDefinitionPostProcessor) @AutoWired注解的预解析
+					// 第三次调用后置处理器(MergedBeanDefinitionPostProcessor子类) @Resource/@AutoWired注解的预解析
 					// 通过后置处理器来把BeanDefinition需要注入的信息拿出来，缓存到一个map中，
 					// 到创建完bean之后，填充属性时，把map里所有需要以来注入的东西都取出来完成注入。
 
@@ -1129,7 +1129,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	}
 
 	/**
-	 * 将MergedBeanDefinitionPostProcessors应用于指定的bean definition，调用它们的postProcessMergedBeanDefinition方法。
+	 * 将MergedBeanDefinitionPostProcessors应用于指定的bean definition，
+	 * 调用它们的postProcessMergedBeanDefinition方法。
+	 *
 	 * Apply MergedBeanDefinitionPostProcessors to the specified bean definition,
 	 * invoking their {@code postProcessMergedBeanDefinition} methods.
 	 * @param mbd the merged bean definition for the bean
@@ -1140,8 +1142,12 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	protected void applyMergedBeanDefinitionPostProcessors(RootBeanDefinition mbd, Class<?> beanType, String beanName) {
 		for (BeanPostProcessor bp : getBeanPostProcessors()) {
 			if (bp instanceof MergedBeanDefinitionPostProcessor) {
-				// org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessMergedBeanDefinition
 				MergedBeanDefinitionPostProcessor bdp = (MergedBeanDefinitionPostProcessor) bp;
+				/**
+				 * InitDestroyAnnotationBeanPostProcessor:查找生命周期回调元数据
+				 * CommonAnnotationBeanPostProcessor: 查找@Resource元数据
+				 * AutowiredAnnotationBeanPostProcessor: 查找@Autowired元数据
+				 */
 				bdp.postProcessMergedBeanDefinition(mbd, beanType, beanName);
 			}
 		}
@@ -1506,30 +1512,32 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// Give any InstantiationAwareBeanPostProcessors the opportunity to modify the
 		// state of the bean before properties are set. This can be used, for example,
 		// to support styles of field injection.
-		// 第五次调用后置处理器（InstantiationAwareBeanPostProcessor），判断是否需要属性注入
-		// 如果不需要, 实现如下代码:
-		// @Component
-		// public class AbcConfig implements InstantiationAwareBeanPostProcessor {
-		//     @Override
-		//     public boolean postProcessAfterInstantiation(Object bean, String beanName) {
-		//         直接返回则全部不需要属性注入
-		//         return false;
-		//
-		//         指定userService不需要属性注入
-		//         if ("userService".equals(beanName)) {
-		//             return false;
-		//         }
-		//     }
-		// }
+		/**
+		 * 第五次调用后置处理器（InstantiationAwareBeanPostProcessor），判断是否需要属性注入
+		 * 如果不需要, 实现如下代码:
+		 * @Component
+		 * public class AbcConfig implements InstantiationAwareBeanPostProcessor {
+		 *     @Override
+		 *     public boolean postProcessAfterInstantiation(Object bean, String beanName) {
+		 *         // 指定userService不需要属性注入, 其他bean没影响
+		 *         if ("userService".equals(beanName)) {
+		 *             return false;
+		 *         }
+		 *         return true;
+		 *         // 直接返回则全部bean不需要属性注入
+		 *         return false;
+		 *     }
+		 * }
+		 */
 		if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
 			for (BeanPostProcessor bp : getBeanPostProcessors()) {
 				if (bp instanceof InstantiationAwareBeanPostProcessor) {
 					InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
 					/**
-					 * 这里默认为true
+					 * 这里默认为true, spring所有的实现类也返回true
 					 * 如果不要属性注入，可以自定义一个后置处理器实现InstantiationAwareBeanPostProcessor，
 					 * 重写postProcessAfterInstantiation方法，让这个方法return false; 这里就不会属性注入
-					 * 这个跟老版相比有改动
+					 * 这个跟老版相比有改动 continueWithPropertyPopulation
 					 */
 					if (!ibp.postProcessAfterInstantiation(bw.getWrappedInstance(), beanName)) {
 						return;
