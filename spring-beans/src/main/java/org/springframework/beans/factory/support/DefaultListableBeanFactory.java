@@ -496,6 +496,13 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		return resolvedBeanNames;
 	}
 
+	/**
+	 *
+	 * @param type
+	 * @param includeNonSingletons
+	 * @param allowEagerInit
+	 * @return
+	 */
 	private String[] doGetBeanNamesForType(ResolvableType type, boolean includeNonSingletons, boolean allowEagerInit) {
 		List<String> result = new ArrayList<>();
 
@@ -825,7 +832,13 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		// Trigger initialization of all non-lazy singleton beans...
 		// 触发所有非延迟加载单例beans的初始化，主要步骤为调用getBean
 		for (String beanName : beanNames) {
-			// 合并父BeanDefinition，beanDefinitionMap.get(beanName)
+			/**
+			 * 一个描述bean的BeanDefinition，可以是RootBeanDefinition、ChildBeanDefinition、GenericBeanDefinition等众多BD的一种，
+			 * 但是这些BeanDefinition可能包含的bean信息都不全，可以通过setParen()指定父BeanDefinition
+			 * 这里合并就是要将描述bean的所有BeanDefinition合并成一个RootBeanDefinition
+			 *
+			 * 合并父BeanDefinition，beanDefinitionMap.get(beanName)
+			 */
 			RootBeanDefinition bd = getMergedLocalBeanDefinition(beanName);
 			// 判断当前BeanDefinition是否非抽象，是否单例，是否非Lazy初始化
 			if (!bd.isAbstract() && bd.isSingleton() && !bd.isLazyInit()) {

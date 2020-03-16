@@ -73,6 +73,8 @@ import org.springframework.util.Assert;
  * @see Required
  * @deprecated as of 5.1, in favor of using constructor injection for required settings
  * (or a custom {@link org.springframework.beans.factory.InitializingBean} implementation)
+ *
+ * 从5.1版本开始表示过期
  */
 @Deprecated
 public class RequiredAnnotationBeanPostProcessor extends InstantiationAwareBeanPostProcessorAdapter

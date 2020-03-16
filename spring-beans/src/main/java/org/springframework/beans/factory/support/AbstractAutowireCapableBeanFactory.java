@@ -610,15 +610,15 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			mbd.resolvedTargetType = beanType;
 		}
 
-		// Allow post-processors to modify the merged bean definition.
+		// Allow post-processors to modify the merged bean definition. 允许后置处理器修改合并的bean definition。
 		synchronized (mbd.postProcessingLock) {
 			if (!mbd.postProcessed) {
 				try {
 					// 第三次调用后置处理器(MergedBeanDefinitionPostProcessor) @AutoWired注解的预解析
-					// 通过后置处理器来应用合并后的BeanDefinition  -- 目标
-					// 缓存了注入元素信息 -- 更多事情 -- 自定义通过后置处理器来应用合并后的BeanDefinition
-					// applyBeanDefinitionPostProcessors
-					// 应用BeanDefinition？把BeanDefinition的信息拿出来，需要属性
+					// 通过后置处理器来把BeanDefinition需要注入的信息拿出来，缓存到一个map中，
+					// 到创建完bean之后，填充属性时，把map里所有需要以来注入的东西都取出来完成注入。
+
+					// 这一步做了缓存了注入元素信息，还可以扩展做更多事情：自定义通过后置处理器来应用合并后的BeanDefinition
 					applyMergedBeanDefinitionPostProcessors(mbd, beanType, beanName);
 				}
 				catch (Throwable ex) {
@@ -1129,6 +1129,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	}
 
 	/**
+	 * 将MergedBeanDefinitionPostProcessors应用于指定的bean definition，调用它们的postProcessMergedBeanDefinition方法。
 	 * Apply MergedBeanDefinitionPostProcessors to the specified bean definition,
 	 * invoking their {@code postProcessMergedBeanDefinition} methods.
 	 * @param mbd the merged bean definition for the bean
@@ -1139,6 +1140,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	protected void applyMergedBeanDefinitionPostProcessors(RootBeanDefinition mbd, Class<?> beanType, String beanName) {
 		for (BeanPostProcessor bp : getBeanPostProcessors()) {
 			if (bp instanceof MergedBeanDefinitionPostProcessor) {
+				// org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessMergedBeanDefinition
 				MergedBeanDefinitionPostProcessor bdp = (MergedBeanDefinitionPostProcessor) bp;
 				bdp.postProcessMergedBeanDefinition(mbd, beanType, beanName);
 			}

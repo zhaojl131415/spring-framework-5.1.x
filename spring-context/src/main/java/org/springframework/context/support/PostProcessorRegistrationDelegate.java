@@ -156,6 +156,7 @@ final class PostProcessorRegistrationDelegate {
 			// Next, invoke the BeanDefinitionRegistryPostProcessors that implement Ordered.
 			// 接下来，调用实现Ordered的BeanDefinitionRegistryPostProcessors
 			// 通俗的讲 这一步就可以理解为找大长腿女孩
+			// 因为在上一步已经扫描出指定目录下的@Compent的bean，且存入bdmap中，这一步在做类型匹配时，不能拿原始bd去比较，所以必须要合并bd
 			postProcessorNames = beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
 			for (String ppName : postProcessorNames) {
 				// 这里还会找到第一步中找到的ConfigurationClassPostProcessor, 但是第一步中已经执行过了，所以这里要!processedBeans.contains(ppName)
