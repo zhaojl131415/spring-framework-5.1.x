@@ -1546,18 +1546,26 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 		}
 
+		// 自定义的PropertyValues
 		PropertyValues pvs = (mbd.hasPropertyValues() ? mbd.getPropertyValues() : null);
 
-		// 解决自动装配模式 byType byName
+		// 获取对应bd的自动装配模型 byType byName
 		int resolvedAutowireMode = mbd.getResolvedAutowireMode();
 		if (resolvedAutowireMode == AUTOWIRE_BY_NAME || resolvedAutowireMode == AUTOWIRE_BY_TYPE) {
 			MutablePropertyValues newPvs = new MutablePropertyValues(pvs);
-			// Add property values based on autowire by name if applicable.
+			// Add property values based on autowire by name if applicable. 基于自动装配 byName 添加属性值(如果适用)。
 			if (resolvedAutowireMode == AUTOWIRE_BY_NAME) {
 				autowireByName(beanName, mbd, bw, newPvs);
 			}
-			// Add property values based on autowire by type if applicable.
+			// Add property values based on autowire by type if applicable. 基于自动装配 byType 添加属性值(如果适用)。
 			if (resolvedAutowireMode == AUTOWIRE_BY_TYPE) {
+				// 找出bw中所有需要注入的方法，这些方法可能包含一些参数，spring就会把这个参数值找出来
+				/**
+				 * 方法调用链
+				 * org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory#autowireByType
+				 * org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory#unsatisfiedNonSimpleProperties(org.springframework.beans.factory.support.AbstractBeanDefinition, org.springframework.beans.BeanWrapper)
+				 * spring调用java api(內省)拿到当前类中所有对属性进行控制的方法，包括set、get、is封装成PropertyDescriptor
+				 */
 				autowireByType(beanName, mbd, bw, newPvs);
 			}
 			pvs = newPvs;
@@ -1577,8 +1585,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			 * 第六次调用后置处理器（InstantiationAwareBeanPostProcessor）
 			 * 遍历spring所有的后置处理器, 每个后置处理器会对spring做不同的事情
 			 *
-			 * CommonAnnotationBeanPostProcessor: 处理@Resource、@PostConstruct、@PreDestroy等注解的后置处理器
-			 * AutowiredAnnotationBeanPostProcessor: 处理@Autowired注解的后置处理器
+			 * CommonAnnotationBeanPostProcessor: 处理@Resource注解的注入
+			 * AutowiredAnnotationBeanPostProcessor: 处理@Autowired、@Value注解的注入
  			 */
 			for (BeanPostProcessor bp : getBeanPostProcessors()) {
 				if (bp instanceof InstantiationAwareBeanPostProcessor) {
@@ -1605,7 +1613,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			checkDependencies(beanName, mbd, filteredPds, pvs);
 		}
 
+		// 上面是通过找bean里的@Resource、@AutoWired注解方式指定的注入(可以理解为手动注入)，field.set
+		// 这里是通过找bean里的set方法指定的注入(可以理解为自动注入)，这里是通过反射（method.invoke）注入的
 		if (pvs != null) {
+			// 应用属性值  writeMethod.invoke(getWrappedInstance(), value);
 			applyPropertyValues(beanName, mbd, bw, pvs);
 		}
 	}
@@ -1662,6 +1673,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		Set<String> autowiredBeanNames = new LinkedHashSet<>(4);
+		// 拿到所有的属性名字：其实就是拿到所有的set方法名除去set后的名字
 		String[] propertyNames = unsatisfiedNonSimpleProperties(mbd, bw);
 		for (String propertyName : propertyNames) {
 			try {
@@ -1669,10 +1681,12 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				// Don't try autowiring by type for type Object: never makes sense,
 				// even if it technically is a unsatisfied, non-simple property.
 				if (Object.class != pd.getPropertyType()) {
+					// 方法参数描述
 					MethodParameter methodParam = BeanUtils.getWriteMethodParameter(pd);
 					// Do not allow eager init for type matching in case of a prioritized post-processor.
 					boolean eager = !(bw.getWrappedInstance() instanceof PriorityOrdered);
 					DependencyDescriptor desc = new AutowireByTypeDependencyDescriptor(methodParam, eager);
+					// 这里调到最后是getBean
 					Object autowiredArgument = resolveDependency(desc, beanName, autowiredBeanNames, converter);
 					if (autowiredArgument != null) {
 						pvs.add(propertyName, autowiredArgument);
@@ -1706,6 +1720,20 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	protected String[] unsatisfiedNonSimpleProperties(AbstractBeanDefinition mbd, BeanWrapper bw) {
 		Set<String> result = new TreeSet<>();
 		PropertyValues pvs = mbd.getPropertyValues();
+		/**
+		 * spring调用java api(內省)拿到当前类中所有对属性进行控制的方法，包括set、get、is封装成PropertyDescriptor
+		 * java.beans.BeanInfo#getPropertyDescriptors()返回所有的set、get、is方法
+		 *
+		 * 方法调用链
+		 * org.springframework.beans.BeanWrapperImpl#getPropertyDescriptors()
+		 * org.springframework.beans.BeanWrapperImpl#getCachedIntrospectionResults
+		 * org.springframework.beans.CachedIntrospectionResults#forClass
+		 * org.springframework.beans.CachedIntrospectionResults#CachedIntrospectionResults
+		 * org.springframework.beans.CachedIntrospectionResults#getBeanInfo(java.lang.Class<?>)
+		 * java.beans.Introspector#getBeanInfo(java.lang.Class<?>)
+		 * java.beans.Introspector#getBeanInfo()
+		 * java.beans.Introspector#getTargetPropertyInfo在这里遍历所有的方法找出set、get、is
+		 */
 		PropertyDescriptor[] pds = bw.getPropertyDescriptors();
 		for (PropertyDescriptor pd : pds) {
 			if (pd.getWriteMethod() != null && !isExcludedFromDependencyCheck(pd) && !pvs.contains(pd.getName()) &&
@@ -1799,6 +1827,17 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	}
 
 	/**
+	 * 方法调用链
+	 * org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory#applyPropertyValues
+	 * org.springframework.beans.AbstractPropertyAccessor#setPropertyValues(org.springframework.beans.PropertyValues)
+	 * org.springframework.beans.AbstractPropertyAccessor#setPropertyValues(org.springframework.beans.PropertyValues, boolean, boolean)
+	 * org.springframework.beans.AbstractPropertyAccessor#setPropertyValue(org.springframework.beans.PropertyValue)
+	 * org.springframework.beans.AbstractNestablePropertyAccessor#setPropertyValue(java.lang.String, java.lang.Object)
+	 * org.springframework.beans.AbstractNestablePropertyAccessor#setPropertyValue(org.springframework.beans.AbstractNestablePropertyAccessor.PropertyTokenHolder, org.springframework.beans.PropertyValue)
+	 * org.springframework.beans.AbstractNestablePropertyAccessor#processLocalProperty
+	 * org.springframework.beans.BeanWrapperImpl.BeanPropertyHandler#setValue
+	 *
+	 *
 	 * Apply the given property values, resolving any runtime references
 	 * to other beans in this bean factory. Must use deep copy, so we
 	 * don't permanently modify this property.

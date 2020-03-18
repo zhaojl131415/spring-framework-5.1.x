@@ -630,17 +630,26 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 		@Override
 		protected void inject(Object bean, @Nullable String beanName, @Nullable PropertyValues pvs) throws Throwable {
 			Field field = (Field) this.member;
+			// 用于存储spring从容器中取出来，需要被注入的对象
 			Object value;
+			// cached 默认为false，等整个属性完成的时候改为true，会给cachedFieldValue赋值：ShortcutDependencyDescriptor
 			if (this.cached) {
+				// todo 什么情况下会进这个cached？？ 同一个元素注入两次？？ @scope(request)多线程请求？？
+				// 表示需要被注入的对象，已经有缓存，不再需要对属性进行解析去获取需要注入的值
+				// ShortcutDependencyDescriptor
 				value = resolvedCachedArgument(beanName, this.cachedFieldValue);
 			}
 			else {
+				// 表示需要被注入的对象没有缓存，没有解析过，需要对属性进行解析去获取需要注入的值
+				// 依赖的描述：包含这个属性，是否必须注入
 				DependencyDescriptor desc = new DependencyDescriptor(field, this.required);
 				desc.setContainingClass(bean.getClass());
 				Set<String> autowiredBeanNames = new LinkedHashSet<>(1);
 				Assert.state(beanFactory != null, "No BeanFactory available");
 				TypeConverter typeConverter = beanFactory.getTypeConverter();
 				try {
+					// value为spring从容器中取出来，需要被注入的对象
+					// 这个需要被注入的对象，通过getBean()去获取，有则获取，无则创建
 					value = beanFactory.resolveDependency(desc, beanName, autowiredBeanNames, typeConverter);
 				}
 				catch (BeansException ex) {
@@ -667,8 +676,10 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 					}
 				}
 			}
+			// 如果找到需要被注入的对象
 			if (value != null) {
 				ReflectionUtils.makeAccessible(field);
+				// 把value set到这个field上
 				field.set(bean, value);
 			}
 		}
