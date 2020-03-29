@@ -82,6 +82,7 @@ public class InjectionMetadata {
 	}
 
 	public void inject(Object target, @Nullable String beanName, @Nullable PropertyValues pvs) throws Throwable {
+		// 拿到所有需要注入的元素
 		Collection<InjectedElement> checkedElements = this.checkedElements;
 		Collection<InjectedElement> elementsToIterate =
 				(checkedElements != null ? checkedElements : this.injectedElements);
@@ -172,7 +173,7 @@ public class InjectionMetadata {
 		}
 
 		/**
-		 * Either this or {@link #getResourceToInject} needs to be overridden.
+		 * Either this or {@link #getResourceToInject} needs to be overridden. 需要覆盖这个或{@link #getResourceToInject}。
 		 */
 		protected void inject(Object target, @Nullable String requestingBeanName, @Nullable PropertyValues pvs)
 				throws Throwable {

@@ -677,6 +677,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	@Override
 	@Nullable
 	public Class<?> getType(String name) throws NoSuchBeanDefinitionException {
+		// 转换BeanName
 		String beanName = transformedBeanName(name);
 
 		// Check manually registered singletons.
