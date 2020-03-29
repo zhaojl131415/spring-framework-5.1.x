@@ -100,6 +100,7 @@ public class EventListenerMethodProcessor
 	public void afterSingletonsInstantiated() {
 		ConfigurableListableBeanFactory beanFactory = this.beanFactory;
 		Assert.state(this.beanFactory != null, "No ConfigurableListableBeanFactory set");
+		// 从spring容器中获取所有的对象, 遍历
 		String[] beanNames = beanFactory.getBeanNamesForType(Object.class);
 		for (String beanName : beanNames) {
 			if (!ScopedProxyUtils.isScopedTarget(beanName)) {
@@ -130,6 +131,7 @@ public class EventListenerMethodProcessor
 						}
 					}
 					try {
+						// 最终走到这: 扫描@EventListener
 						processBean(beanName, type);
 					}
 					catch (Throwable ex) {
@@ -142,12 +144,14 @@ public class EventListenerMethodProcessor
 	}
 
 	private void processBean(final String beanName, final Class<?> targetType) {
+		// 判断bean上是否有注解, 是否为java包下的文件, 是否为spring容器类
 		if (!this.nonAnnotatedClasses.contains(targetType) &&
 				!targetType.getName().startsWith("java") &&
 				!isSpringContainerClass(targetType)) {
 
 			Map<Method, EventListener> annotatedMethods = null;
 			try {
+				// 通过反射找出当前类上 加了@EventListener的所有方法
 				annotatedMethods = MethodIntrospector.selectMethods(targetType,
 						(MethodIntrospector.MetadataLookup<EventListener>) method ->
 								AnnotatedElementUtils.findMergedAnnotation(method, EventListener.class));
@@ -158,7 +162,7 @@ public class EventListenerMethodProcessor
 					logger.debug("Could not resolve methods for bean with name '" + beanName + "'", ex);
 				}
 			}
-
+			// 扫描之后, 如果没有找到, 加入到nonAnnotatedClasses集合中
 			if (CollectionUtils.isEmpty(annotatedMethods)) {
 				this.nonAnnotatedClasses.add(targetType);
 				if (logger.isTraceEnabled()) {
@@ -167,19 +171,23 @@ public class EventListenerMethodProcessor
 			}
 			else {
 				// Non-empty set of methods
+				// 获取spring上下文
 				ConfigurableApplicationContext context = this.applicationContext;
 				Assert.state(context != null, "No ApplicationContext set");
+				// 获取事件监听器工厂
 				List<EventListenerFactory> factories = this.eventListenerFactories;
 				Assert.state(factories != null, "EventListenerFactory List not initialized");
 				for (Method method : annotatedMethods.keySet()) {
 					for (EventListenerFactory factory : factories) {
 						if (factory.supportsMethod(method)) {
 							Method methodToUse = AopUtils.selectInvocableMethod(method, context.getType(beanName));
+							// 创建监听器方法适配器(ApplicationListenerMethodAdapter) 包装 对应方法
 							ApplicationListener<?> applicationListener =
 									factory.createApplicationListener(beanName, targetType, methodToUse);
 							if (applicationListener instanceof ApplicationListenerMethodAdapter) {
 								((ApplicationListenerMethodAdapter) applicationListener).init(context, this.evaluator);
 							}
+							// 将监听器添加到spring容器中
 							context.addApplicationListener(applicationListener);
 							break;
 						}

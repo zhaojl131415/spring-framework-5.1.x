@@ -44,8 +44,12 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
+ * 监听器方法适配器: 用于封装@EventListener注解方法
+ *
+ *
  * {@link GenericApplicationListener} adapter that delegates the processing of
  * an event to an {@link EventListener} annotated method.
+ * 监听器方法适配器: 它将事件的处理委托给{@link EventListener}带注释的方法。
  *
  * <p>Delegates to {@link #processEvent(ApplicationEvent)} to give sub-classes
  * a chance to deviate from the default. Unwraps the content of a
@@ -137,6 +141,10 @@ public class ApplicationListenerMethodAdapter implements GenericApplicationListe
 	}
 
 
+	/**
+	 * 监听器调用onApplicationEvent()
+	 * @param event the event to respond to
+	 */
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
 		processEvent(event);
@@ -170,6 +178,7 @@ public class ApplicationListenerMethodAdapter implements GenericApplicationListe
 
 
 	/**
+	 * 处理事件
 	 * Process the specified {@link ApplicationEvent}, checking if the condition
 	 * match and handling non-null result, if any.
 	 */
@@ -251,6 +260,7 @@ public class ApplicationListenerMethodAdapter implements GenericApplicationListe
 	}
 
 	/**
+	 * 使用给定的参数值调用事件监听器方法。
 	 * Invoke the event listener method with the given argument values.
 	 */
 	@Nullable

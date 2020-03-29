@@ -64,6 +64,13 @@ public class GenericApplicationListenerAdapter implements GenericApplicationList
 		this.delegate.onApplicationEvent(event);
 	}
 
+	/**
+	 * 判断监听器监听的事件类型 与 当前事件类型 是否匹配
+	 *
+	 * 相当于咱们自己写的泛型判断
+	 * Class clazz = (Class) ((ParameterizedType) listener.getClass().getGenericInterfaces()[0]).getActualTypeArguments()[0];
+	 * if (clazz.equals(event.getClass())) {
+	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public boolean supportsEventType(ResolvableType eventType) {

@@ -86,6 +86,9 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 	}
 
 	/**
+	 * 获取线程池: 默认为空
+	 * 通过在配置类中@Bean: ThreadPoolTaskExecutor 指定 或 @Async
+	 *
 	 * Return the current task executor for this multicaster.
 	 */
 	@Nullable
@@ -113,6 +116,7 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 	}
 
 	/**
+	 * 获取异常处理器: 默认为空
 	 * Return the current error handler for this multicaster.
 	 * @since 4.1
 	 */
@@ -129,10 +133,15 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 
 	@Override
 	public void multicastEvent(final ApplicationEvent event, @Nullable ResolvableType eventType) {
+		// 获取事件类型
 		ResolvableType type = (eventType != null ? eventType : resolveDefaultEventType(event));
+		// 线程池
 		Executor executor = getTaskExecutor();
+		// getApplicationListeners(event, type) 根据事件类型找出所有感兴趣的监听器
 		for (ApplicationListener<?> listener : getApplicationListeners(event, type)) {
+			// 默认为空, 如果事件监听器报错会影响主流程, 所以这里建议使用线程池
 			if (executor != null) {
+				// 通过线程池执行事件, 不会因为事件监听的问题报错影响主流程
 				executor.execute(() -> invokeListener(listener, event));
 			}
 			else {
@@ -152,6 +161,7 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 	 * @since 4.1
 	 */
 	protected void invokeListener(ApplicationListener<?> listener, ApplicationEvent event) {
+		// 获取异常处理器
 		ErrorHandler errorHandler = getErrorHandler();
 		if (errorHandler != null) {
 			try {
@@ -166,9 +176,15 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 		}
 	}
 
+	/**
+	 * 调用监听器
+	 * @param listener
+	 * @param event
+	 */
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	private void doInvokeListener(ApplicationListener listener, ApplicationEvent event) {
 		try {
+			// 调用监听器监听的事件: ApplicationListener实现类的onApplicationEvent()
 			listener.onApplicationEvent(event);
 		}
 		catch (ClassCastException ex) {
