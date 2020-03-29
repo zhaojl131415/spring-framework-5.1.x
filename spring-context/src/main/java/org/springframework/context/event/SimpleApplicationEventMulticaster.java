@@ -85,9 +85,11 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 		this.taskExecutor = taskExecutor;
 	}
 
+
 	/**
 	 * 获取线程池: 默认为空
-	 * 通过在配置类中@Bean: ThreadPoolTaskExecutor 指定 或 @Async
+	 * 通过在配置类中@Bean("applicationEventMulticaster") SimpleApplicationEventMulticaster setTaskExecutor方法指定 @Bean: ThreadPoolTaskExecutor
+	 * 这里指定的线程池也可以在: 配置类@EnableAsync时, 在指定的@Async异步方法调用时也使用这个线程池.
 	 *
 	 * Return the current task executor for this multicaster.
 	 */
