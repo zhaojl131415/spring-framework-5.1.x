@@ -23,10 +23,11 @@ public class ZhaoBatisTest {
 
 		// 能够得到一个实现了UserMapper的代理对象
 		UserMapper userMapper = (UserMapper) ZhaoBatisFactory.getMapper(UserMapper.class);
+		OrderMapper orderMapper = (OrderMapper) ZhaoBatisFactory.getMapper(OrderMapper.class);
 
 		// 完成了查询
 		userMapper.queryUser();
 		// 完成了查询
-		userMapper.queryOrder();
+		orderMapper.queryOrder();
 	}
 }

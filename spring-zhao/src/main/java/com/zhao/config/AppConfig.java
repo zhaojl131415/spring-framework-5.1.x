@@ -3,6 +3,7 @@ package com.zhao.config;
 import com.zhao.cglib.ZhaoAopBeanPostProcessor;
 import com.zhao.service.X;
 import com.zhao.service.Y;
+import com.zhao.zhaoBatis.ZhaoImportBeanDefinitionRegistrar;
 import org.springframework.context.annotation.*;
 
 
@@ -22,6 +23,7 @@ import org.springframework.context.annotation.*;
 //@EnableAspectJAutoProxy(proxyTargetClass = true)
 @ComponentScan("com.zhao")
 @Configuration
+@Import(ZhaoImportBeanDefinitionRegistrar.class)
 //@Import(ZhaoAopBeanPostProcessor.class)
 public class AppConfig {
 //

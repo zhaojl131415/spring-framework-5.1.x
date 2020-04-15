@@ -1,5 +1,7 @@
 package com.zhao.zhaoBatis;
 
+import org.springframework.stereotype.Component;
+
 import java.lang.reflect.Proxy;
 
 /**
