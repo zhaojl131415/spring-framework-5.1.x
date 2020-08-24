@@ -118,32 +118,52 @@ public final class SpringFactoriesLoader {
 	 * @see #loadFactories
 	 */
 	public static List<String> loadFactoryNames(Class<?> factoryClass, @Nullable ClassLoader classLoader) {
+		// key
 		String factoryClassName = factoryClass.getName();
+		// 从map中获取key对应的List<所有扩展自动配置类的全限定名>, 如果为null, 返回空集合
 		return loadSpringFactories(classLoader).getOrDefault(factoryClassName, Collections.emptyList());
 	}
 
+	/**
+	 * 读取spring.factories，遍历
+	 * @param classLoader
+	 * @return Map<自动配置类全限定名，List<所有扩展自动配置类的全限定名>>
+	 */
 	private static Map<String, List<String>> loadSpringFactories(@Nullable ClassLoader classLoader) {
+		// 特殊的Map: 一个key对应多个value: Map<K, List<V>>
 		MultiValueMap<String, String> result = cache.get(classLoader);
+		// 判断缓存是否存在
 		if (result != null) {
 			return result;
 		}
 
 		try {
+			// 读取META-INF/spring.factories，这个文件里配置了很多自动配置类的全限定名, 即其他配置
+			// 返回一个枚举类型的URL资源
 			Enumeration<URL> urls = (classLoader != null ?
 					classLoader.getResources(FACTORIES_RESOURCE_LOCATION) :
 					ClassLoader.getSystemResources(FACTORIES_RESOURCE_LOCATION));
 			result = new LinkedMultiValueMap<>();
+			// 遍历URL枚举
 			while (urls.hasMoreElements()) {
 				URL url = urls.nextElement();
 				UrlResource resource = new UrlResource(url);
 				Properties properties = PropertiesLoaderUtils.loadProperties(resource);
 				for (Map.Entry<?, ?> entry : properties.entrySet()) {
+					// key
 					String factoryClassName = ((String) entry.getKey()).trim();
+					// value
 					for (String factoryName : StringUtils.commaDelimitedListToStringArray((String) entry.getValue())) {
+						/**
+						 * 将 value 加入到 key 对应的List中
+						 * @see LinkedMultiValueMap#add(java.lang.Object, java.lang.Object)
+						 */
 						result.add(factoryClassName, factoryName.trim());
 					}
 				}
 			}
+			// 对于读取META-INF/spring.factories操作, 将读取的数据全部加入到缓存中, 之后就直接去缓存中取即可, 不用频繁的读取文件IO,
+			// IO是比较耗性能的, 这里是用空间换时间, 用缓存提高效率
 			cache.put(classLoader, result);
 			return result;
 		}

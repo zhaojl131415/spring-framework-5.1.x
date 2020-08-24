@@ -21,6 +21,8 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**
+ * 标准的BeanDefinition, 通用的
+ *
  * GenericBeanDefinition is a one-stop shop for standard bean definition purposes.
  * Like any bean definition, it allows for specifying a class plus optionally
  * constructor argument values and property values. Additionally, deriving from a
@@ -34,13 +36,14 @@ import org.springframework.util.ObjectUtils;
  * @author Juergen Hoeller
  * @since 2.5
  * @see #setParentName
- * @see RootBeanDefinition
- * @see ChildBeanDefinition
+ * @see RootBeanDefinition		只能作为最顶层的根BD, 不能作为子BD
+ * @see GenericBeanDefinition	既可以作为父BD, 也可以作为子BD
+ * @see ChildBeanDefinition		可以作为子BD, 也可以作为父BD, 但不能作为最顶层的根BD
  *
  * 可以替换掉ChildBeanDefinition,但是不能替换掉RootBeanDefinition
  * 这里跟spring初始化时,BD合并有关
  * 因为mergeBD必须要RootBeanDefinition接收
- * RootBeanDefinition bd = getMergedLocalBeanDefinition(beanName);
+ * @see AbstractBeanFactory#getMergedLocalBeanDefinition(java.lang.String)
  *
  * 既可以作为父BD,也可以作为子BD
  */

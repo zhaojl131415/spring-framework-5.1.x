@@ -46,13 +46,15 @@ import org.springframework.beans.BeansException;
 public interface BeanFactoryPostProcessor {
 
 	/**
-	 * cglib----实现：ConfigurationClassPostProcessor#postProcessBeanFactory(ConfigurableListableBeanFactory)
+	 * cglib----实现：{@link org.springframework.context.annotation.ConfigurationClassPostProcessor#postProcessBeanFactory(ConfigurableListableBeanFactory)}
+	 *
 	 * Modify the application context's internal bean factory after its standard
 	 * initialization. All bean definitions will have been loaded, but no beans
 	 * will have been instantiated yet. This allows for overriding or adding
 	 * properties even to eager-initializing beans.
 	 * @param beanFactory the bean factory used by the application context
 	 * @throws org.springframework.beans.BeansException in case of errors
+	 *
 	 * 可以对bean工厂的api做处理
 	 * 比如修改beanDefinition、动态注册一个已经示例好的bean
 	 */

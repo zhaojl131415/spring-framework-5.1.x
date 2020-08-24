@@ -46,6 +46,14 @@ import org.springframework.aop.SpringProxy;
 @SuppressWarnings("serial")
 public class DefaultAopProxyFactory implements AopProxyFactory, Serializable {
 
+	/**
+	 * 决定创建代理对象是用jdk proxy，还是用cglib了
+	 *
+	 * @param config the AOP configuration in the form of an
+	 * AdvisedSupport object
+	 * @return
+	 * @throws AopConfigException
+	 */
 	@Override
 	public AopProxy createAopProxy(AdvisedSupport config) throws AopConfigException {
 		// isOptimize: 优化策略, 默认为false, 注解方式没有找到修改的地方

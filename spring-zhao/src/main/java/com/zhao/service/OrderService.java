@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class OrderService {
 
+	@Autowired
 	UserService userService;
 
 	public OrderService() {
@@ -22,13 +23,13 @@ public class OrderService {
 //	public OrderService(Service s) {
 //		System.out.println("Service");
 //	}
-	@Autowired
-	public OrderService(UserService u) {
-		userService = u;
-		System.out.println("UserService");
-	}
-	@Autowired
-	public OrderService(X x, UserService u) {
-		System.out.println("x UserService");
-	}
+//	@Autowired
+//	public OrderService(UserService u) {
+//		userService = u;
+//		System.out.println("UserService");
+//	}
+//	@Autowired
+//	public OrderService(X x, UserService u) {
+//		System.out.println("x UserService");
+//	}
 }

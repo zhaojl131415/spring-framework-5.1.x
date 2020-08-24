@@ -54,19 +54,23 @@ import org.springframework.util.StringUtils;
  * @see RootBeanDefinition
  * @see ChildBeanDefinition
  *
- * BeanDefinition的模板类,类似于AQS的意义
+ * BeanDefinition的模板类, 通用BeanDefinition的属性, 类似于AQS的意义
+ *
+ * 定义众多常量。这些常量会直接影响到spring实例化Bean时的策略
  */
 @SuppressWarnings("serial")
 public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccessor
 		implements BeanDefinition, Cloneable {
 
 	/**
+	 * 默认的SCOPE，默认是单例
 	 * Constant for the default scope name: {@code ""}, equivalent to singleton
 	 * status unless overridden from a parent bean definition (if applicable).
 	 */
 	public static final String SCOPE_DEFAULT = "";
 
 	/**
+	 * 自动装配
 	 * Constant that indicates no external autowiring at all.
 	 * @see #setAutowireMode
 	 */
@@ -101,7 +105,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	public static final int AUTOWIRE_AUTODETECT = AutowireCapableBeanFactory.AUTOWIRE_AUTODETECT;
 
 	/**
-	 * 不检查依赖
+	 * 不检查依赖(默认)
 	 * Constant that indicates no dependency check at all.
 	 * @see #setDependencyCheck
 	 */
@@ -136,7 +140,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 * 可以通过实现后置处理器BeanDefinitionPostProcessor接口重写方法调用:
 	 * @Component
 	 * public class CommodityService {
-	 * 	// 本来可以通过@PreDestroy显示指定,这里演示的是没有通过@PreDestroy显示指定, 而通过INFER_METHOD默认匹配close,
+	 * 	// 本来可以通过@PreDestroy显示指定,这里演示的是没有通过@PreDestroy显示指定, 而通过INFER_METHOD默认匹配名为"close" and "shutdown"的方法,
 	 * 	// 感觉很鸡肋,
 	 * 	1 本身一个注解就可以解决的事儿,
 	 * 	2 而且就算是没有注解, 通过后置处理器一样显示指定方法名也可以, 没必要通过这个常量去匹配方法名一定要 "close" and "shutdown"
@@ -553,7 +557,9 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	}
 
 	/**
-	 * 当前类是个抽象类,它的继承类既可以作为BeanDefinition模板,也可以作为一个真实的BeanDefinition
+	 * 当前类是个抽象类,它的继承类既可以作为BeanDefinition模板, 也可以作为一个真实的BeanDefinition
+	 * 模板类可以设置为: true, 然后不通过setBeanClass()方法指定bean, 抽象类不能是实例化, 只作为模板.
+	 *
 	 *
 	 * 见有道云笔记: http://note.youdao.com/noteshare?id=7e2dfba4d5a3bec00214f1ec323a8347
 	 *

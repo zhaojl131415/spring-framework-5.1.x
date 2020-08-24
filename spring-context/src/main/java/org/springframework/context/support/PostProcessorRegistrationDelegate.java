@@ -58,14 +58,14 @@ final class PostProcessorRegistrationDelegate {
 	 *
 	 *
 	 * 这里的步骤为:
-	 * 1 先执行BeanDefinitionRegistryPostProcessor的实现类
+	 * 1 先执行{@link BeanDefinitionRegistryPostProcessor}接口的实现类: 此接口继承自{@link BeanFactoryPostProcessor}
 	 * 		1.1 执行通过api自定义的.postProcessBeanDefinitionRegistry():ac.addBeanFactoryPostProcessor(new ZhaoBeanDefinitionRegistryPostProcessor());
 	 * 		1.2 执行所有的(spring内置和@Component注解自定义的)PriorityOrdered的.postProcessBeanDefinitionRegistry()
 	 * 		1.3 执行所有的(spring内置和@Component注解自定义的)Ordered的.postProcessBeanDefinitionRegistry()
 	 * 		1.4 执行所有的(spring内置和@Component注解自定义的)剩余的.postProcessBeanDefinitionRegistry()
 	 * 		1.5	执行所有的(spring内置和api自定义和@Component注解自定义的)的BeanDefinitionRegistryPostProcessor.postProcessBeanFactory()
-	 * 		1.6	执行api自定义的BeanDefinitionPostProcessor.postProcessBeanFactory()
-	 * 2 再执行BeanDefinitionPostProcessor的实现类
+	 * 		1.6	执行api自定义的BeanFactoryPostProcessor.postProcessBeanFactory()
+	 * 2 再执行{@link BeanFactoryPostProcessor}接口的实现类
 	 * 		2.1 执行PriorityOrdered的.postProcessBeanFactory()
 	 * 		2.2 执行Ordered的.postProcessBeanFactory()
 	 * 		2.3 执行剩余的.postProcessBeanFactory()
@@ -145,8 +145,11 @@ final class PostProcessorRegistrationDelegate {
 			sortPostProcessors(currentRegistryProcessors, beanFactory);
 			// registryProcessors存的是已经找到的的类
 			registryProcessors.addAll(currentRegistryProcessors);
-			// 策略模式：执行的是 ConfigurationClassPostProcessor.postProcessBeanDefinitionRegistry
-			// 完成扫描，扫描指定目录下的@Compent的bean
+			/**
+			 * 策略模式：执行的是
+			 * @see ConfigurationClassPostProcessor#postProcessBeanDefinitionRegistry(BeanDefinitionRegistry)
+			 * 完成扫描，扫描指定目录下的@Compent的bean
+			 */
 			invokeBeanDefinitionRegistryPostProcessors(currentRegistryProcessors, registry);
 			// 执行完，清空currentRegistryProcessors，给第二、三步用
 			currentRegistryProcessors.clear();
@@ -367,6 +370,9 @@ final class PostProcessorRegistrationDelegate {
 			Collection<? extends BeanDefinitionRegistryPostProcessor> postProcessors, BeanDefinitionRegistry registry) {
 
 		for (BeanDefinitionRegistryPostProcessor postProcessor : postProcessors) {
+			/**
+			 * @see ConfigurationClassPostProcessor#postProcessBeanDefinitionRegistry(org.springframework.beans.factory.support.BeanDefinitionRegistry)
+			 */
 			postProcessor.postProcessBeanDefinitionRegistry(registry);
 		}
 	}

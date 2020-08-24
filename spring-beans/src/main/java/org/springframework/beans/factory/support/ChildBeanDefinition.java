@@ -40,12 +40,13 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Rod Johnson
  * @author Juergen Hoeller
- * @see GenericBeanDefinition
- * @see RootBeanDefinition
+ * @see RootBeanDefinition		只能作为最顶层的根BD, 不能作为子BD
+ * @see GenericBeanDefinition	既可以作为父BD, 也可以作为子BD
+ * @see ChildBeanDefinition		可以作为子BD, 也可以作为父BD, 但不能作为最顶层的根BD
  *
- *
- * 可能会被GenericBeanDefinition替代
- * 不能单纯的定义一个bean,必须要指定一个父BD,不能作为最顶层的父BD
+ * spring2.5之前, bean的首选注册方式, 现在基本不用
+ * 可能会被{@link GenericBeanDefinition}替代
+ * 不能单纯的定义一个bean(也就是说不能作为模板), 必须要指定一个父BD, 不能作为最顶层的父BD
  */
 @SuppressWarnings("serial")
 public class ChildBeanDefinition extends AbstractBeanDefinition {
@@ -53,13 +54,16 @@ public class ChildBeanDefinition extends AbstractBeanDefinition {
 	/**
 	 * 父bd的名字
 	 * 这个值在当前这个类里面一般都是通过构造方法设置的, 没有提供无参的构造方法
-	 * 这是ChildBeanDefinition最大的局限性
+	 * 这是ChildBeanDefinition最大的局限性, 所以会被{@link GenericBeanDefinition}替代
 	 */
 	@Nullable
 	private String parentName;
 
 
 	/**
+	 * parentName: 父bd的名字
+	 * ChildBeanDefinition通过构造方法实例化时, parentName是必传参数, 所以说ChildBeanDefinition不能作为最顶层的父BD
+	 *
 	 * Create a new ChildBeanDefinition for the given parent, to be
 	 * configured through its bean properties and configuration methods.
 	 * @param parentName the name of the parent bean

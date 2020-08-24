@@ -1282,7 +1282,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 
 	/**
-	 * 第一次调用在spring初始化时，PostProcessorRegistrationDelegate#invokeBeanFactoryPostProcessors()方法中执行beanFactory.getBeanNamesForType(), 需要做匹配，所以必须要先合并BD
+	 * 第一次调用在spring初始化时，
+	 * {@link org.springframework.context.support.PostProcessorRegistrationDelegate#invokeBeanFactoryPostProcessors(org.springframework.beans.factory.config.ConfigurableListableBeanFactory, java.util.List)}
+	 * 方法中执行beanFactory.getBeanNamesForType(), 需要做匹配，所以必须要先合并BD
 	 * 之后在bean实例化时，就不用再次合并bd了
 	 *
 	 * Return a merged RootBeanDefinition, traversing the parent bean definition

@@ -59,7 +59,10 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 */
 	private final AnnotatedBeanDefinitionReader reader;
 
-	/** 扫描器，它仅仅是在我们外部手动调用 .scan 等方法才有用，常规方式是不会用到scanner对象的 **/
+	/**
+	 * 扫描器，它仅仅是在我们外部手动调用 .scan 等方法才有用，常规方式是不会用到scanner对象的
+	 * @see AnnotationConfigApplicationContext#AnnotationConfigApplicationContext() 实例化
+	 */
 	private final ClassPathBeanDefinitionScanner scanner;
 
 
@@ -68,15 +71,19 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * through {@link #register} calls and then manually {@linkplain #refresh refreshed}.
 	 */
 	public AnnotationConfigApplicationContext() {
-		//会隐式调用父类的构造方法，初始化DefaultListableBeanFactory
+		/**
+		 * 会隐式调用父类的构造方法，初始化DefaultListableBeanFactory, BDMap就在这个BeanFactory中
+		 * @see GenericApplicationContext#GenericApplicationContext()
+		 */
 
-		//初始化一个Bean读取器,AnnotatedGenericBeanDefinition读取并解析AppConfig出BeanDefinition,存入BeanDefinitionMap
-		// AppConfig包含一些包路径扫描信息，得到这些信息才能扫描这些路径下的bean
+		// 初始化一个Bean读取器, AnnotatedGenericBeanDefinition读取并解析配置类: AppConfig,存入BeanDefinitionMap
+		// 配置类: AppConfig包含一些包路径扫描信息，得到这些信息才能扫描这些路径下的bean
 		// AnnotatedBeanDefinitionReader其实就是封装了一个AnnotatedGenericBeanDefinition去读取需要注册的bean
 
 		// 初始化后置处理器放入bdmap中，在AnnotatedBeanDefinitionReader初始化函数中
 		// 调用AnnotationConfigUtils.registerAnnotationConfigProcessors把spring后置处理器放入bdmap中
 		this.reader = new AnnotatedBeanDefinitionReader(this);
+
 		//初始化一个扫描器，它仅仅是在我们外部手动调用 ac.scan 等方法才有用，常规方式是不会用到scanner对象的，
 		// 等同于@ComponentScan("com.zhao")
 		this.scanner = new ClassPathBeanDefinitionScanner(this);
@@ -103,6 +110,8 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		/**
 		 * 调用无参构造函数，会先调用父类GenericApplicationContext的构造函数
 		 * 父类的构造函数里面就是初始化DefaultListableBeanFactory，并且赋值给beanFactory
+		 * @see GenericApplicationContext#GenericApplicationContext()
+		 *
 		 * 本类的构造函数里面，初始化了一个读取器：AnnotatedBeanDefinitionReader read，一个扫描器ClassPathBeanDefinitionScanner scanner
 		 * scanner的用处不是很大，它仅仅是在我们外部手动调用 .scan 等方法才有用，常规方式是不会用到scanner对象的
 		 */

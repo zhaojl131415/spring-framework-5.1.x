@@ -44,6 +44,9 @@ import org.springframework.util.Assert;
  * @see #getBeanClassName()
  * @see org.springframework.core.type.classreading.MetadataReaderFactory
  * @see AnnotatedGenericBeanDefinition
+ *
+ *
+ * 主要是扫描加了@Component(@Service/@Repository/@Controller)的类
  */
 @SuppressWarnings("serial")
 public class ScannedGenericBeanDefinition extends GenericBeanDefinition implements AnnotatedBeanDefinition {
@@ -62,12 +65,18 @@ public class ScannedGenericBeanDefinition extends GenericBeanDefinition implemen
 		setBeanClassName(this.metadata.getClassName());
 	}
 
-
+	/**
+	 * 注解的元信息
+	 * @return
+	 */
 	@Override
 	public final AnnotationMetadata getMetadata() {
 		return this.metadata;
 	}
 
+	/**
+	 * 添加了@Component(@Service/@Repository/@Controller)注解标记的类, 都不是通过工厂生成的, 所以这里可以直接返回null
+	 */
 	@Override
 	@Nullable
 	public MethodMetadata getFactoryMethodMetadata() {

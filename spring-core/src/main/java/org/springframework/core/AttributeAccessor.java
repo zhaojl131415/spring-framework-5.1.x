@@ -28,6 +28,9 @@ import org.springframework.lang.Nullable;
  *
  * 提供对BeanDefinition元数据操作的api
  * 可以理解为维护了一个map
+ *
+ * 接口都比较简单  就是定义了对对象属性的一些访问方法
+ * 说明它可以持有Bean元数据元素，作用是可以持有XML文件的一个bean标签对应的Object（或者@Configuration元配置对象）
  */
 public interface AttributeAccessor {
 

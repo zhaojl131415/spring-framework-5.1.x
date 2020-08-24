@@ -42,6 +42,9 @@ import org.springframework.util.ClassUtils;
  * @author Juergen Hoeller
  * @author Ramnivas Laddad
  * @since 2.0
+ *
+ * 子类:
+ * @see org.springframework.aop.aspectj.annotation.AnnotationAwareAspectJAutoProxyCreator
  */
 @SuppressWarnings("serial")
 public class AspectJAwareAdvisorAutoProxyCreator extends AbstractAdvisorAutoProxyCreator {

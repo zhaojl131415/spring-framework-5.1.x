@@ -158,11 +158,18 @@ class ConfigurationClassParser {
 		this.conditionEvaluator = new ConditionEvaluator(registry, environment, resourceLoader);
 	}
 
-
+	/**
+	 * 从启动类开始，递归解析配置类以及配置类的父级配置类
+	 *
+	 * @param configCandidates
+	 */
 	public void parse(Set<BeanDefinitionHolder> configCandidates) {
+		// 通常情况下configCandidates中就一个BeanDefinitionHolder，关联的是我们的启动类
+		// 示例中是：com.zhao.spring.boot.autoconfigure.AutoConfigApplication
 		for (BeanDefinitionHolder holder : configCandidates) {
 			BeanDefinition bd = holder.getBeanDefinition();
 			try {
+				// 被@Configuration注解修饰的类会被解析为AnnotatedGenericBeanDefinition，AnnotatedGenericBeanDefinition实现了AnnotatedBeanDefinition接口
 				if (bd instanceof AnnotatedBeanDefinition) {
 					parse(((AnnotatedBeanDefinition) bd).getMetadata(), holder.getBeanName());
 				}
@@ -181,7 +188,7 @@ class ConfigurationClassParser {
 						"Failed to parse configuration class [" + bd.getBeanClassName() + "]", ex);
 			}
 		}
-
+		// 处理延迟的ImportSelector，这里的重点：自动配置的入口
 		this.deferredImportSelectorHandler.process();
 	}
 
@@ -253,17 +260,22 @@ class ConfigurationClassParser {
 	 * @param configClass the configuration class being build
 	 * @param sourceClass a source class
 	 * @return the superclass, or {@code null} if none found or previously processed
+	 *
+	 * 通过从源类中读取注解、成员和方法来构建一个完整的配置类：ConfigurationClass
+	 * 注意返回值，是父级类或null(null包含两种情况，没找到父级类或之前已经处理完成)
 	 */
 	@Nullable
 	protected final SourceClass doProcessConfigurationClass(ConfigurationClass configClass, SourceClass sourceClass)
 			throws IOException {
 
+		// 递归处理配置类内置的成员类
 		if (configClass.getMetadata().isAnnotated(Component.class.getName())) {
 			// Recursively process any member (nested) classes first
 			processMemberClasses(configClass, sourceClass);
 		}
 
 		// Process any @PropertySource annotations
+		// 处理配置类上所有@PropertySource注解
 		for (AnnotationAttributes propertySource : AnnotationConfigUtils.attributesForRepeatable(
 				sourceClass.getMetadata(), PropertySources.class,
 				org.springframework.context.annotation.PropertySource.class)) {
@@ -277,18 +289,20 @@ class ConfigurationClassParser {
 		}
 
 		// Process any @ComponentScan annotations
-		// 处理所有@ComponentScan注释 @ComponentScan @ComponentScans
+		// 处理配置类上所有的@ComponentScan注解，包括@ComponentScans和ComponentScan
 		Set<AnnotationAttributes> componentScans = AnnotationConfigUtils.attributesForRepeatable(
 				sourceClass.getMetadata(), ComponentScans.class, ComponentScan.class);
 		if (!componentScans.isEmpty() &&
 				!this.conditionEvaluator.shouldSkip(sourceClass.getMetadata(), ConfigurationPhase.REGISTER_BEAN)) {
 			for (AnnotationAttributes componentScan : componentScans) {
 				// The config class is annotated with @ComponentScan -> perform the scan immediately
-				// 配置类由@ComponentScan注释——>立即执行扫描
+				// 立即执行扫描@ComponentScan修饰的配置类，
+				// 通常是从启动类所在的包开始扫描，扫描配置类（被@Configuration修饰的类）
 				Set<BeanDefinitionHolder> scannedBeanDefinitions =
 						this.componentScanParser.parse(componentScan, sourceClass.getMetadata().getClassName());
 				// Check the set of scanned definitions for any further config classes and parse recursively if needed
-				// 检查已扫描的定义集以获得更多的配置类，并在需要时进行递归解析
+				// 检查已扫描的bean定义集以获得更多的配置类，并在需要时进行递归解析
+				// 进一步检查通过配置类扫描得到的bean定义集
 				for (BeanDefinitionHolder holder : scannedBeanDefinitions) {
 					BeanDefinition bdCand = holder.getBeanDefinition().getOriginatingBeanDefinition();
 					if (bdCand == null) {
@@ -301,11 +315,20 @@ class ConfigurationClassParser {
 			}
 		}
 
-		// Process any @Import annotations 处理所有@Import注释
-		// mybatis @MapperScan注解中@Import(MapperScannerRegistrar.class)
+		// Process any @Import annotations
+		/**
+		 * 关键方法: 与自动配置息息相关
+		 *
+		 * 处理配置类上所有的@Import注解
+		 * 包括@Import支持的4种类型：ImportSelector、ImportBeanDefinitionRegistrar、@Configuration和普通java类
+		 * 普通java类会被按@Configuration方式处理
+		 *
+		 * mybatis @MapperScan注解中@Import(MapperScannerRegistrar.class)
+		 */
 		processImports(configClass, sourceClass, getImports(sourceClass), true);
 
-		// Process any @ImportResource annotations 处理所有@ImportResource注释
+		// Process any @ImportResource annotations
+		// 处理配置类上所有的@ImportResource注解，xml方式的bean就是其中之一
 		AnnotationAttributes importResource =
 				AnnotationConfigUtils.attributesFor(sourceClass.getMetadata(), ImportResource.class);
 		if (importResource != null) {
@@ -317,16 +340,19 @@ class ConfigurationClassParser {
 			}
 		}
 
-		// Process individual @Bean methods 处理单个@Bean方法
+		// Process individual @Bean methods
+		// 处理配置类中被@Bean修饰的方法
 		Set<MethodMetadata> beanMethods = retrieveBeanMethodMetadata(sourceClass);
 		for (MethodMetadata methodMetadata : beanMethods) {
 			configClass.addBeanMethod(new BeanMethod(methodMetadata, configClass));
 		}
 
 		// Process default methods on interfaces
+		// 处理默认的方法或接口
 		processInterfaces(configClass, sourceClass);
 
 		// Process superclass, if any
+		// 处理父级类，如果有的话
 		if (sourceClass.getMetadata().hasSuperClass()) {
 			String superclass = sourceClass.getMetadata().getSuperClassName();
 			if (superclass != null && !superclass.startsWith("java") &&
@@ -507,6 +533,7 @@ class ConfigurationClassParser {
 
 
 	/**
+	 * 考虑所有元注释，返回{@code @Import}类。
 	 * Returns {@code @Import} class, considering all meta-annotations.
 	 */
 	private Set<SourceClass> getImports(SourceClass sourceClass) throws IOException {
@@ -543,6 +570,16 @@ class ConfigurationClassParser {
 		}
 	}
 
+	/**
+	 * @param configClass 起始的ConfigurationClass包括：1、工程中所有我们自定义的被@Configuration修饰的类；2、应用的启动类。
+	 *                    1、自定义的ConfigurationClass一般不会包含多级父级ConfigurationClass，就没有父级ConfigurationClass，解析就比较简单
+	 *                    2、但应用的启动类就不一样了，他往往会被多个注解修饰，而这些注解会牵扯出多个ConfigurationClass，需要递归处理所有的ConfigurationClass；
+	 *                    启动类注解: @SpringBootApplication -> @EnableAutoConfiguration -> @Import({AutoConfigurationImportSelector.class})
+	 *                    这个AutoConfigurationImportSelector类比较重要，实例化之后封装成了DeferredImportSelectorHolder对象，存放到了ConfigurationClassParser的deferredImportSelectors属性中
+	 * @param currentSourceClass
+	 * @param importCandidates
+	 * @param checkForCircularImports
+	 */
 	private void processImports(ConfigurationClass configClass, SourceClass currentSourceClass,
 			Collection<SourceClass> importCandidates, boolean checkForCircularImports) {
 

@@ -163,6 +163,7 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 		this.registry = registry;
 		// 过滤器注册：默认为true
 		if (useDefaultFilters) {
+			// 为@Component注册默认过滤器。
 			registerDefaultFilters();
 		}
 		setEnvironment(environment);
@@ -250,6 +251,7 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	public int scan(String... basePackages) {
 		int beanCountAtScanStart = this.registry.getBeanDefinitionCount();
 
+		// 扫描关键方法
 		doScan(basePackages);
 
 		// Register annotation config processors, if necessary.
@@ -273,7 +275,7 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 		Set<BeanDefinitionHolder> beanDefinitions = new LinkedHashSet<>();
 		// basePackages需要扫描的包名，可以指定多个
 		for (String basePackage : basePackages) {
-			// 通过包名找到@Component注解的候选bean
+			// 通过包路径找到@Component注解的候选BD集合
 			Set<BeanDefinition> candidates = findCandidateComponents(basePackage);
 			for (BeanDefinition candidate : candidates) {
 				ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(candidate);

@@ -1,6 +1,6 @@
 package com.zhao.zhaoBatis;
 
-import org.springframework.stereotype.Component;
+import com.zhao.zhaoBatis.annotation.ZhaoSelect;
 
 import java.lang.reflect.Proxy;
 
@@ -11,6 +11,7 @@ import java.lang.reflect.Proxy;
  * @date 2020-03-08 14:46
  */
 public class ZhaoBatisFactory {
+
 	// 实现jdk动态代理, 能够得到一个实现了Mapper接口的代理对象
 	public static Object getMapper(Class clazz) {
 		/**

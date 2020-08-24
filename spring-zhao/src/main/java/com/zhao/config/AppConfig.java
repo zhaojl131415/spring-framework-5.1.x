@@ -4,6 +4,7 @@ import com.zhao.cglib.ZhaoAopBeanPostProcessor;
 import com.zhao.service.X;
 import com.zhao.service.Y;
 import com.zhao.zhaoBatis.ZhaoImportBeanDefinitionRegistrar;
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.*;
 
 
@@ -23,7 +24,6 @@ import org.springframework.context.annotation.*;
 //@EnableAspectJAutoProxy(proxyTargetClass = true)
 @ComponentScan("com.zhao")
 @Configuration
-@Import(ZhaoImportBeanDefinitionRegistrar.class)
 //@Import(ZhaoAopBeanPostProcessor.class)
 public class AppConfig {
 //

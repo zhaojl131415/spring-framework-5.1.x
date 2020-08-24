@@ -1,11 +1,12 @@
-package com.zhao.zhaoBatis;
+package com.zhao.zhaoBatis.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target(ElementType.TYPE)
+@Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ZhaoMapper {
+public @interface ZhaoSelect {
+	String value() default "";
 }

@@ -93,6 +93,10 @@ import org.springframework.util.Assert;
  */
 public class GenericApplicationContext extends AbstractApplicationContext implements BeanDefinitionRegistry {
 
+	/**
+	 * beanFactory在当前类的无参构造方法中完成实例化DefaultListableBeanFactory, BDMap就在这个BeanFactory中
+	 * @see #GenericApplicationContext()
+	 */
 	private final DefaultListableBeanFactory beanFactory;
 
 	@Nullable
@@ -287,6 +291,8 @@ public class GenericApplicationContext extends AbstractApplicationContext implem
 	/**
 	 * Return the single internal BeanFactory held by this context
 	 * (as ConfigurableListableBeanFactory).
+	 *
+	 * @see #GenericApplicationContext()
 	 */
 	@Override
 	public final ConfigurableListableBeanFactory getBeanFactory() {

@@ -39,6 +39,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.support.ResourceEditorRegistrar;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -489,6 +490,11 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 	}
 
+	/**
+	 * ac.addBeanFactoryPostProcessor(new ZhaoBeanFactoryPostProcessor());
+	 *
+	 * @param postProcessor the factory processor to register 注册Bean工厂后置处理器
+	 */
 	@Override
 	public void addBeanFactoryPostProcessor(BeanFactoryPostProcessor postProcessor) {
 		Assert.notNull(postProcessor, "BeanFactoryPostProcessor must not be null");
@@ -498,6 +504,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	/**
 	 * Return the list of BeanFactoryPostProcessors that will get applied
 	 * to the internal BeanFactory.
+	 * 返回将应用到内部BeanFactory的BeanFactoryPostProcessors列表。
 	 */
 	public List<BeanFactoryPostProcessor> getBeanFactoryPostProcessors() {
 		return this.beanFactoryPostProcessors;
@@ -528,6 +535,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 			// Tell the subclass to refresh the internal bean factory.
 			/**
+			 * @see GenericApplicationContext#getBeanFactory()
 			 * 和主流程关系也不大，最终获得了DefaultListableBeanFactory，
 			 * DefaultListableBeanFactory实现了ConfigurableListableBeanFactory
 			 * 获取告诉子类初始化Bean工厂
@@ -579,8 +587,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				 * 2 带@EventListener方法对象
 				 * 这一步只注册了方式1声明的监听器,
 				 * 而方式2是在finishBeanFactoryInitialization()中注册的:
-				 * 	org.springframework.context.event.EventListenerMethodProcessor#afterSingletonsInstantiated()
-				 * 	org.springframework.context.event.EventListenerMethodProcessor#processBean(java.lang.String, java.lang.Class)
+				 * @see org.springframework.context.event.EventListenerMethodProcessor#afterSingletonsInstantiated()
+				 * @see org.springframework.context.event.EventListenerMethodProcessor#processBean(java.lang.String, java.lang.Class)
 				 */
 				registerListeners();
 
@@ -757,7 +765,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * <p>Must be called before singleton instantiation.
 	 */
 	protected void invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory beanFactory) {
-		// 这个地方需要注意getBeanFactoryPostProcessors()是获取手动给spring的BeanFactoryProcessor
+		// 这个地方需要注意getBeanFactoryPostProcessors()是获取手动给spring的自定义BeanFactoryProcessor实现类
 		// 自定义并不仅仅是程序员自己写的, 第三方的(比如:mybatis)
 		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
 
@@ -940,7 +948,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.freezeConfiguration();
 
 		// Instantiate all remaining (non-lazy-init) singletons.
-		// 实例化所有非懒加载的单例对象
+		/**
+		 * 实例化所有非懒加载的单例对象
+		 * @see DefaultListableBeanFactory#preInstantiateSingletons()
+		 */
 		beanFactory.preInstantiateSingletons();
 	}
 

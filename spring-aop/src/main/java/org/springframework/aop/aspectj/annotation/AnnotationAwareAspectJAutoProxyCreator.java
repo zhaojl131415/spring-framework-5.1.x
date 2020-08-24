@@ -47,6 +47,8 @@ import org.springframework.util.Assert;
  * @see org.springframework.aop.aspectj.annotation.AspectJAdvisorFactory
  *
  * aop 就是在这里完成的
+ *
+ * 通过继承关系可以找到实现aop的基类: {@link org.springframework.aop.framework.autoproxy.AbstractAutoProxyCreator}
  */
 @SuppressWarnings("serial")
 public class AnnotationAwareAspectJAutoProxyCreator extends AspectJAwareAdvisorAutoProxyCreator {
@@ -87,13 +89,18 @@ public class AnnotationAwareAspectJAutoProxyCreator extends AspectJAwareAdvisorA
 				new BeanFactoryAspectJAdvisorsBuilderAdapter(beanFactory, this.aspectJAdvisorFactory);
 	}
 
-
+	/**
+	 * 两种情况获取Advisor：1.实现了Advisor接口，2.被@Aspect注解修饰的转成Advisor。
+	 * @return
+	 */
 	@Override
 	protected List<Advisor> findCandidateAdvisors() {
 		// Add all the Spring advisors found according to superclass rules.
+		// 调用父类，首先获取实现了Advisor接口的对象
 		List<Advisor> advisors = super.findCandidateAdvisors();
 		// Build Advisors for all AspectJ aspects in the bean factory.
 		if (this.aspectJAdvisorsBuilder != null) {
+			// 其次获取AspectJ注解修饰的
 			advisors.addAll(this.aspectJAdvisorsBuilder.buildAspectJAdvisors());
 		}
 		return advisors;

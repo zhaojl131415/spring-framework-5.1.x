@@ -83,7 +83,8 @@ import static org.springframework.context.annotation.AnnotationConfigUtils.CONFI
  * @author Phillip Webb
  * @since 3.0
  *
- * spring内置的bean工厂后置处理器，实现了BeanDefinitionRegistryPostProcessor接口类，而BeanDefinitionRegistryPostProcessor extends BeanFactoryPostProcessor
+ * spring内置的bean工厂后置处理器，实现了BeanDefinitionRegistryPostProcessor接口类，
+ * 而BeanDefinitionRegistryPostProcessor extends BeanFactoryPostProcessor
  *
  */
 public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPostProcessor,
@@ -234,7 +235,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 					"postProcessBeanFactory already called on this post-processor against " + registry);
 		}
 		this.registriesPostProcessed.add(registryId);
-		//
+		// 基于register中的配置类（AppConfig.class）构建和验证配置模型。
 		processConfigBeanDefinitions(registry);
 	}
 
@@ -333,8 +334,8 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			this.environment = new StandardEnvironment();
 		}
 
-		// Parse each @Configuration class
-		// 解析每个@Configuration类
+		// Parse each @Configuration class 解析每个@Configuration类
+		// 创建一个ConfigurationClassParser对象，该对象会解析所有@Configuration注解的配置类，产生一组ConfigurationClass对象，然后从这组ConfigurationClass对象中加载bean定义
 		ConfigurationClassParser parser = new ConfigurationClassParser(
 				this.metadataReaderFactory, this.problemReporter, this.environment,
 				this.resourceLoader, this.componentScanBeanNameGenerator, registry);
@@ -342,9 +343,11 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		Set<BeanDefinitionHolder> candidates = new LinkedHashSet<>(configCandidates);
 		Set<ConfigurationClass> alreadyParsed = new HashSet<>(configCandidates.size());
 		do {
+			// 遍历解析所有@Configuration注解的配置类
 			parser.parse(candidates);
 			parser.validate();
 
+			// 解析产生一组ConfigurationClass对象
 			Set<ConfigurationClass> configClasses = new LinkedHashSet<>(parser.getConfigurationClasses());
 			configClasses.removeAll(alreadyParsed);
 
@@ -354,6 +357,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 						registry, this.sourceExtractor, this.resourceLoader, this.environment,
 						this.importBeanNameGenerator, parser.getImportRegistry());
 			}
+			// 从这组ConfigurationClass对象中加载bean定义
 			this.reader.loadBeanDefinitions(configClasses);
 			alreadyParsed.addAll(configClasses);
 

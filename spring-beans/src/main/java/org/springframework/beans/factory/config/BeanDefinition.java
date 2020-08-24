@@ -45,6 +45,7 @@ import org.springframework.lang.Nullable;
 public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 
 	/**
+	 * 单例
 	 * Scope identifier for the standard singleton scope: "singleton".
 	 * <p>Note that extended bean factories might support further scopes.
 	 * @see #setScope
@@ -52,6 +53,7 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	String SCOPE_SINGLETON = ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 	/**
+	 * 原型
 	 * Scope identifier for the standard prototype scope: "prototype".
 	 * <p>Note that extended bean factories might support further scopes.
 	 * @see #setScope
@@ -60,12 +62,14 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 
 
 	/**
+	 * Bean角色: 应用程序重要组成部分
 	 * Role hint indicating that a {@code BeanDefinition} is a major part
 	 * of the application. Typically corresponds to a user-defined bean.
 	 */
 	int ROLE_APPLICATION = 0;
 
 	/**
+	 * Bean角色: 做为大量配置的一部分（支持、扩展类）  实际上就是说，我这个Bean是用户的，是从配置文件中过来的
 	 * Role hint indicating that a {@code BeanDefinition} is a supporting
 	 * part of some larger configuration, typically an outer
 	 * {@link org.springframework.beans.factory.parsing.ComponentDefinition}.
@@ -77,6 +81,7 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	int ROLE_SUPPORT = 1;
 
 	/**
+	 * Bean角色: 指内部工作的基础构造, 实际上是说我这Bean是Spring自己的，和你用户没有一毛钱关系
 	 * Role hint indicating that a {@code BeanDefinition} is providing an
 	 * entirely background role and has no relevance to the end-user. This hint is
 	 * used when registering beans that are completely part of the internal workings
@@ -190,6 +195,7 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * 设置是否作为自动装配的候选对象
 	 * 如果AService需要注入BService，BService是个接口有多个实现类，没有指定注入哪个实现类的情况下，
 	 * Spring是无法自动识别的，如果将某个实现类的autowireCandidate设置为false，表示不会作为自动装配的候选对象
+	 *
 	 * Set whether this bean is a candidate for getting autowired into some other bean.
 	 * <p>Note that this flag is designed to only affect type-based autowiring.
 	 * It does not affect explicit references by name, which will get resolved even
@@ -208,6 +214,7 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * 设置是否作为自动装配的主要对象，跟上面相反
 	 * 如果AService需要注入BService，BService是个接口有多个实现类，没有指定注入哪个实现类的情况下，
 	 * Spring是无法自动识别的，如果将某个实现类的primary设置为true，表示作为自动装配的主要对象
+	 *
 	 * Set whether this bean is a primary autowire candidate.
 	 * <p>If this value is {@code true} for exactly one bean among multiple
 	 * matching candidates, it will serve as a tie-breaker.
@@ -221,8 +228,10 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	boolean isPrimary();
 
 	/**
+	 * 当前bean如果是通过FactoryBean产生的, 这里记录对应的FactoryBean名
 	 *
 	 * FactoryBean本身是个bean，
+	 *
 	 * Specify the factory bean to use, if any.
 	 * This the name of the bean to call the specified factory method on.
 	 * @see #setFactoryMethodName
@@ -238,6 +247,7 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	/**
 	 *
 	 * FactoryMethod所在的类不是一个bean
+	 *
 	 * Specify a factory method, if any. This method will be invoked with
 	 * constructor arguments, or with no arguments if none are specified.
 	 * The method will be invoked on the specified factory bean, if any,
@@ -262,7 +272,7 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * </bean>
 	 * 注解方式还不知道怎么指定
 	 *
-	 * 获取给构造函数的各个参数指定的值
+	 * 获取给构造函数的各个参数指定的值, 即:<constructor-arg>标签对应的内容
 	 * Return the constructor argument values for this bean.
 	 * <p>The returned instance can be modified during bean factory post-processing.
 	 * @return the ConstructorArgumentValues object (never {@code null})
@@ -284,7 +294,9 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	 * <bean id="aService" class="com.zhao.AService">
 	 *     <property name="name" value="zhao"></property>
 	 * </bean>
+	 *
 	 * 注解: @Value
+	 *
 	 * Return the property values to be applied to a new instance of the bean.
 	 * <p>The returned instance can be modified during bean factory post-processing.
 	 * @return the MutablePropertyValues object (never {@code null})
@@ -386,9 +398,10 @@ public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement {
 	boolean isPrototype();
 
 	/**
-	 * 判断是否抽象,
+	 * 判断是否为抽象类
 	 * bd存在的意义是为了实例化一个bean出来, 抽象类不能直接通过new实例化
 	 * @LookUp ???
+	 *
 	 * Return whether this bean is "abstract", that is, not meant to be instantiated.
 	 */
 	boolean isAbstract();

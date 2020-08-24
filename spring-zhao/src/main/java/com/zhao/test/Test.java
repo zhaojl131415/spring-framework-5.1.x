@@ -26,7 +26,7 @@ public class Test {
 //		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext();
 //		ac.register(AppConfig.class);
 //		ac.register(ZhaoService.class);
-//		ac.addBeanFactoryPostProcessor(new ZhaoBeanFactoryPostProcessor());
+		ac.addBeanFactoryPostProcessor(new ZhaoBeanFactoryPostProcessor());
 //		ac.addBeanFactoryPostProcessor(new ZhaoBeanDefinitionRegistryPostProcessor());
 //		RootBeanDefinition rbd = new RootBeanDefinition();
 //		rbd.setScope(BeanDefinition.SCOPE_SINGLETON);

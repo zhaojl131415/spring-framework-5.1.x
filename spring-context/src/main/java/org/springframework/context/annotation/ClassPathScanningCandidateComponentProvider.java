@@ -201,6 +201,9 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * <p>Also supports Java EE 6's {@link javax.annotation.ManagedBean} and
 	 * JSR-330's {@link javax.inject.Named} annotations, if available.
 	 *
+	 *
+	 * 为@Component注册默认过滤器。包括 @Repository，@Service 和 @Controller构造型注解。 <p>如果可用，还支持Java EE 6的{@link javax.annotation.ManagedBean}和JSR-330的{@link javax.inject.Named}注释。
+	 *
 	 */
 	@SuppressWarnings("unchecked")
 	protected void registerDefaultFilters() {
@@ -304,6 +307,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 
 
 	/**
+	 * 扫描类路径查找候选BD集合
 	 * Scan the class path for candidate components.
 	 * @param basePackage the package to check for annotated classes
 	 * @return a corresponding Set of autodetected bean definitions
@@ -315,6 +319,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 		}
 		else {
 			// 默认执行这里
+			// 扫描@Component注解的候选BD集合
 			return scanCandidateComponents(basePackage);
 		}
 	}
@@ -416,7 +421,8 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	}
 
 	/**
-	 * 注解是否符合，类是否合理（抽象、接口）
+	 * 扫描添加@Component注解且合理(非接口非抽象类)的候选BD集合
+	 *
 	 * @param basePackage
 	 * @return
 	 */
@@ -424,32 +430,35 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 		// 用于存储扫描的符合条件的BeanDefinition
 		Set<BeanDefinition> candidates = new LinkedHashSet<>();
 		try {
-			// spring表达式 != EL表达式
-			// 获取包扫描路径
+			// 获取包扫描路径: classpath*:xxx/**/*.class( spring表达式 != EL表达式)
 			String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX +
 					resolveBasePackage(basePackage) + '/' + this.resourcePattern;
 			// 获取到路径下的Resource
 			Resource[] resources = getResourcePatternResolver().getResources(packageSearchPath);
 			boolean traceEnabled = logger.isTraceEnabled();
 			boolean debugEnabled = logger.isDebugEnabled();
+			// 遍历Resource
 			for (Resource resource : resources) {
 				if (traceEnabled) {
 					logger.trace("Scanning " + resource);
 				}
 				if (resource.isReadable()) {
 					try {
+						// 元数据阅读器: 对应Resource对象的类元数据, 以及注解元数据信息
 						MetadataReader metadataReader = getMetadataReaderFactory().getMetadataReader(resource);
 						// 判断是否@Component
 						if (isCandidateComponent(metadataReader)) {
-							// 实例化BeanDefinition
+							// 实例化BeanDefinition: ScannedGenericBeanDefinition
 							ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);
 							sbd.setResource(resource);
 							sbd.setSource(resource);
+//							System.out.println("resource.Filename:" + resource.getFilename());
 							// 判断bd是否为一个具体类，是否为接口，是否为抽象类，正常情况下是返回true
 							if (isCandidateComponent(sbd)) {
 								if (debugEnabled) {
 									logger.debug("Identified candidate component class: " + resource);
 								}
+								// 将符合条件的BeanDefinition存储Set集合
 								candidates.add(sbd);
 							}
 							else {
@@ -479,6 +488,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 		catch (IOException ex) {
 			throw new BeanDefinitionStoreException("I/O failure during classpath scanning", ex);
 		}
+		// 返回集合
 		return candidates;
 	}
 
@@ -509,6 +519,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 				return false;
 			}
 		}
+		// includeFilters
 		for (TypeFilter tf : this.includeFilters) {
 			if (tf.match(metadataReader, getMetadataReaderFactory())) {
 				return isConditionMatch(metadataReader);
@@ -543,8 +554,9 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 */
 	protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
 		AnnotationMetadata metadata = beanDefinition.getMetadata();
+		// 判断是否为独立类 且 是否为具体类(既不是接口也不是抽象类)
 		return (metadata.isIndependent() && (metadata.isConcrete() ||
-				// 判断是否为抽象类且是否有方法包含@Lookup注解
+				// 判断是否为抽象类 且 是否有方法包含@Lookup注解
 				(metadata.isAbstract() && metadata.hasAnnotatedMethods(Lookup.class.getName()))));
 	}
 
