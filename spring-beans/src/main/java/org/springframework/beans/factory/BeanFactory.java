@@ -69,6 +69,8 @@ import org.springframework.lang.Nullable;
  * <li>BeanNameAware's {@code setBeanName}
  * <li>BeanClassLoaderAware's {@code setBeanClassLoader}
  * <li>BeanFactoryAware's {@code setBeanFactory}
+ *
+ * @see org.springframework.context.support.ApplicationContextAwareProcessor#postProcessBeforeInitialization(java.lang.Object, java.lang.String)
  * <li>EnvironmentAware's {@code setEnvironment}
  * <li>EmbeddedValueResolverAware's {@code setEmbeddedValueResolver}
  * <li>ResourceLoaderAware's {@code setResourceLoader}

@@ -54,6 +54,7 @@ public class InjectionMetadata {
 	// 需要注入的元素集合
 	private final Collection<InjectedElement> injectedElements;
 
+	// 用于存储每个Bean对应的所有注入点元素
 	@Nullable
 	private volatile Set<InjectedElement> checkedElements;
 
@@ -91,6 +92,11 @@ public class InjectionMetadata {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Processing injected element of bean '" + beanName + "': " + element);
 				}
+				/**
+				 * 调用子类的重写方法
+				 * @see AutowiredAnnotationBeanPostProcessor.AutowiredFieldElement#inject(java.lang.Object, java.lang.String, org.springframework.beans.PropertyValues)
+				 * @see AutowiredAnnotationBeanPostProcessor.AutowiredMethodElement#inject(java.lang.Object, java.lang.String, org.springframework.beans.PropertyValues)
+				 */
 				element.inject(target, beanName, pvs);
 			}
 		}
@@ -122,8 +128,10 @@ public class InjectionMetadata {
 	 */
 	public abstract static class InjectedElement {
 
+		// Java发射中的Member接口, Java类中的字段/方法/构造方法都实现了这个接口
 		protected final Member member;
 
+		// 判断是否为字段, 不为字段, 则为方法.
 		protected final boolean isField;
 
 		@Nullable

@@ -79,9 +79,11 @@ public class InitDestroyAnnotationBeanPostProcessor
 
 	protected transient Log logger = LogFactory.getLog(getClass());
 
+	// 初始化注解 @PostConstruct
 	@Nullable
 	private Class<? extends Annotation> initAnnotationType;
 
+	// 销毁注解 @PreDestroy
 	@Nullable
 	private Class<? extends Annotation> destroyAnnotationType;
 
@@ -125,15 +127,19 @@ public class InitDestroyAnnotationBeanPostProcessor
 
 	@Override
 	public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
-		// 生命周期回调
+		// 获取所有生命周期的元数据: @PostConstruct/@PreDestroy
 		LifecycleMetadata metadata = findLifecycleMetadata(beanType);
+		// 检查配置的成员
 		metadata.checkConfigMembers(beanDefinition);
 	}
 
+	// 后置处理器 执行bean初始化之前的方法
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+		// 获取所有生命周期的元数据: @PostConstruct/@PreDestroy
 		LifecycleMetadata metadata = findLifecycleMetadata(bean.getClass());
 		try {
+			// 执行初始化方法: @PostConstruct
 			metadata.invokeInitMethods(bean, beanName);
 		}
 		catch (InvocationTargetException ex) {
@@ -150,10 +156,13 @@ public class InitDestroyAnnotationBeanPostProcessor
 		return bean;
 	}
 
+	// 后置处理器 执行bean销毁之前的方法
 	@Override
 	public void postProcessBeforeDestruction(Object bean, String beanName) throws BeansException {
+		// 获取所有生命周期的元数据: @PostConstruct/@PreDestroy
 		LifecycleMetadata metadata = findLifecycleMetadata(bean.getClass());
 		try {
+			// 执行销毁方法: @PreDestroy
 			metadata.invokeDestroyMethods(bean, beanName);
 		}
 		catch (InvocationTargetException ex) {
@@ -196,6 +205,11 @@ public class InitDestroyAnnotationBeanPostProcessor
 		return metadata;
 	}
 
+	/**
+	 * 构建生命周期元数据
+	 * @param clazz
+	 * @return
+	 */
 	private LifecycleMetadata buildLifecycleMetadata(final Class<?> clazz) {
 		List<LifecycleElement> initMethods = new ArrayList<>();
 		List<LifecycleElement> destroyMethods = new ArrayList<>();
@@ -206,6 +220,7 @@ public class InitDestroyAnnotationBeanPostProcessor
 			final List<LifecycleElement> currDestroyMethods = new ArrayList<>();
 
 			ReflectionUtils.doWithLocalMethods(targetClass, method -> {
+				// 初始化注解
 				if (this.initAnnotationType != null && method.isAnnotationPresent(this.initAnnotationType)) {
 					LifecycleElement element = new LifecycleElement(method);
 					currInitMethods.add(element);
@@ -213,6 +228,7 @@ public class InitDestroyAnnotationBeanPostProcessor
 						logger.trace("Found init method on class [" + clazz.getName() + "]: " + method);
 					}
 				}
+				// 销毁注解
 				if (this.destroyAnnotationType != null && method.isAnnotationPresent(this.destroyAnnotationType)) {
 					currDestroyMethods.add(new LifecycleElement(method));
 					if (logger.isTraceEnabled()) {

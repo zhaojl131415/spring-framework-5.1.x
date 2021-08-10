@@ -41,6 +41,8 @@ import org.springframework.util.ClassUtils;
  *
  * @author Juergen Hoeller
  * @since 4.0
+ *
+ * 泛型自动装配候选解析器
  */
 public class GenericTypeAwareAutowireCandidateResolver extends SimpleAutowireCandidateResolver
 		implements BeanFactoryAware {
@@ -62,18 +64,31 @@ public class GenericTypeAwareAutowireCandidateResolver extends SimpleAutowireCan
 
 	@Override
 	public boolean isAutowireCandidate(BeanDefinitionHolder bdHolder, DependencyDescriptor descriptor) {
+		/**
+		 * 继续交给父类判断是否为自动装配候选对象
+		 * @see SimpleAutowireCandidateResolver#isAutowireCandidate(org.springframework.beans.factory.config.BeanDefinitionHolder, org.springframework.beans.factory.config.DependencyDescriptor)
+		 */
 		if (!super.isAutowireCandidate(bdHolder, descriptor)) {
 			// If explicitly false, do not proceed with any other checks...
+			// 如果父类返回fasle, 取反进入此处判断, 直接返回false
 			return false;
 		}
+		// 父类返回true, 则当前解析器继续判断
+		// 检查泛型匹配
 		return checkGenericTypeMatch(bdHolder, descriptor);
 	}
 
 	/**
+	 * 检查泛型匹配
 	 * Match the given dependency type with its generic type information against the given
 	 * candidate bean definition.
 	 */
 	protected boolean checkGenericTypeMatch(BeanDefinitionHolder bdHolder, DependencyDescriptor descriptor) {
+		/**
+		 * 获取具体指定的泛型的类型
+		 * class UserAuthService extend BaseServer<UserService>
+		 * 这里拿到的dependencyType:即为UserService
+		 */
 		ResolvableType dependencyType = descriptor.getResolvableType();
 		if (dependencyType.getType() instanceof Class) {
 			// No generic type -> we know it's a Class type-match, so no need to check again.
@@ -136,6 +151,7 @@ public class GenericTypeAwareAutowireCandidateResolver extends SimpleAutowireCan
 			return true;
 		}
 		// Full check for complex generic type match...
+		// dependencyType是真实的泛型类型, targetType是筛选出来的某个bean的类型
 		return dependencyType.isAssignableFrom(targetType);
 	}
 

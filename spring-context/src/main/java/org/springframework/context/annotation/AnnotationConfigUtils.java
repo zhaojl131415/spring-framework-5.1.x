@@ -130,6 +130,7 @@ public abstract class AnnotationConfigUtils {
 
 
 	/**
+	 * 注册后置处理器
 	 * Register all relevant annotation post processors in the given registry.
 	 * @param registry the registry to operate on
 	 */
@@ -163,7 +164,7 @@ public abstract class AnnotationConfigUtils {
 
 		Set<BeanDefinitionHolder> beanDefs = new LinkedHashSet<>(8);
 		// 判断bdmap中是否包含key
-		// ConfigurationClassPostProcessor
+		// ConfigurationClassPostProcessor: 在这个类中, 会解析加了@Configuration的配置类, 还会解析@ComponentScan和@ComponentScans注解的扫描包, 以及@Import/@Bean等注解
 		if (!registry.containsBeanDefinition(CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(ConfigurationClassPostProcessor.class);
 			def.setSource(source);
@@ -200,6 +201,7 @@ public abstract class AnnotationConfigUtils {
 			beanDefs.add(registerPostProcessor(registry, def, PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
+		// 负责处理事件监听器 @EventListener
 		if (!registry.containsBeanDefinition(EVENT_LISTENER_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(EventListenerMethodProcessor.class);
 			def.setSource(source);
@@ -215,10 +217,17 @@ public abstract class AnnotationConfigUtils {
 		return beanDefs;
 	}
 
+	/**
+	 * 注册后置处理器
+	 */
 	private static BeanDefinitionHolder registerPostProcessor(
 			BeanDefinitionRegistry registry, RootBeanDefinition definition, String beanName) {
 
 		definition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+		/**
+		 * 注册Bean定义
+		 * @see GenericApplicationContext#registerBeanDefinition(java.lang.String, org.springframework.beans.factory.config.BeanDefinition)
+		 */
 		registry.registerBeanDefinition(beanName, definition);
 		return new BeanDefinitionHolder(definition, beanName);
 	}

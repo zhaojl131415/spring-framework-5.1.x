@@ -32,6 +32,7 @@ public class SimpleAutowireCandidateResolver implements AutowireCandidateResolve
 
 	@Override
 	public boolean isAutowireCandidate(BeanDefinitionHolder bdHolder, DependencyDescriptor descriptor) {
+		// 和接口的默认实现类是一样的.
 		return bdHolder.getBeanDefinition().isAutowireCandidate();
 	}
 

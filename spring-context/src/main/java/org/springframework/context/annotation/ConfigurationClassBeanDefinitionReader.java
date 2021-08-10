@@ -119,6 +119,7 @@ class ConfigurationClassBeanDefinitionReader {
 	}
 
 	/**
+	 * 加载配置文件AppConfig对应的Bean定义
 	 * Read a particular {@link ConfigurationClass}, registering bean definitions
 	 * for the class itself and all of its {@link Bean} methods.
 	 */
@@ -134,14 +135,23 @@ class ConfigurationClassBeanDefinitionReader {
 			return;
 		}
 
+		// import
 		if (configClass.isImported()) {
 			registerBeanDefinitionForImportedConfigurationClass(configClass);
 		}
+		// bean方法
 		for (BeanMethod beanMethod : configClass.getBeanMethods()) {
 			loadBeanDefinitionsForBeanMethod(beanMethod);
 		}
 
 		loadBeanDefinitionsFromImportedResources(configClass.getImportedResources());
+		/**
+		 * 从注册器加载Bean定义
+		 *
+		 * 注册器来源于通过实现{@link ImportBeanDefinitionRegistrar}接口的注册器
+		 * 比如: 实现aop的{@link EnableAspectJAutoProxy}注解中, 就通过@Import(AspectJAutoProxyRegistrar.class)代码,
+		 * 注入了实现{@link ImportBeanDefinitionRegistrar}接口的注册器: {@link AspectJAutoProxyRegistrar}
+		 */
 		loadBeanDefinitionsFromRegistrars(configClass.getImportBeanDefinitionRegistrars());
 	}
 
@@ -359,8 +369,17 @@ class ConfigurationClassBeanDefinitionReader {
 		});
 	}
 
+	/**
+	 * 从注册器加载Bean定义
+	 * @param registrars
+	 */
 	private void loadBeanDefinitionsFromRegistrars(Map<ImportBeanDefinitionRegistrar, AnnotationMetadata> registrars) {
+		// 遍历注册器
 		registrars.forEach((registrar, metadata) ->
+				/**
+				 * 注册bean定义
+				 * @see AspectJAutoProxyRegistrar#registerBeanDefinitions(org.springframework.core.type.AnnotationMetadata, org.springframework.beans.factory.support.BeanDefinitionRegistry)
+				 */
 				registrar.registerBeanDefinitions(metadata, this.registry));
 	}
 

@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.core.ResolvableType;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -80,11 +81,13 @@ public abstract class BeanFactoryUtils {
 	 */
 	public static String transformedBeanName(String name) {
 		Assert.notNull(name, "'name' must not be null");
+		// 判断名称是否以&开头, &开头表示为FactoryBean
 		if (!name.startsWith(BeanFactory.FACTORY_BEAN_PREFIX)) {
 			return name;
 		}
 		return transformedBeanNameCache.computeIfAbsent(name, beanName -> {
 			do {
+				// 截取&后返回, 这里用while是解决拼了多个&的情况, 全部截取
 				beanName = beanName.substring(BeanFactory.FACTORY_BEAN_PREFIX.length());
 			}
 			while (beanName.startsWith(BeanFactory.FACTORY_BEAN_PREFIX));
@@ -224,12 +227,20 @@ public abstract class BeanFactoryUtils {
 			ListableBeanFactory lbf, Class<?> type, boolean includeNonSingletons, boolean allowEagerInit) {
 
 		Assert.notNull(lbf, "ListableBeanFactory must not be null");
+		/**
+		 * 根据type从DefaultListableBeanFactory查找合适的beanName
+		 * @see DefaultListableBeanFactory#getBeanNamesForType(java.lang.Class, boolean, boolean)
+		 */
 		String[] result = lbf.getBeanNamesForType(type, includeNonSingletons, allowEagerInit);
+		// 如果实现了分层级的bean工厂,
 		if (lbf instanceof HierarchicalBeanFactory) {
 			HierarchicalBeanFactory hbf = (HierarchicalBeanFactory) lbf;
+			// 并且找到了对应的父Bean工厂, 则递归调用
 			if (hbf.getParentBeanFactory() instanceof ListableBeanFactory) {
+				// 递归调用父Bean工厂
 				String[] parentResult = beanNamesForTypeIncludingAncestors(
 						(ListableBeanFactory) hbf.getParentBeanFactory(), type, includeNonSingletons, allowEagerInit);
+				// 合并数据
 				result = mergeNamesWithParent(result, parentResult, hbf);
 			}
 		}

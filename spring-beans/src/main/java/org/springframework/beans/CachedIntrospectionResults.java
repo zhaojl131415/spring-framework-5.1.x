@@ -173,6 +173,9 @@ public final class CachedIntrospectionResults {
 			return results;
 		}
 
+		/**
+		 * @see CachedIntrospectionResults#CachedIntrospectionResults(java.lang.Class)
+		 */
 		results = new CachedIntrospectionResults(beanClass);
 		ConcurrentMap<Class<?>, CachedIntrospectionResults> classCacheToUse;
 
@@ -243,6 +246,13 @@ public final class CachedIntrospectionResults {
 				return beanInfo;
 			}
 		}
+		/**
+		 * 方法调用链: 在最后的方法, 遍历所有的方法找出set、get、is
+		 * 可切换至jdk相关源码查看
+		 * @see Introspector#getBeanInfo(java.lang.Class)
+		 * @see Introspector#getBeanInfo()
+		 * @see Introspector#getTargetPropertyInfo()
+		 */
 		return (shouldIntrospectorIgnoreBeaninfoClasses ?
 				Introspector.getBeanInfo(beanClass, Introspector.IGNORE_ALL_BEANINFO) :
 				Introspector.getBeanInfo(beanClass));
@@ -269,6 +279,9 @@ public final class CachedIntrospectionResults {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Getting BeanInfo for class [" + beanClass.getName() + "]");
 			}
+			/**
+			 * @see CachedIntrospectionResults#getBeanInfo(java.lang.Class)
+			 */
 			this.beanInfo = getBeanInfo(beanClass);
 
 			if (logger.isTraceEnabled()) {

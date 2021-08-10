@@ -144,8 +144,15 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 	 */
 	@Override
 	public boolean isAutowireCandidate(BeanDefinitionHolder bdHolder, DependencyDescriptor descriptor) {
+		/**
+		 * 最先进入子解析器, 这里有点像双亲委派模型, 先交给父类去判断,
+		 * 如果父类返回false, 表示不是自动装配的候选对象, 则直接返回false,
+		 * 如果父类为true, 子类再判断是否为候选对象.
+		 * @see GenericTypeAwareAutowireCandidateResolver#isAutowireCandidate(org.springframework.beans.factory.config.BeanDefinitionHolder, org.springframework.beans.factory.config.DependencyDescriptor)
+		 */
 		boolean match = super.isAutowireCandidate(bdHolder, descriptor);
 		if (match) {
+			// 验证@Qualifier注解
 			match = checkQualifiers(bdHolder, descriptor.getAnnotations());
 			if (match) {
 				MethodParameter methodParam = descriptor.getMethodParameter();
@@ -168,15 +175,22 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 			return true;
 		}
 		SimpleTypeConverter typeConverter = new SimpleTypeConverter();
+		// 遍历注解
 		for (Annotation annotation : annotationsToSearch) {
+			// 注解的类型
 			Class<? extends Annotation> type = annotation.annotationType();
+			// 表示是否匹配到, 默认设置为true, 表示匹配到
 			boolean checkMeta = true;
 			boolean fallbackToMeta = false;
+			// 判断该注解类型是否为@Qualifier注解, 或者是否继承了@Qualifier注解
 			if (isQualifier(type)) {
+				// 检查当前@Qualifier注解中设置的值 是否 和bdHolder中的值相等,
 				if (!checkQualifier(bdHolder, annotation, typeConverter)) {
+					// 如果不匹配,
 					fallbackToMeta = true;
 				}
 				else {
+					// 如果匹配到了, fallbackToMeta:false, checkMeta:false
 					checkMeta = false;
 				}
 			}
@@ -207,6 +221,7 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 	 */
 	protected boolean isQualifier(Class<? extends Annotation> annotationType) {
 		for (Class<? extends Annotation> qualifierType : this.qualifierTypes) {
+			// 判断是否为@Qualifier注解, 或者是否继承了@Qualifier注解
 			if (annotationType.equals(qualifierType) || annotationType.isAnnotationPresent(qualifierType)) {
 				return true;
 			}
@@ -219,10 +234,11 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 	 */
 	protected boolean checkQualifier(
 			BeanDefinitionHolder bdHolder, Annotation annotation, TypeConverter typeConverter) {
-
+		// 注解的type
 		Class<? extends Annotation> type = annotation.annotationType();
+		// 获取Bd
 		RootBeanDefinition bd = (RootBeanDefinition) bdHolder.getBeanDefinition();
-
+		// bd上定义的Qualifier
 		AutowireCandidateQualifier qualifier = bd.getQualifier(type.getName());
 		if (qualifier == null) {
 			qualifier = bd.getQualifier(ClassUtils.getShortName(type));
@@ -269,10 +285,13 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 		}
 		for (Map.Entry<String, Object> entry : attributes.entrySet()) {
 			String attributeName = entry.getKey();
+			// 预期值: 注解上的值
 			Object expectedValue = entry.getValue();
+			// 实际值
 			Object actualValue = null;
 			// Check qualifier first
 			if (qualifier != null) {
+				// bd上定义的qualifier的, 表示为实际值
 				actualValue = qualifier.getAttribute(attributeName);
 			}
 			if (actualValue == null) {
@@ -291,6 +310,7 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 			if (actualValue != null) {
 				actualValue = typeConverter.convertIfNecessary(actualValue, expectedValue.getClass());
 			}
+			// 判断二者是否相等
 			if (!expectedValue.equals(actualValue)) {
 				return false;
 			}
@@ -347,10 +367,13 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 	@Override
 	@Nullable
 	public Object getSuggestedValue(DependencyDescriptor descriptor) {
+		// 遍历代理描述符上Field的所有注解, 获取@Value注解
 		Object value = findValue(descriptor.getAnnotations());
 		if (value == null) {
+			// 如果没有获取到, 则去Method上的所有注解中获取
 			MethodParameter methodParam = descriptor.getMethodParameter();
 			if (methodParam != null) {
+				// 遍历set方法上的注解, 获取@Value注解
 				value = findValue(methodParam.getMethodAnnotations());
 			}
 		}
@@ -363,9 +386,11 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 	@Nullable
 	protected Object findValue(Annotation[] annotationsToSearch) {
 		if (annotationsToSearch.length > 0) {   // qualifier annotations have to be local
+			// 过滤所有的注解, 筛选出@Value的注解的属性
 			AnnotationAttributes attr = AnnotatedElementUtils.getMergedAnnotationAttributes(
 					AnnotatedElementUtils.forAnnotations(annotationsToSearch), this.valueAnnotationType);
 			if (attr != null) {
+				// 获取@Value所定义的值
 				return extractValue(attr);
 			}
 		}

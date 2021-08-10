@@ -113,6 +113,9 @@ public class GenericApplicationContext extends AbstractApplicationContext implem
 	 * @see #refresh
 	 */
 	public GenericApplicationContext() {
+		/**
+		 * 调用父类的构造函数, 为 ApplicationContext spring上下文对象初始化BeanFactory
+		 */
 		this.beanFactory = new DefaultListableBeanFactory();
 	}
 

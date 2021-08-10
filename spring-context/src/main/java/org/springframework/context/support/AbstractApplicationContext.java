@@ -177,6 +177,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	private ConfigurableEnvironment environment;
 
 	/** BeanFactoryPostProcessors to apply on refresh. */
+	/**
+	 * 用于存储手动给spring的自定义BeanFactoryProcessor实现类
+	 */
 	private final List<BeanFactoryPostProcessor> beanFactoryPostProcessors = new ArrayList<>();
 
 	/** System time in milliseconds when this context started. */
@@ -491,6 +494,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	}
 
 	/**
+	 * 手动给spring的自定义BeanFactoryProcessor实现类
 	 * ac.addBeanFactoryPostProcessor(new ZhaoBeanFactoryPostProcessor());
 	 *
 	 * @param postProcessor the factory processor to register 注册Bean工厂后置处理器
@@ -765,8 +769,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * <p>Must be called before singleton instantiation.
 	 */
 	protected void invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory beanFactory) {
-		// 这个地方需要注意getBeanFactoryPostProcessors()是获取手动给spring的自定义BeanFactoryProcessor实现类
-		// 自定义并不仅仅是程序员自己写的, 第三方的(比如:mybatis)
+		/**
+		 * 这个地方需要注意getBeanFactoryPostProcessors()是获取手动给spring的自定义BeanFactoryProcessor实现类, 默认为空
+		 * 自定义并不仅仅是程序员自己写的, 第三方的(比如:mybatis)
+		 */
 		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
 
 		// Detect a LoadTimeWeaver and prepare for weaving, if found in the meantime

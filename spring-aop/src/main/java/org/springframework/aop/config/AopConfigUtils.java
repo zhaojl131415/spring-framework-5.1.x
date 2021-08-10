@@ -23,6 +23,7 @@ import org.springframework.aop.aspectj.annotation.AnnotationAwareAspectJAutoProx
 import org.springframework.aop.aspectj.autoproxy.AspectJAwareAdvisorAutoProxyCreator;
 import org.springframework.aop.framework.autoproxy.InfrastructureAdvisorAutoProxyCreator;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.core.Ordered;
@@ -93,10 +94,20 @@ public abstract class AopConfigUtils {
 		return registerAspectJAnnotationAutoProxyCreatorIfNecessary(registry, null);
 	}
 
+	/**
+	 * 注册AspectJ注释自动代理创建器
+	 * @param registry
+	 * @param source
+	 * @return
+	 */
 	@Nullable
 	public static BeanDefinition registerAspectJAnnotationAutoProxyCreatorIfNecessary(
 			BeanDefinitionRegistry registry, @Nullable Object source) {
 
+		/**
+		 * 根据需要注册或升级 自动代理创建器: 其实就是将AnnotationAwareAspectJAutoProxyCreator解析成bd, 并存入bdMap
+		 * @see AnnotationAwareAspectJAutoProxyCreator 通过多层继承/实现 最终实现了 {@link BeanPostProcessor}接口
+		 */
 		return registerOrEscalateApcAsRequired(AnnotationAwareAspectJAutoProxyCreator.class, registry, source);
 	}
 
@@ -136,6 +147,7 @@ public abstract class AopConfigUtils {
 		beanDefinition.setSource(source);
 		beanDefinition.getPropertyValues().add("order", Ordered.HIGHEST_PRECEDENCE);
 		beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+		// 将bd存入bdMap
 		registry.registerBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME, beanDefinition);
 		return beanDefinition;
 	}

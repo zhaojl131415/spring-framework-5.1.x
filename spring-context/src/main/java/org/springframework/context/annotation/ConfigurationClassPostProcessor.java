@@ -357,7 +357,9 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 						registry, this.sourceExtractor, this.resourceLoader, this.environment,
 						this.importBeanNameGenerator, parser.getImportRegistry());
 			}
-			// 从这组ConfigurationClass对象中加载bean定义
+			/**
+			 * 从这组ConfigurationClass对象中加载bean定义: 即对AppConfig进行加载, 加载如注解: @EnableAspectJAutoProxy等
+			 */
 			this.reader.loadBeanDefinitions(configClasses);
 			alreadyParsed.addAll(configClasses);
 

@@ -38,6 +38,8 @@ package org.springframework.beans.factory;
  * @param <T> the bean type
  * @see #isPrototype()
  * @see #isSingleton()
+ *
+ *
  */
 public interface SmartFactoryBean<T> extends FactoryBean<T> {
 
@@ -74,6 +76,10 @@ public interface SmartFactoryBean<T> extends FactoryBean<T> {
 	 * <p>The default implementation returns {@code false}.
 	 * @return whether eager initialization applies
 	 * @see org.springframework.beans.factory.config.ConfigurableListableBeanFactory#preInstantiateSingletons()
+	 *
+	 * 是否立即初始化
+	 * 其实实现FactoryBean接口的实现类, 是不会在初始化spring时第一时间存入容器的, 可以理解为类似懒加载
+	 * 但是可以通过实现SmartFactoryBean接口, 重写isEagerInit()方法, 返回true, 来实现在初始化spring时第一时间存入容器
 	 */
 	default boolean isEagerInit() {
 		return false;

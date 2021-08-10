@@ -183,8 +183,10 @@ public abstract class ClassUtils {
 	 */
 	@Nullable
 	public static ClassLoader getDefaultClassLoader() {
+		// 先取线程上的, 再取加载ClassUtil.class的, 最后加载系统的
 		ClassLoader cl = null;
 		try {
+			// APP classLoad
 			cl = Thread.currentThread().getContextClassLoader();
 		}
 		catch (Throwable ex) {
@@ -194,6 +196,7 @@ public abstract class ClassUtils {
 			// No thread context class loader -> use class loader of this class.
 			cl = ClassUtils.class.getClassLoader();
 			if (cl == null) {
+				// 只有当 ClassUtils 被bootstrap加载器加载的, 才会为空
 				// getClassLoader() returning null indicates the bootstrap ClassLoader
 				try {
 					cl = ClassLoader.getSystemClassLoader();

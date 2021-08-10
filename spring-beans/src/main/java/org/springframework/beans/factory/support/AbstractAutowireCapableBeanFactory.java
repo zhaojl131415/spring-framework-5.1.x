@@ -16,6 +16,7 @@
 
 package org.springframework.beans.factory.support;
 
+import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -61,6 +62,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.InjectionPoint;
 import org.springframework.beans.factory.UnsatisfiedDependencyException;
 import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor;
+import org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -417,13 +419,24 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		 * 对后置处理器BeanPostProcessor接口的postProcessBeforeInitialization()有不同的实现
 		 *
 		 * ApplicationContextAwareProcessor:
-		 * ConfigurationClassPostProcessor$ImportAwareBeanPostProcessor:
-		 * PostProcessorRegistrationDelegate$BeanPostProcessorChecker
-		 * CommonAnnotationBeanPostProcessor: @PostConstruct就是在这个后置处理器中实现的
+		 * @see org.springframework.context.support.ApplicationContextAwareProcessor#postProcessBeforeInitialization(java.lang.Object, java.lang.String)
+		 * @see org.springframework.context.annotation.ConfigurationClassPostProcessor.ImportAwareBeanPostProcessor#postProcessBeforeInitialization(java.lang.Object, java.lang.String):
+		 * @see PostProcessorRegistrationDelegate$BeanPostProcessorChecker
+		 *
+		 * @see org.springframework.context.annotation.CommonAnnotationBeanPostProcessor 继承了 InitDestroyAnnotationBeanPostProcessor, 执行父类的postProcessBeforeInitialization方法, 执行被@PostConstruct注解的方法
+		 * @see InitDestroyAnnotationBeanPostProcessor#postProcessBeforeInitialization(java.lang.Object, java.lang.String)
 		 *
  		 */
 		for (BeanPostProcessor processor : getBeanPostProcessors()) {
+			// 调用后置处理中 postProcessBeforeInitialization()初始化前的方法
 			Object current = processor.postProcessBeforeInitialization(result, beanName);
+			/**
+			 * 某个后置处理器初始化前的方法执行完后,
+			 * 如果返回的对象为空, 表示对此对象的处理已经完成, 所以直接返回, 否则, 继续遍历执行后置处理器的初始化前的方法.
+			 * 每个后置处理器完成一部分的工作, 交给下一个后置处理器.
+			 *
+			 * 有点像递归, 又有点像责任链, 但都不是, 就是普通的遍历,
+			 */
 			if (current == null) {
 				return result;
 			}
@@ -443,6 +456,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		 */
 		for (BeanPostProcessor processor : getBeanPostProcessors()) {
 			/**
+			 * 后续版本对这里有过优化, 添加了判断后置处理器是否实现了InstantiationAwareBeanPostProcessor
 			 * @see org.springframework.aop.framework.autoproxy.AbstractAutoProxyCreator#postProcessAfterInitialization(java.lang.Object, java.lang.String)
 			 */
 			Object current = processor.postProcessAfterInitialization(result, beanName);
@@ -505,7 +519,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// clone the bean definition in case of a dynamically resolved Class
 		// which cannot be stored in the shared merged bean definition.
 		/**
-		 * 从BeanDefinition对象中获取bean的类型
+		 * 从BeanDefinition对象中获取bean的类型(Class对象)
 		 *
 		 * 确保此时的bean已经被解析了
 		 * 如果获取的class属性不为null,则克隆该BeanDefinition
@@ -520,6 +534,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// Prepare method overrides.
 		try {
 			/**
+			 * 对xml定义的bean中的look-up方法进行预处理, 注解@Lookup标注的方法不在这里处理, @AutoWiredAnnotataionBeanPostProcessor会处理
 			 * 验证和准备覆盖方法
 			 * lookup-method 和 replace-method
 			 */
@@ -1147,9 +1162,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			if (bp instanceof MergedBeanDefinitionPostProcessor) {
 				MergedBeanDefinitionPostProcessor bdp = (MergedBeanDefinitionPostProcessor) bp;
 				/**
-				 * InitDestroyAnnotationBeanPostProcessor:查找生命周期回调元数据
-				 * CommonAnnotationBeanPostProcessor: 查找@Resource元数据
-				 * AutowiredAnnotationBeanPostProcessor: 查找@Autowired元数据
+				 * 可以处理当前正在创建bean的BD, 比如修改bd中的属性: bd.setInitMethodName("methodA") 来指定一个初始化方法;
+				 *
+				 * @see InitDestroyAnnotationBeanPostProcessor#postProcessMergedBeanDefinition(org.springframework.beans.factory.support.RootBeanDefinition, java.lang.Class, java.lang.String) 查找生命周期回调元数据
+				 * @see org.springframework.context.annotation.CommonAnnotationBeanPostProcessor#postProcessMergedBeanDefinition(org.springframework.beans.factory.support.RootBeanDefinition, java.lang.Class, java.lang.String) 查找@Resource元数据
+				 * @see AutowiredAnnotationBeanPostProcessor#postProcessMergedBeanDefinition(org.springframework.beans.factory.support.RootBeanDefinition, java.lang.Class, java.lang.String) 查找@Autowired元数据
 				 */
 				bdp.postProcessMergedBeanDefinition(mbd, beanType, beanName);
 			}
@@ -1166,6 +1183,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	@Nullable
 	protected Object resolveBeforeInstantiation(String beanName, RootBeanDefinition mbd) {
 		Object bean = null;
+		// 实例化前有没有调用过后置处理器
 		if (!Boolean.FALSE.equals(mbd.beforeInstantiationResolved)) {
 			// Make sure bean class is actually resolved at this point. 确保此时bean类已经被解析。
 			// mbd不是一个合成类, 且注册了InstantiationAwareBeanPostProcessors
@@ -1178,6 +1196,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					if (bean != null) {
 						/**
 						 * 创建代理，逻辑跟上面一样，唯一不同的是创建了个默认的TargetSource （SingletonTargetSource）
+						 * 如果已经获取到bean, 则执行后置处理器的后续方法.
 						 */
 						bean = applyBeanPostProcessorsAfterInitialization(bean, beanName);
 					}
@@ -1202,10 +1221,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	@Nullable
 	protected Object applyBeanPostProcessorsBeforeInstantiation(Class<?> beanClass, String beanName) {
 		// AnnotationAwareAspectJAutoProxyCreator aop
+		// 遍历容器中所有的BeanPostProcessor后置处理器
 		for (BeanPostProcessor bp : getBeanPostProcessors()) {
+			// 筛选出所有InstantiationAwareBeanPostProcessor接口的实现类
 			if (bp instanceof InstantiationAwareBeanPostProcessor) {
 				InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
 				/**
+				 * 调用后置处理器的postProcessBeforeInstantiation()方法
 				 * aop 自动代理
 				 * @see org.springframework.aop.framework.autoproxy.AbstractAutoProxyCreator#postProcessBeforeInstantiation(java.lang.Class, java.lang.String)
 				 */
@@ -1434,7 +1456,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	}
 
 	/**
-	 * 使用给定bean的默认构造函数实例化它。
+	 * 使用给定bean的默认构造函数通过发射实例化它。
 	 * Instantiate the given bean using its default constructor.
 	 * @param beanName the name of the bean
 	 * @param mbd the bean definition for the bean
@@ -1558,7 +1580,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 		}
 
-		// 自定义的PropertyValues
+		/**
+		 * 自定义的PropertyValues
+		 * xml中的<property/>标签
+		 */
 		PropertyValues pvs = (mbd.hasPropertyValues() ? mbd.getPropertyValues() : null);
 
 		// 获取对应bd的自动装配模型 byType byName
@@ -1574,8 +1599,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				// 找出bw中所有需要注入的方法，这些方法可能包含一些参数，spring就会把这个参数值找出来
 				/**
 				 * 方法调用链
-				 * org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory#autowireByType
-				 * org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory#unsatisfiedNonSimpleProperties(org.springframework.beans.factory.support.AbstractBeanDefinition, org.springframework.beans.BeanWrapper)
+				 * @see AbstractAutowireCapableBeanFactory#autowireByType(java.lang.String, org.springframework.beans.factory.support.AbstractBeanDefinition, org.springframework.beans.BeanWrapper, org.springframework.beans.MutablePropertyValues)
+				 * @see AbstractAutowireCapableBeanFactory#unsatisfiedNonSimpleProperties(org.springframework.beans.factory.support.AbstractBeanDefinition, org.springframework.beans.BeanWrapper)
 				 * spring调用java api(內省)拿到当前类中所有对属性进行控制的方法，包括set、get、is封装成PropertyDescriptor
 				 */
 				autowireByType(beanName, mbd, bw, newPvs);
@@ -1597,13 +1622,14 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			 * 第六次调用后置处理器（InstantiationAwareBeanPostProcessor）
 			 * 遍历spring所有的后置处理器, 每个后置处理器会对spring做不同的事情
 			 *
-			 * CommonAnnotationBeanPostProcessor: 处理@Resource注解的注入
-			 * AutowiredAnnotationBeanPostProcessor: 处理@Autowired、@Value注解的注入
+			 *
+			 * @see org.springframework.context.annotation.CommonAnnotationBeanPostProcessor#postProcessProperties(org.springframework.beans.PropertyValues, java.lang.Object, java.lang.String) 处理@Resource注解的注入
+			 * @see AutowiredAnnotationBeanPostProcessor#postProcessProperties(org.springframework.beans.PropertyValues, java.lang.Object, java.lang.String) 处理@Autowired、@Value注解的注入
  			 */
 			for (BeanPostProcessor bp : getBeanPostProcessors()) {
 				if (bp instanceof InstantiationAwareBeanPostProcessor) {
 					InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
-					// 属性依赖注入
+					// 属性依赖注入: 处理@Resource、@Autowired、@Value注解的注入
 					PropertyValues pvsToUse = ibp.postProcessProperties(pvs, bw.getWrappedInstance(), beanName);
 					if (pvsToUse == null) {
 						if (filteredPds == null) {
@@ -1644,12 +1670,15 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 */
 	protected void autowireByName(
 			String beanName, AbstractBeanDefinition mbd, BeanWrapper bw, MutablePropertyValues pvs) {
-
+		// 拿到所有的属性名字：其实就是拿到所有的set方法名除去set后的名字
 		String[] propertyNames = unsatisfiedNonSimpleProperties(mbd, bw);
 		for (String propertyName : propertyNames) {
+			// 判断属性名是否存在于容器中
 			if (containsBean(propertyName)) {
+				// 如果存在, 则从容器中获取, 对应的Bean如果还没实例化, 也会通过getBean方法去创建bean
 				Object bean = getBean(propertyName);
 				pvs.add(propertyName, bean);
+				// 注册@DependsOn
 				registerDependentBean(propertyName, beanName);
 				if (logger.isTraceEnabled()) {
 					logger.trace("Added autowiring by name from bean name '" + beanName +
@@ -1678,7 +1707,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 */
 	protected void autowireByType(
 			String beanName, AbstractBeanDefinition mbd, BeanWrapper bw, MutablePropertyValues pvs) {
-
+		// 类型转化器
 		TypeConverter converter = getCustomTypeConverter();
 		if (converter == null) {
 			converter = bw;
@@ -1696,9 +1725,14 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					// 方法参数描述
 					MethodParameter methodParam = BeanUtils.getWriteMethodParameter(pd);
 					// Do not allow eager init for type matching in case of a prioritized post-processor.
+					// 是否实现了PriorityOrdered
 					boolean eager = !(bw.getWrappedInstance() instanceof PriorityOrdered);
+					// 自动装配byType依赖描述符, 不会通过byName自动装配
 					DependencyDescriptor desc = new AutowireByTypeDependencyDescriptor(methodParam, eager);
-					// 这里调到最后是getBean
+					/**
+					 * 根据类型找bean, 这就是byType, 解析依赖, 调到最后是getBean
+					 * @see DefaultListableBeanFactory#resolveDependency(org.springframework.beans.factory.config.DependencyDescriptor, java.lang.String, java.util.Set, org.springframework.beans.TypeConverter)
+					 */
 					Object autowiredArgument = resolveDependency(desc, beanName, autowiredBeanNames, converter);
 					if (autowiredArgument != null) {
 						pvs.add(propertyName, autowiredArgument);
@@ -1733,18 +1767,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		Set<String> result = new TreeSet<>();
 		PropertyValues pvs = mbd.getPropertyValues();
 		/**
+		 * 属性描述
 		 * spring调用java api(內省)拿到当前类中所有对属性进行控制的方法，包括set、get、is封装成PropertyDescriptor
-		 * java.beans.BeanInfo#getPropertyDescriptors()返回所有的set、get、is方法
+		 * 最终在 {@link Introspector#getTargetPropertyInfo() }遍历所有的方法找出set、get、is并返回
 		 *
-		 * 方法调用链
-		 * org.springframework.beans.BeanWrapperImpl#getPropertyDescriptors()
-		 * org.springframework.beans.BeanWrapperImpl#getCachedIntrospectionResults
-		 * org.springframework.beans.CachedIntrospectionResults#forClass
-		 * org.springframework.beans.CachedIntrospectionResults#CachedIntrospectionResults
-		 * org.springframework.beans.CachedIntrospectionResults#getBeanInfo(java.lang.Class<?>)
-		 * java.beans.Introspector#getBeanInfo(java.lang.Class<?>)
-		 * java.beans.Introspector#getBeanInfo()
-		 * java.beans.Introspector#getTargetPropertyInfo在这里遍历所有的方法找出set、get、is
+		 * @see BeanWrapperImpl#getPropertyDescriptors()
 		 */
 		PropertyDescriptor[] pds = bw.getPropertyDescriptors();
 		for (PropertyDescriptor pd : pds) {
@@ -1840,14 +1867,14 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 	/**
 	 * 方法调用链
-	 * org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory#applyPropertyValues
-	 * org.springframework.beans.AbstractPropertyAccessor#setPropertyValues(org.springframework.beans.PropertyValues)
-	 * org.springframework.beans.AbstractPropertyAccessor#setPropertyValues(org.springframework.beans.PropertyValues, boolean, boolean)
-	 * org.springframework.beans.AbstractPropertyAccessor#setPropertyValue(org.springframework.beans.PropertyValue)
-	 * org.springframework.beans.AbstractNestablePropertyAccessor#setPropertyValue(java.lang.String, java.lang.Object)
-	 * org.springframework.beans.AbstractNestablePropertyAccessor#setPropertyValue(org.springframework.beans.AbstractNestablePropertyAccessor.PropertyTokenHolder, org.springframework.beans.PropertyValue)
-	 * org.springframework.beans.AbstractNestablePropertyAccessor#processLocalProperty
-	 * org.springframework.beans.BeanWrapperImpl.BeanPropertyHandler#setValue
+	 * @see org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory#applyPropertyValues
+	 * @see org.springframework.beans.AbstractPropertyAccessor#setPropertyValues(org.springframework.beans.PropertyValues)
+	 * @see org.springframework.beans.AbstractPropertyAccessor#setPropertyValues(org.springframework.beans.PropertyValues, boolean, boolean)
+	 * @see org.springframework.beans.AbstractPropertyAccessor#setPropertyValue(org.springframework.beans.PropertyValue)
+	 * @see org.springframework.beans.AbstractNestablePropertyAccessor#setPropertyValue(java.lang.String, java.lang.Object)
+	 * @see org.springframework.beans.AbstractNestablePropertyAccessor#setPropertyValue(org.springframework.beans.AbstractNestablePropertyAccessor.PropertyTokenHolder, org.springframework.beans.PropertyValue)
+	 * @see org.springframework.beans.AbstractNestablePropertyAccessor#processLocalProperty
+	 * @see org.springframework.beans.BeanWrapperImpl.BeanPropertyHandler#setValue
 	 *
 	 *
 	 * Apply the given property values, resolving any runtime references
@@ -2007,6 +2034,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// 执行@PostConstruct
 		Object wrappedBean = bean;
 		if (mbd == null || !mbd.isSynthetic()) {
+			// 调用后置处理器中bean初始化前的方法
 			// 第七次调用spring的后置处理器BeanPostProcessor接口的postProcessBeforeInitialization() --- @PostConstruct
 			wrappedBean = applyBeanPostProcessorsBeforeInitialization(wrappedBean, beanName);
 		}
@@ -2024,7 +2052,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// ---------------------------------------------------3---------------------------------------------------
 		if (mbd == null || !mbd.isSynthetic()) {
-			// 第八次执行后置处理器的postProcessAfterInitialization方法，aop
+			// 第八次执行后置处理器的postProcessAfterInitialization方法，aop, 初始化后
 			wrappedBean = applyBeanPostProcessorsAfterInitialization(wrappedBean, beanName);
 		}
 
@@ -2223,6 +2251,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			super(methodParameter, false, eager);
 		}
 
+		// 这里获取依赖的名字, 直接返回空, 表示当前依赖描述符不会通过byName 自动装配
 		@Override
 		public String getDependencyName() {
 			return null;

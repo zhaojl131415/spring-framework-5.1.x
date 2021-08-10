@@ -36,15 +36,20 @@ import org.springframework.util.ObjectUtils;
  * @since 4.3
  * @see UnsatisfiedDependencyException#getInjectionPoint()
  * @see org.springframework.beans.factory.config.DependencyDescriptor
+ *
+ * 注入点
  */
 public class InjectionPoint {
 
+	// 方法
 	@Nullable
 	protected MethodParameter methodParameter;
 
+	// 属性
 	@Nullable
 	protected Field field;
 
+	// 注解
 	@Nullable
 	private volatile Annotation[] fieldAnnotations;
 

@@ -144,6 +144,7 @@ public class ServletRequestAttributes extends AbstractRequestAttributes {
 
 	@Override
 	public Object getAttribute(String name, int scope) {
+		// 如果作用域为request
 		if (scope == SCOPE_REQUEST) {
 			if (!isRequestActive()) {
 				throw new IllegalStateException(
@@ -152,6 +153,7 @@ public class ServletRequestAttributes extends AbstractRequestAttributes {
 			return this.request.getAttribute(name);
 		}
 		else {
+			// session
 			HttpSession session = getSession(false);
 			if (session != null) {
 				try {

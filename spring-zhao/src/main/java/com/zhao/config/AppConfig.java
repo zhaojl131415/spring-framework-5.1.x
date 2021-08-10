@@ -21,7 +21,11 @@ import org.springframework.context.annotation.*;
 //		,includeFilters = @Filter(ZhaoMapper.class)
 //)
 //@MapperScan
-//@EnableAspectJAutoProxy(proxyTargetClass = true)
+
+/**
+ * 开启aop注解
+ */
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 @ComponentScan("com.zhao")
 @Configuration
 //@Import(ZhaoAopBeanPostProcessor.class)

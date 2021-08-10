@@ -137,11 +137,15 @@ public class StandardBeanExpressionResolver implements BeanExpressionResolver {
 			return value;
 		}
 		try {
+			// 根据value获取缓存中的表达式
 			Expression expr = this.expressionCache.get(value);
 			if (expr == null) {
+				// 不存在, 通过表达式解析器解析
 				expr = this.expressionParser.parseExpression(value, this.beanExpressionParserContext);
+				// 解析后存入表达式缓存
 				this.expressionCache.put(value, expr);
 			}
+			// 变量环境类
 			StandardEvaluationContext sec = this.evaluationCache.get(evalContext);
 			if (sec == null) {
 				sec = new StandardEvaluationContext(evalContext);
@@ -158,6 +162,7 @@ public class StandardBeanExpressionResolver implements BeanExpressionResolver {
 				customizeEvaluationContext(sec);
 				this.evaluationCache.put(evalContext, sec);
 			}
+			// 表达式获取值
 			return expr.getValue(sec);
 		}
 		catch (Throwable ex) {

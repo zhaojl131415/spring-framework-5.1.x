@@ -689,8 +689,10 @@ public abstract class ReflectionUtils {
 	 * @see #doWithFields
 	 */
 	public static void doWithLocalFields(Class<?> clazz, FieldCallback fc) {
+		// 遍历当前类中所有的字段
 		for (Field field : getDeclaredFields(clazz)) {
 			try {
+				// 执行外部的Lambda表达式
 				fc.doWith(field);
 			}
 			catch (IllegalAccessException ex) {

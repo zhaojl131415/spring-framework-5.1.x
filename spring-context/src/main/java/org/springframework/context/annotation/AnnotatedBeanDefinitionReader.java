@@ -85,6 +85,7 @@ public class AnnotatedBeanDefinitionReader {
 		Assert.notNull(environment, "Environment must not be null");
 		this.registry = registry;
 		this.conditionEvaluator = new ConditionEvaluator(registry, environment, null);
+		// 注册内置的后置处理器, 放入bd map
 		AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
 	}
 

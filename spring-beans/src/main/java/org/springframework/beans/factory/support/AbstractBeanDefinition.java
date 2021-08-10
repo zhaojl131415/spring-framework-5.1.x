@@ -446,7 +446,9 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	@Override
 	@Nullable
 	public String getBeanClassName() {
+		// 获取beanClass属性
 		Object beanClassObject = this.beanClass;
+		// 获取bean class对象的全限定名
 		if (beanClassObject instanceof Class) {
 			return ((Class<?>) beanClassObject).getName();
 		}
@@ -490,6 +492,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 * @see #resolveBeanClass(ClassLoader)
 	 */
 	public boolean hasBeanClass() {
+		// beanClass 可能为String或Class对象, 如果为Class对象, 则返回true
 		return (this.beanClass instanceof Class);
 	}
 

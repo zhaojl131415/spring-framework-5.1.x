@@ -1,6 +1,8 @@
 package com.zhao.factoryBean;
 
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
@@ -9,7 +11,8 @@ import org.springframework.stereotype.Component;
  * @description TODO
  * @date 2020-03-08 11:56
  */
-//@Component
+@Component
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ZhaoFactoryBean implements FactoryBean {
 	@Override
 	public Object getObject() throws Exception {
@@ -20,4 +23,9 @@ public class ZhaoFactoryBean implements FactoryBean {
 	public Class<?> getObjectType() {
 		return Z.class;
 	}
+
+//	@Override
+//	public boolean isSingleton() {
+//		return false;
+//	}
 }

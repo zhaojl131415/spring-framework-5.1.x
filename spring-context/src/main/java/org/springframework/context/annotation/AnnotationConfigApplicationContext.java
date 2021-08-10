@@ -72,7 +72,8 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 */
 	public AnnotationConfigApplicationContext() {
 		/**
-		 * 会隐式调用父类的构造方法，初始化DefaultListableBeanFactory, BDMap就在这个BeanFactory中
+		 * 当调用子类的无参构造方法, 首先会调用父类的无参构造方法.
+		 * 所以这里会隐式调用父类的构造方法，初始化DefaultListableBeanFactory, BDMap就在这个BeanFactory中
 		 * @see GenericApplicationContext#GenericApplicationContext()
 		 */
 

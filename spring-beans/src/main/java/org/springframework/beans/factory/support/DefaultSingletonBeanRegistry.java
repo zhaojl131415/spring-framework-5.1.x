@@ -128,9 +128,33 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	private final Map<String, Set<String>> containedBeanMap = new ConcurrentHashMap<>(16);
 
 	/** Map between dependent bean names: bean name to Set of dependent bean names. */
+	/**
+	 * 与下面的Map相反, 表示当前bean 被依赖的 所有bean集合
+	 * @Component
+	 * @DependsOn("bService")
+	 * public class AService {
+	 * }
+	 *
+	 * @Component
+	 * @DependsOn("bService")
+	 * public class CService {
+	 * }
+	 * 对应Map为:
+	 * <"bService", Set["aService", "cService"]>
+	 */
 	private final Map<String, Set<String>> dependentBeanMap = new ConcurrentHashMap<>(64);
 
 	/** Map between depending bean names: bean name to Set of bean names for the bean's dependencies. */
+	/**
+	 * 对应当前bean 依赖的 所有bean集合
+	 *
+	 * @Component
+	 * @DependsOn(value = {"bService", "cService"})
+	 * public class AService {
+	 * }
+	 * 对应Map为:
+	 * <"aServeice", Set["bService", "cService"]>
+	 */
 	private final Map<String, Set<String>> dependenciesForBeanMap = new ConcurrentHashMap<>(64);
 
 
@@ -288,6 +312,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					 * 初始化bean
 					 *
 					 * 调用singletonFactory.getObject()接口的实现:其实就是调用了createBean(beanName, mbd, args);
+					 * @see AbstractAutowireCapableBeanFactory#createBean(java.lang.String, org.springframework.beans.factory.support.RootBeanDefinition, java.lang.Object[])
 					 *
 					 * 在AbstractBeanFactory中的doGetBean(final String name, @Nullable final Class<T> requiredType,
 					 *                        @Nullable final Object[] args, boolean typeCheckOnly)方法中

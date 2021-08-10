@@ -63,6 +63,8 @@ public class Test {
 //		System.out.println(ac.getBean("zhaoFactoryBean"));
 //		System.out.println(ac.getBean("zhaoFactoryBean"));
 		System.out.println(ac.getBean("zhaoFactoryBean"));
+		System.out.println(ac.getBean("zhaoFactoryBean"));
+		System.out.println(ac.getBean("&zhaoFactoryBean"));
 		System.out.println(ac.getBean("&zhaoFactoryBean"));
 //
 //		System.out.println(ac.getBean(CommodityService.class));
