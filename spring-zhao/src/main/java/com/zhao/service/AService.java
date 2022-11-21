@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
  * @date 2020-01-07 17:33
  */
 @Component
-@DependsOn(value = {"bService", "cService"})
+//@DependsOn(value = {"bService", "cService"})
 public class AService {
 
 	public AService() {

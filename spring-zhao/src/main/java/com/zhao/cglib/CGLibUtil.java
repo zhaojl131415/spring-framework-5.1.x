@@ -12,6 +12,7 @@ import java.lang.reflect.Method;
  * @description TODO
  * @date 2020-03-13 20:00
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class CGLibUtil {
 	public static Object getProxy(Class clazz) {
 		Enhancer enhancer = new Enhancer();

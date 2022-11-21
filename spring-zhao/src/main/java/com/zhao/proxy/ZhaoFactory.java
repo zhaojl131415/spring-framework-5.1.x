@@ -9,6 +9,7 @@ public class ZhaoFactory {
 	 * @param clazz
 	 * @return
 	 */
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	public static Object getMapper(Class clazz){
 		//实现JDK动态代理
 

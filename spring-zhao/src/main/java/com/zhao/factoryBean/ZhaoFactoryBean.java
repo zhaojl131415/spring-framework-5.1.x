@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class ZhaoFactoryBean implements FactoryBean {
 	@Override
 	public Object getObject() throws Exception {

@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component;
 public class ZhaoBeanFactoryPostProcessor1 implements BeanFactoryPostProcessor {
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		BeanDefinition beanDefinition = (BeanDefinition) beanFactory.getBeanDefinition("commodityService");
+		BeanDefinition beanDefinition = beanFactory.getBeanDefinition("commodityService");
 		beanDefinition.setDestroyMethodName(AbstractBeanDefinition.INFER_METHOD);
 		System.out.println("ZhaoBeanFactoryPostProcessor1.postProcessBeanFactory");
 	}

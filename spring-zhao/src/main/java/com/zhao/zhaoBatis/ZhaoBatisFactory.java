@@ -10,6 +10,7 @@ import java.lang.reflect.Proxy;
  * @description TODO
  * @date 2020-03-08 14:46
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class ZhaoBatisFactory {
 
 	// 实现jdk动态代理, 能够得到一个实现了Mapper接口的代理对象
