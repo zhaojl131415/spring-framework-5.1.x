@@ -452,7 +452,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		Object result = existingBean;
 		/**
 		 * 执行所有BeanPostProcessor的实现类的postProcessAfterInitialization()
-		 * AnnotationAwareAspectJAutoProxyCreator
+		 * @see org.springframework.aop.aspectj.annotation.AnnotationAwareAspectJAutoProxyCreator
 		 */
 		for (BeanPostProcessor processor : getBeanPostProcessors()) {
 			/**
@@ -528,6 +528,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		Class<?> resolvedClass = resolveBeanClass(mbd, beanName);
 		if (resolvedClass != null && !mbd.hasBeanClass() && mbd.getBeanClassName() != null) {
 			mbdToUse = new RootBeanDefinition(mbd);
+			// 将class覆盖原来beanClass中存的beanClassName(String -> Class)
 			mbdToUse.setBeanClass(resolvedClass);
 		}
 
@@ -556,7 +557,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			 * 这一步是aop和事务的关键, 是解析aop切面信息进行缓存
  			 */
 			Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
-			// 这一步并不会产生bean，所以bean == null
+			// 这一步并不会产生bean，所以大多数情况: bean == null
 			if (bean != null) {
 				return bean;
 			}
@@ -604,11 +605,12 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			throws BeanCreationException {
 
 		// Instantiate the bean.
-		// BeanWrapper是对bean的包装,其接口中所定义的功能很简单,包括设置获取被包装的对象,获取被包装bean的属性描述器
+		// BeanWrapper是对bean的包装, 其接口中所定义的功能很简单, 包括设置获取被包装的对象, 获取被包装bean的属性描述器
 		BeanWrapper instanceWrapper = null;
 		// 判断是否为单例
 		if (mbd.isSingleton()) {
 			// 从没有完成的FactoryBean中移除
+			// 有可能在当前bean创建之前, 就有其他bean把当前bean给创建出来了(比如依赖注入过程中), 主要针对FactoryBean的
 			instanceWrapper = this.factoryBeanInstanceCache.remove(beanName);
 		}
 		if (instanceWrapper == null) {
@@ -1186,8 +1188,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// 实例化前有没有调用过后置处理器
 		if (!Boolean.FALSE.equals(mbd.beforeInstantiationResolved)) {
 			// Make sure bean class is actually resolved at this point. 确保此时bean类已经被解析。
-			// mbd不是一个合成类, 且注册了InstantiationAwareBeanPostProcessors
+			/**
+			 * mbd不是一个合成类, 且实现了接口: {@link InstantiationAwareBeanPostProcessor}
+			 */
 			if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
+				// 确定目标类
 				Class<?> targetType = determineTargetType(beanName, mbd);
 				if (targetType != null) {
 					// 代理对象
@@ -1221,17 +1226,19 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	@Nullable
 	protected Object applyBeanPostProcessorsBeforeInstantiation(Class<?> beanClass, String beanName) {
 		// AnnotationAwareAspectJAutoProxyCreator aop
-		// 遍历容器中所有的BeanPostProcessor后置处理器
+		// 遍历容器中所有的BeanPostProcessor后置处理器(5.3版本添加了后置处理器缓存类, 对此处进行了优化)
 		for (BeanPostProcessor bp : getBeanPostProcessors()) {
 			// 筛选出所有InstantiationAwareBeanPostProcessor接口的实现类
 			if (bp instanceof InstantiationAwareBeanPostProcessor) {
 				InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
 				/**
-				 * 调用后置处理器的postProcessBeforeInstantiation()方法
+				 * 调用后置处理器的实例化前方法: postProcessBeforeInstantiation()
 				 * aop 自动代理
 				 * @see org.springframework.aop.framework.autoproxy.AbstractAutoProxyCreator#postProcessBeforeInstantiation(java.lang.Class, java.lang.String)
 				 */
 				Object result = ibp.postProcessBeforeInstantiation(beanClass, beanName);
+				// 顺序遍历执行, 找到第一个返回非空对象的方法后, 结束遍历.
+				// 在这里有一个值得深入的问题, 这里接收的对象是: Object类型的, 而不是Class对象对应类型的, 表示这里可以返回跟Class对象不一致的对象.
 				if (result != null) {
 					return result;
 				}
@@ -1569,8 +1576,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
 					/**
 					 * 这里默认为true, spring所有的实现类也返回true
-					 * 如果不要属性注入，可以自定义一个后置处理器实现InstantiationAwareBeanPostProcessor，
-					 * 重写postProcessAfterInstantiation方法，让这个方法return false; 这里就不会属性注入
+					 * 如果不要属性注入，可以自定义一个后置处理器实现接口{@link InstantiationAwareBeanPostProcessor}，
+					 * 重写实例化后方法:{@link InstantiationAwareBeanPostProcessor#postProcessAfterInstantiation(Object, String)}，
+					 * 让这个方法return false; 这里就不会属性注入
 					 * 这个跟老版相比有改动 continueWithPropertyPopulation
 					 */
 					if (!ibp.postProcessAfterInstantiation(bw.getWrappedInstance(), beanName)) {
@@ -1616,20 +1624,24 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (hasInstAwareBpps) {
 			// PropertyValues
 			if (pvs == null) {
+				// 如果在BD中指定了属性值(自定义后置处理器指定PropertyValues), 这里将取出属性值, 后续会直接将对应值赋值给对应属性
 				pvs = mbd.getPropertyValues();
 			}
 			/**
 			 * 第六次调用后置处理器（InstantiationAwareBeanPostProcessor）
 			 * 遍历spring所有的后置处理器, 每个后置处理器会对spring做不同的事情
-			 *
-			 *
-			 * @see org.springframework.context.annotation.CommonAnnotationBeanPostProcessor#postProcessProperties(org.springframework.beans.PropertyValues, java.lang.Object, java.lang.String) 处理@Resource注解的注入
-			 * @see AutowiredAnnotationBeanPostProcessor#postProcessProperties(org.springframework.beans.PropertyValues, java.lang.Object, java.lang.String) 处理@Autowired、@Value注解的注入
  			 */
 			for (BeanPostProcessor bp : getBeanPostProcessors()) {
 				if (bp instanceof InstantiationAwareBeanPostProcessor) {
 					InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
-					// 属性依赖注入: 处理@Resource、@Autowired、@Value注解的注入
+					/**
+					 * 属性依赖注入: 处理@Resource、@Autowired、@Value注解的注入
+					 *
+					 * 处理@Resource注解的注入
+					 * @see org.springframework.context.annotation.CommonAnnotationBeanPostProcessor#postProcessProperties(org.springframework.beans.PropertyValues, java.lang.Object, java.lang.String)
+					 * 处理@Autowired、@Value注解的注入
+					 * @see AutowiredAnnotationBeanPostProcessor#postProcessProperties(org.springframework.beans.PropertyValues, java.lang.Object, java.lang.String)
+					 */
 					PropertyValues pvsToUse = ibp.postProcessProperties(pvs, bw.getWrappedInstance(), beanName);
 					if (pvsToUse == null) {
 						if (filteredPds == null) {

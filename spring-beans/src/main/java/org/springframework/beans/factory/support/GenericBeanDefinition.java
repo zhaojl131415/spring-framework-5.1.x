@@ -16,6 +16,7 @@
 
 package org.springframework.beans.factory.support;
 
+import org.springframework.beans.factory.annotation.AnnotatedGenericBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
@@ -46,6 +47,12 @@ import org.springframework.util.ObjectUtils;
  * @see AbstractBeanFactory#getMergedLocalBeanDefinition(java.lang.String)
  *
  * 既可以作为父BD,也可以作为子BD
+ *
+ * 有两个子类实现, 在spring启动时, 会初始化一个读取器和扫描器
+ * 通过读取器{@link org.springframework.context.annotation.AnnotatedBeanDefinitionReader}的regitster方法注册进来的类(配置类), 会封装成:
+ * @see AnnotatedGenericBeanDefinition
+ * 通过扫描器{@link org.springframework.context.annotation.ClassPathBeanDefinitionScanner}的scan方法扫描进来的类, 会封装成:
+ * @see org.springframework.context.annotation.ScannedGenericBeanDefinition
  */
 @SuppressWarnings("serial")
 public class GenericBeanDefinition extends AbstractBeanDefinition {

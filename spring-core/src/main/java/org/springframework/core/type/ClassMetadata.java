@@ -19,6 +19,7 @@ package org.springframework.core.type;
 import org.springframework.lang.Nullable;
 
 /**
+ * 类的元数据接口
  * Interface that defines abstract metadata of a specific class,
  * in a form that does not require that class to be loaded yet.
  *
@@ -65,7 +66,11 @@ public interface ClassMetadata {
 	boolean isFinal();
 
 	/**
-	 * 判断类是否独立 是否为顶级类或嵌套内部静态类
+	 * 判断类是否独立 是否为顶级类或嵌套静态内部类
+	 * 因为内部类在编译器编译之后会单独生成另一个class文件, 而扫描器去扫描classPath目录下的文件时, 会扫描到这个内部类的class文件,
+	 * 实例化的时候不能直接拿非静态内部类的class去实例化一个对象, 首先得根据外部类得到一个对象之后, 才能得到内部类的对象
+	 * Java基础: 普通内部类的实例化, 必须要基于外部类的实例才能完成实例化, 静态内部类则可以直接实例化.
+	 *
 	 * Determine whether the underlying class is independent, i.e. whether
 	 * it is a top-level class or a nested class (static inner class) that
 	 * can be constructed independently from an enclosing class.

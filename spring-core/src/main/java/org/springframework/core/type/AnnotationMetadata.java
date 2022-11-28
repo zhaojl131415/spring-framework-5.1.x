@@ -50,6 +50,11 @@ public interface AnnotationMetadata extends ClassMetadata, AnnotatedTypeMetadata
 	Set<String> getMetaAnnotationTypes(String annotationName);
 
 	/**
+	 * 根据注解名字, 获取当前类是否存在指定注释<br/>
+	 * 例: 对添加了{@link org.springframework.stereotype.Service @Service}注解的类<br/>
+	 * 判断是否存在{@link org.springframework.stereotype.Service @Service}, 会返回true<br/>
+	 * 判断是否存在{@link org.springframework.stereotype.Component @Component}, 会返回false<br/>
+	 * <br/>
 	 * Determine whether an annotation of the given type is <em>present</em> on
 	 * the underlying class.
 	 * @param annotationName the fully qualified class name of the annotation
@@ -59,6 +64,11 @@ public interface AnnotationMetadata extends ClassMetadata, AnnotatedTypeMetadata
 	boolean hasAnnotation(String annotationName);
 
 	/**
+	 * 根据注解名字, 获取当前类是否或者包含存在指定注释<br/>
+	 * 例: 对添加了{@link org.springframework.stereotype.Service @Service}注解的类<br/>
+	 * 判断是否存在{@link org.springframework.stereotype.Service @Service}, 会返回true<br/>
+	 * 判断是否存在{@link org.springframework.stereotype.Component @Component}, 也会返回true<br/>
+	 * <br/>
 	 * Determine whether the underlying class has an annotation that is itself
 	 * annotated with the meta-annotation of the given type.
 	 * @param metaAnnotationName the fully qualified class name of the

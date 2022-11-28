@@ -54,6 +54,9 @@ public class SessionScope extends AbstractRequestAttributesScope {
 	public Object get(String name, ObjectFactory<?> objectFactory) {
 		Object mutex = RequestContextHolder.currentRequestAttributes().getSessionMutex();
 		synchronized (mutex) {
+			/**
+			 * @see AbstractRequestAttributesScope#get(String, ObjectFactory)
+			 */
 			return super.get(name, objectFactory);
 		}
 	}

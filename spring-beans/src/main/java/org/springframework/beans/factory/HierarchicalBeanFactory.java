@@ -19,6 +19,7 @@ package org.springframework.beans.factory;
 import org.springframework.lang.Nullable;
 
 /**
+ * 父子容器?
  * Sub-interface implemented by bean factories that can be part
  * of a hierarchy.
  *
@@ -34,6 +35,7 @@ import org.springframework.lang.Nullable;
 public interface HierarchicalBeanFactory extends BeanFactory {
 
 	/**
+	 * 父bean工厂
 	 * Return the parent bean factory, or {@code null} if there is none.
 	 */
 	@Nullable

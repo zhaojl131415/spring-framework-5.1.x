@@ -221,7 +221,7 @@ public class SimpleAliasRegistry implements AliasRegistry {
 		 * <bean id="testBean"  class="com.test.TestBean"/>
 		 * <alias name="testBean" alias="test"/>
 		 * <alias name="test" alias="t"/>
-		 * 解析别名：通过传入别名：t 找到别名：test，然后找到beanName：testBean
+		 * 遍历解析别名：通过传入别名：t 找到别名：test，然后找到beanName：testBean
 		 */
 		do {
 			resolvedName = this.aliasMap.get(canonicalName);

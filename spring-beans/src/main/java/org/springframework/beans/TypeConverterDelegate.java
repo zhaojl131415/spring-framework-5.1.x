@@ -99,6 +99,10 @@ class TypeConverterDelegate {
 	}
 
 	/**
+	 * 类型转换器, 转换的底层实现方法
+	 * 两种转换器:
+	 * @see PropertyEditor		jdk接口
+	 * @see ConversionService	spring接口
 	 * Convert the value to the required type (if necessary from a String),
 	 * for the specified property.
 	 * @param propertyName name of the property
@@ -115,7 +119,7 @@ class TypeConverterDelegate {
 	public <T> T convertIfNecessary(@Nullable String propertyName, @Nullable Object oldValue, @Nullable Object newValue,
 			@Nullable Class<T> requiredType, @Nullable TypeDescriptor typeDescriptor) throws IllegalArgumentException {
 
-		// Custom editor for this type?
+		// Custom editor for this type? 获取自定义的类型编辑器PropertyEditor(JDK)
 		PropertyEditor editor = this.propertyEditorRegistry.findCustomEditor(requiredType, propertyName);
 
 		ConversionFailedException conversionAttemptEx = null;

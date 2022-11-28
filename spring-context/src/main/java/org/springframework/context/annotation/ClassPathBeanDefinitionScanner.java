@@ -22,11 +22,7 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionDefaults;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.BeanNameGenerator;
+import org.springframework.beans.factory.support.*;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.EnvironmentCapable;
 import org.springframework.core.env.StandardEnvironment;
@@ -62,6 +58,9 @@ import org.springframework.util.PatternMatchUtils;
  */
 public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateComponentProvider {
 
+	/**
+	 * @see DefaultListableBeanFactory
+	 */
 	private final BeanDefinitionRegistry registry;
 
 	private BeanDefinitionDefaults beanDefinitionDefaults = new BeanDefinitionDefaults();
@@ -163,7 +162,7 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 		this.registry = registry;
 		// 过滤器注册：默认为true
 		if (useDefaultFilters) {
-			// 为@Component注册默认过滤器。
+			// 注册默认过滤器, includeFilters添加注解类型扫描器, 扫描@Component
 			registerDefaultFilters();
 		}
 		setEnvironment(environment);
@@ -263,6 +262,7 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	}
 
 	/**
+	 * 扫描包路径, 得到BD, 缓存到BDMap中
 	 * Perform a scan within the specified base packages,
 	 * returning the registered bean definitions.
 	 * <p>This method does <i>not</i> register an annotation config processor
@@ -275,23 +275,37 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 		Set<BeanDefinitionHolder> beanDefinitions = new LinkedHashSet<>();
 		// basePackages需要扫描的包名，可以指定多个
 		for (String basePackage : basePackages) {
-			// 通过包路径找到@Component注解的候选BD集合
+			// 通过包路径找到@Component注解的候选BD集合: 主要获取beanClass属性
 			Set<BeanDefinition> candidates = findCandidateComponents(basePackage);
 			for (BeanDefinition candidate : candidates) {
+				/**
+				 * 解析@Scope注解元数据
+				 * @see AnnotationScopeMetadataResolver#resolveScopeMetadata(BeanDefinition)
+				 */
 				ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(candidate);
 				candidate.setScope(scopeMetadata.getScopeName());
+				/**
+				 * 生成beanName
+				 * @see AnnotationBeanNameGenerator#generateBeanName(BeanDefinition, BeanDefinitionRegistry)
+				 */
 				String beanName = this.beanNameGenerator.generateBeanName(candidate, this.registry);
 				if (candidate instanceof AbstractBeanDefinition) {
 					postProcessBeanDefinition((AbstractBeanDefinition) candidate, beanName);
 				}
 				if (candidate instanceof AnnotatedBeanDefinition) {
+					// 解析@Lazy/@Primary/@DependsOn/@Role/@Description注解
 					AnnotationConfigUtils.processCommonDefinitionAnnotations((AnnotatedBeanDefinition) candidate);
 				}
+				// 检查BDMap中是否已经存在该beanName
 				if (checkCandidate(beanName, candidate)) {
+					// 构建BD Holder对象
 					BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(candidate, beanName);
 					definitionHolder =
 							AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
 					beanDefinitions.add(definitionHolder);
+					/**
+					 * 注册BD到BDMap中
+					 */
 					registerBeanDefinition(definitionHolder, this.registry);
 				}
 			}
@@ -336,17 +350,28 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	 * bean definition has been found for the specified name
 	 */
 	protected boolean checkCandidate(String beanName, BeanDefinition beanDefinition) throws IllegalStateException {
+		// 判断BDMap中是否已存在, 如果不存在, 直接返回true, 执行BD注册到BDMap中
 		if (!this.registry.containsBeanDefinition(beanName)) {
 			return true;
 		}
+		/**
+		 * 如果走到这儿, 表示BD已经存在, 大概率为两个bean对象指定了相同的beanName
+		 * 他们只会有两种结果, 要不抛出异常结束, 要不返回false, 后续也不会执行注册到BDMap中
+		 *
+		 * 如果已存在, 则从BDMap中获取已存在的BD,
+		 * @see DefaultListableBeanFactory#getBeanDefinition(String)
+		 */
 		BeanDefinition existingDef = this.registry.getBeanDefinition(beanName);
 		BeanDefinition originatingDef = existingDef.getOriginatingBeanDefinition();
 		if (originatingDef != null) {
 			existingDef = originatingDef;
 		}
+		// 是否兼容, 如果兼容, 返回false, 后续也不会执行注册到BDMap中
+		// spring容器启动时, 配置文件注册多次, 可能会触发多次扫描, 此时可能会存在重复, 这种同一个bean被扫描多次的重复, 表示兼容, 则直接返回false
 		if (isCompatible(beanDefinition, existingDef)) {
 			return false;
 		}
+		// 如果不兼容, 抛出异常: beanName已存在
 		throw new ConflictingBeanDefinitionException("Annotation-specified bean name '" + beanName +
 				"' for bean class [" + beanDefinition.getBeanClassName() + "] conflicts with existing, " +
 				"non-compatible bean definition of same name and class [" + existingDef.getBeanClassName() + "]");
@@ -364,9 +389,10 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	 * new definition to be skipped in favor of the existing definition
 	 */
 	protected boolean isCompatible(BeanDefinition newDefinition, BeanDefinition existingDefinition) {
+		// 扫描BD, BD对应的源相等
 		return (!(existingDefinition instanceof ScannedGenericBeanDefinition) ||  // explicitly registered overriding bean
-				(newDefinition.getSource() != null && newDefinition.getSource().equals(existingDefinition.getSource())) ||  // scanned same file twice
-				newDefinition.equals(existingDefinition));  // scanned equivalent class twice
+				(newDefinition.getSource() != null && newDefinition.getSource().equals(existingDefinition.getSource())) ||  // scanned same file twice 扫描相同文件两次
+				newDefinition.equals(existingDefinition));  // scanned equivalent class twice 扫描相同类两次
 	}
 
 

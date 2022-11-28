@@ -127,9 +127,15 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 			closeBeanFactory();
 		}
 		try {
+			// 创建默认的Bean工厂
 			DefaultListableBeanFactory beanFactory = createBeanFactory();
 			beanFactory.setSerializationId(getId());
+			// 自定义
 			customizeBeanFactory(beanFactory);
+			/**
+			 * 通过bean工厂加载Bean定义
+			 * @see org.springframework.web.context.support.AnnotationConfigWebApplicationContext#loadBeanDefinitions(DefaultListableBeanFactory)
+			 */
 			loadBeanDefinitions(beanFactory);
 			synchronized (this.beanFactoryMonitor) {
 				this.beanFactory = beanFactory;

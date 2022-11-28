@@ -5,7 +5,7 @@ import java.lang.reflect.Method;
 /**
  * @author zhaojinliang
  * @version 1.0
- * @description TODO
+ * @description 合成类
  * @date 2020-03-14 11:10
  */
 public class SyntheticDemo {

@@ -32,6 +32,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
 import org.springframework.lang.Nullable;
@@ -238,7 +239,12 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 	@Override
 	public void destroy() {
 		if (!CollectionUtils.isEmpty(this.beanPostProcessors)) {
+			// 遍历后置处理器
 			for (DestructionAwareBeanPostProcessor processor : this.beanPostProcessors) {
+				/**
+				 * 执行销毁前方法
+				 * @see InitDestroyAnnotationBeanPostProcessor#postProcessBeforeDestruction(Object, String)
+				 */
 				processor.postProcessBeforeDestruction(this.bean, this.beanName);
 			}
 		}

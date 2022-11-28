@@ -173,6 +173,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 
 	/**
 	 * 用于保存bean组件的class对象
+	 * 一开始在还没实例化前, 会先赋值为beanClassName, 等实例化之后才会改为对应的beanClass, 所以这里类型为Object
 	 */
 	@Nullable
 	private volatile Object beanClass;
@@ -492,7 +493,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 * @see #resolveBeanClass(ClassLoader)
 	 */
 	public boolean hasBeanClass() {
-		// beanClass 可能为String或Class对象, 如果为Class对象, 则返回true
+		// beanClass 可能为String或Class对象, 如果为Class对象, 表示被加载再过, 则返回true, 否则为String, 表示此时还是存储的beanClassName, 还没有被加载
 		return (this.beanClass instanceof Class);
 	}
 

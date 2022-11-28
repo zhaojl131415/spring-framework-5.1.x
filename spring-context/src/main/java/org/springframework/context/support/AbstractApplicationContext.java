@@ -568,7 +568,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				// Register bean processors that intercept bean creation.
-				// 注册BeanPostProcessor（bean后置处理器）
+				// 注册BeanPostProcessor（实例化bean后置处理器）
 				registerBeanPostProcessors(beanFactory);
 
 				// Initialize message source for this context.
@@ -607,6 +607,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 				// Last step: publish corresponding event.
 				// 最后容器刷新 发布刷新事件（Spring cloud启动）
+				/**
+				 *
+				 */
 				finishRefresh();
 			}
 
@@ -691,6 +694,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @see #getBeanFactory()
 	 */
 	protected ConfigurableListableBeanFactory obtainFreshBeanFactory() {
+		/**
+		 * @see AbstractRefreshableApplicationContext#refreshBeanFactory()
+		 */
 		refreshBeanFactory();
 		return getBeanFactory();
 	}
@@ -974,6 +980,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		initLifecycleProcessor();
 
 		// Propagate refresh to lifecycle processor first.
+		/**
+		 * @see DefaultLifecycleProcessor#onRefresh()
+		 */
 		getLifecycleProcessor().onRefresh();
 
 		// Publish the final event.

@@ -80,11 +80,13 @@ public abstract class BeanFactoryUtils {
 	 * @see BeanFactory#FACTORY_BEAN_PREFIX
 	 */
 	public static String transformedBeanName(String name) {
+		// name可能是&xx或者xx, &开头表示为FactoryBean, 这里会转换成xx
 		Assert.notNull(name, "'name' must not be null");
-		// 判断名称是否以&开头, &开头表示为FactoryBean
+		// 判断名称是否以&开头, 如果不是, 直接返回, &开头表示为FactoryBean
 		if (!name.startsWith(BeanFactory.FACTORY_BEAN_PREFIX)) {
 			return name;
 		}
+		// FactoryBean以&开头的name, 将会被截取后返回.
 		return transformedBeanNameCache.computeIfAbsent(name, beanName -> {
 			do {
 				// 截取&后返回, 这里用while是解决拼了多个&的情况, 全部截取

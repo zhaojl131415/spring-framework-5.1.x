@@ -179,6 +179,7 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 					logger.trace("Starting bean '" + beanName + "' of type [" + bean.getClass().getName() + "]");
 				}
 				try {
+
 					bean.start();
 				}
 				catch (Throwable ex) {
@@ -357,6 +358,9 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 			}
 			Collections.sort(this.members);
 			for (LifecycleGroupMember member : this.members) {
+				/**
+				 * 启动
+				 */
 				doStart(this.lifecycleBeans, member.name, this.autoStartupOnly);
 			}
 		}

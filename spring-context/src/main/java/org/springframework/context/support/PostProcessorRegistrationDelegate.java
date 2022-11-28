@@ -26,15 +26,13 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.beans.factory.support.MergedBeanDefinitionPostProcessor;
-import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.beans.factory.support.*;
+import org.springframework.context.annotation.CommonAnnotationBeanPostProcessor;
 import org.springframework.context.annotation.ConfigurationClassPostProcessor;
 import org.springframework.core.OrderComparator;
 import org.springframework.core.Ordered;
@@ -128,7 +126,9 @@ final class PostProcessorRegistrationDelegate {
 			// 首先，调用实现PriorityOrdered的BeanDefinitionRegistryPostProcessors
 			// 通俗的讲 这一步就可以理解为找女朋友要找身材好的大长腿女孩
 			// 根据BeanDefinitionRegistryPostProcessor类型从BeanDefinitionMap中找到名字
-			// ConfigurationClassPostProcessor
+			/**
+			 * @see ConfigurationClassPostProcessor
+			 */
 			String[] postProcessorNames =
 					beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
 			for (String ppName : postProcessorNames) {
@@ -285,7 +285,7 @@ final class PostProcessorRegistrationDelegate {
 
 	public static void registerBeanPostProcessors(
 			ConfigurableListableBeanFactory beanFactory, AbstractApplicationContext applicationContext) {
-
+		// 从spring容器中根据类型BeanPostProcessor获取所有的后置处理器名称
 		String[] postProcessorNames = beanFactory.getBeanNamesForType(BeanPostProcessor.class, true, false);
 
 		// Register BeanPostProcessorChecker that logs an info message when
@@ -300,8 +300,16 @@ final class PostProcessorRegistrationDelegate {
 		List<BeanPostProcessor> internalPostProcessors = new ArrayList<>();
 		List<String> orderedPostProcessorNames = new ArrayList<>();
 		List<String> nonOrderedPostProcessorNames = new ArrayList<>();
+		// 遍历所有后置处理器
 		for (String ppName : postProcessorNames) {
 			if (beanFactory.isTypeMatch(ppName, PriorityOrdered.class)) {
+				/**
+				 * 调用getBean方法创建并获取 后置处理器对象
+				 * @see AbstractBeanFactory#getBean(String, Class)
+				 * 此时会调用后置处理器的构造方法
+				 * @see AutowiredAnnotationBeanPostProcessor#AutowiredAnnotationBeanPostProcessor()
+				 * @see CommonAnnotationBeanPostProcessor#CommonAnnotationBeanPostProcessor()
+				 */
 				BeanPostProcessor pp = beanFactory.getBean(ppName, BeanPostProcessor.class);
 				priorityOrderedPostProcessors.add(pp);
 				if (pp instanceof MergedBeanDefinitionPostProcessor) {

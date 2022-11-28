@@ -52,6 +52,7 @@ public enum ScopedProxyMode {
 
 	/**
 	 * Create a class-based proxy (uses CGLIB).
+ 	 * 当ScopedProxyMode 为TARGET_CLASS 的时候会给当前创建的bean 生成一个代理对象，会通过代理对象来访问，每次访问都会创建一个新的对象。
 	 */
 	TARGET_CLASS;
 

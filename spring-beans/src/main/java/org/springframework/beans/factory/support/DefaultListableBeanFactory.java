@@ -862,17 +862,18 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			/**
 			 * 因为不是所有的BD的类型都是一样的, 通过@Component/@Bean/xml等注册bean的方式不同, 所以需要在这将其合并, 方便后续处理.
 			 * 一个描述bean的BeanDefinition，可以是RootBeanDefinition、ChildBeanDefinition、GenericBeanDefinition等众多BD的一种，
-			 * 但是这些BeanDefinition可能包含的bean信息都不全，可以通过setParen()指定父BeanDefinition
+			 * 但是这些BeanDefinition可能包含的bean信息都不全，可以通过{@link BeanDefinition#setParentName(String)}指定父BeanDefinition
 			 * 这里合并就是要将描述bean的所有BeanDefinition合并成一个RootBeanDefinition
 			 *
 			 * 合并父BeanDefinition，beanDefinitionMap.get(beanName)
 			 */
 			RootBeanDefinition bd = getMergedLocalBeanDefinition(beanName);
 			// 判断当前BeanDefinition是否非抽象，是否单例，是否非Lazy初始化
+			// 注意这里是指BeanDefinition抽象, 不是Bean抽象
 			if (!bd.isAbstract() && bd.isSingleton() && !bd.isLazyInit()) {
 				// 判断是否为工厂bean
 				if (isFactoryBean(beanName)) {
-					// 如果是FactoryBean则加上&
+					// 如果是FactoryBean则加上&, 获取FactoryBean的实例对象
 					Object bean = getBean(FACTORY_BEAN_PREFIX + beanName);
 					if (bean instanceof FactoryBean) {
 						final FactoryBean<?> factory = (FactoryBean<?>) bean;
@@ -888,12 +889,13 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 									getAccessControlContext());
 						}
 						else {
-							// 判断bean是否实现了SmartFactoryBean, 获取isEagerInit方法的值.
+							// 判断bean是否实现了SmartFactoryBean接口, 且重写了isEagerInit方法, 获取重写的值.
 							isEagerInit = (factory instanceof SmartFactoryBean &&
 									((SmartFactoryBean<?>) factory).isEagerInit());
 						}
-						// 如果立即初始化, 则调用getBean()方法.
+						// 如果立即初始化
 						if (isEagerInit) {
+							//  调用getBean()方法, 创建FactoryBean创建的实例对象
 							getBean(beanName);
 						}
 					}
@@ -908,11 +910,14 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 		}
 
+		// 遍历完所有的单例bean实例化后, 调用所有实现了SmartInitializingSingleton接口的bean中重写的afterSingletonsInstantiated方法.
 		// Trigger post-initialization callback for all applicable beans...
 		// 为所有适用的bean触发初始化后回调…
 		// 注册 带@EventListener的方法 为事件监听器
 		for (String beanName : beanNames) {
+			// 获取单例bean对象
 			Object singletonInstance = getSingleton(beanName);
+			// 判断单例bean对象是否实现了SmartInitializingSingleton接口
 			if (singletonInstance instanceof SmartInitializingSingleton) {
 				final SmartInitializingSingleton smartSingleton = (SmartInitializingSingleton) singletonInstance;
 				if (System.getSecurityManager() != null) {
@@ -922,6 +927,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 					}, getAccessControlContext());
 				}
 				else {
+					// 调用实现了SmartInitializingSingleton接口的重写方法
 					smartSingleton.afterSingletonsInstantiated();
 				}
 			}

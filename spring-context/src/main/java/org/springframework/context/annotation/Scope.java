@@ -74,6 +74,12 @@ public @interface Scope {
 	 * Specifies the name of the scope to use for the annotated component/bean.
 	 * <p>Defaults to an empty string ({@code ""}) which implies
 	 * {@link ConfigurableBeanFactory#SCOPE_SINGLETON SCOPE_SINGLETON}.
+	 * <p/>
+	 * singleton	表示该bean是单例的。(默认)<br/>
+	 * prototype	表示该bean是多例的，即每次使用该bean时都会新建一个对象。<br/>
+	 * request		在一次http请求中，一个bean对应一个实例。<br/>
+	 * session		在一个httpSession中，一个bean对应一个实例
+	 * <p/>
 	 * @since 4.2
 	 * @see ConfigurableBeanFactory#SCOPE_PROTOTYPE
 	 * @see ConfigurableBeanFactory#SCOPE_SINGLETON
@@ -91,6 +97,12 @@ public @interface Scope {
 	 * that no scoped proxy should be created unless a different default
 	 * has been configured at the component-scan instruction level.
 	 * <p>Analogous to {@code <aop:scoped-proxy/>} support in Spring XML.
+	 * <p/>
+	 * DEFAULT		不使用代理。(默认)<br/>
+	 * NO			不使用代理，等价于DEFAULT。<br/>
+	 * INTERFACES	使用基于接口的代理(jdk dynamic proxy)。<br/>
+	 * TARGET_CLASS	使用基于类的代理(cglib)。
+	 * <p/>
 	 * @see ScopedProxyMode
 	 */
 	ScopedProxyMode proxyMode() default ScopedProxyMode.DEFAULT;

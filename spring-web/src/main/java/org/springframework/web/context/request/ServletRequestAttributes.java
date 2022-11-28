@@ -153,7 +153,7 @@ public class ServletRequestAttributes extends AbstractRequestAttributes {
 			return this.request.getAttribute(name);
 		}
 		else {
-			// session
+			// 如果作用域为session
 			HttpSession session = getSession(false);
 			if (session != null) {
 				try {

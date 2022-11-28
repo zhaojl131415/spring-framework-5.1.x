@@ -201,9 +201,8 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * <p>Also supports Java EE 6's {@link javax.annotation.ManagedBean} and
 	 * JSR-330's {@link javax.inject.Named} annotations, if available.
 	 *
-	 *
-	 * 为@Component注册默认过滤器。包括 @Repository，@Service 和 @Controller构造型注解。 <p>如果可用，还支持Java EE 6的{@link javax.annotation.ManagedBean}和JSR-330的{@link javax.inject.Named}注释。
-	 *
+	 * 为@Component注册默认过滤器。包括 @Repository，@Service 和 @Controller构造型注解。
+	 * 如果可用，还支持Java EE 6的{@link javax.annotation.ManagedBean}和JSR-330的{@link javax.inject.Named}注释。
 	 */
 	@SuppressWarnings("unchecked")
 	protected void registerDefaultFilters() {
@@ -313,7 +312,8 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * @return a corresponding Set of autodetected bean definitions
 	 */
 	public Set<BeanDefinition> findCandidateComponents(String basePackage) {
-		// 为了完成快速扫描，可以添加一个jar包，动态生成索引componentsIndex, 基本上很少用，大部分情况下为null
+		// 为了完成快速扫描，可以在resources/META-INF目录下创建一个spring.components文件，动态生成索引componentsIndex
+		// 基本上很少用，大部分情况下为null, 要么不配置, 不配置执行else, 要配置就要全配置, 每个需要被扫描的bean都需要配置.
 		if (this.componentsIndex != null && indexSupportsIncludeFilters()) {
 			return addCandidateComponentsFromIndex(this.componentsIndex, basePackage);
 		}
@@ -433,7 +433,10 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 			// 获取包扫描路径: classpath*:xxx/**/*.class( spring表达式 != EL表达式)
 			String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX +
 					resolveBasePackage(basePackage) + '/' + this.resourcePattern;
-			// 获取到路径下的Resource
+			/**
+			 * 获取到对应路径下的Resource: class文件
+			 * @see PathMatchingResourcePatternResolver#getResources(String)
+			 */
 			Resource[] resources = getResourcePatternResolver().getResources(packageSearchPath);
 			boolean traceEnabled = logger.isTraceEnabled();
 			boolean debugEnabled = logger.isDebugEnabled();
@@ -444,9 +447,13 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 				}
 				if (resource.isReadable()) {
 					try {
-						// 元数据阅读器: 对应Resource对象的类元数据, 以及注解元数据信息
+						// 元数据阅读器(底层:ASM): 对应Resource对象的类元数据, 以及注解元数据信息
 						MetadataReader metadataReader = getMetadataReaderFactory().getMetadataReader(resource);
-						// 判断是否@Component
+						/**
+						 * 判断当前class是否是候选对象:、
+						 * excludeFilters: 是不是需要排除掉
+						 * includeFilters: 默认过滤器会匹配添加了@Component等, 且满足条件匹配(@Conditional)
+						 */
 						if (isCandidateComponent(metadataReader)) {
 							// 实例化BeanDefinition: ScannedGenericBeanDefinition
 							ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);
@@ -506,7 +513,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	}
 
 	/**
-	 * 判断扫描出来的Resource有没有加@Component
+	 * 判断扫描出来的Resource是不是候选对象
 	 * Determine whether the given class does not match any exclude filter
 	 * and does match at least one include filter.
 	 * @param metadataReader the ASM ClassReader for the class
@@ -514,14 +521,21 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 */
 	protected boolean isCandidateComponent(MetadataReader metadataReader) throws IOException {
 		// @ComponentScan注解中可以听添加includeFilters、excludeFilters两个属性，表示可以剔除和包含的
+		// 排除过滤器: 遍历判断当前的class与需要排除的类匹配, 如果找到匹配, 返回fasle, 表示不是候选对象
 		for (TypeFilter tf : this.excludeFilters) {
 			if (tf.match(metadataReader, getMetadataReaderFactory())) {
 				return false;
 			}
 		}
-		// includeFilters
+		/**
+		 * 包含过滤器:includeFilters, 遍历匹配当前class有没有匹配@Component等, 且满足@Conditional注解匹配
+		 * spring启动时会实例化一个扫描器, 执行扫描器的构造方法, 调用注册默认过滤器的方法, 注册@Component的过滤器
+		 * @see ClassPathScanningCandidateComponentProvider#registerDefaultFilters()
+		 */
 		for (TypeFilter tf : this.includeFilters) {
+			// 判断是否是匹配: class存在@Component注解等
 			if (tf.match(metadataReader, getMetadataReaderFactory())) {
+				// 条件匹配: @Conditional注解
 				return isConditionMatch(metadataReader);
 			}
 		}
@@ -539,6 +553,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 			this.conditionEvaluator =
 					new ConditionEvaluator(getRegistry(), this.environment, this.resourcePatternResolver);
 		}
+		// 判断是否可以跳过: 取反: 不跳过表示为bean,
 		return !this.conditionEvaluator.shouldSkip(metadataReader.getAnnotationMetadata());
 	}
 
@@ -556,7 +571,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 		AnnotationMetadata metadata = beanDefinition.getMetadata();
 		// 判断是否为独立类 且 是否为具体类(既不是接口也不是抽象类)
 		return (metadata.isIndependent() && (metadata.isConcrete() ||
-				// 判断是否为抽象类 且 是否有方法包含@Lookup注解
+				// 判断是否为抽象类 且 是否有包含@Lookup注解的方法
 				(metadata.isAbstract() && metadata.hasAnnotatedMethods(Lookup.class.getName()))));
 	}
 

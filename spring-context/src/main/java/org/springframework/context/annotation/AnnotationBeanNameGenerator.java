@@ -69,13 +69,14 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 	@Override
 	public String generateBeanName(BeanDefinition definition, BeanDefinitionRegistry registry) {
 		if (definition instanceof AnnotatedBeanDefinition) {
+			// 获取注解指定的beanName
 			String beanName = determineBeanNameFromAnnotation((AnnotatedBeanDefinition) definition);
 			if (StringUtils.hasText(beanName)) {
 				// Explicit bean name found.
 				return beanName;
 			}
 		}
-		// Fallback: generate a unique default bean name.
+		// Fallback: generate a unique default bean name. 生成一个唯一的默认beanName
 		return buildDefaultBeanName(definition, registry);
 	}
 
@@ -91,6 +92,7 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 		String beanName = null;
 		for (String type : types) {
 			AnnotationAttributes attributes = AnnotationConfigUtils.attributesFor(amd, type);
+			// 判断注解是否指定beanName
 			if (attributes != null && isStereotypeWithNameValue(type, amd.getMetaAnnotationTypes(type), attributes)) {
 				Object value = attributes.get("value");
 				if (value instanceof String) {
@@ -118,7 +120,7 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 	 */
 	protected boolean isStereotypeWithNameValue(String annotationType,
 			Set<String> metaAnnotationTypes, @Nullable Map<String, Object> attributes) {
-
+		// 是否存在@Component/ManagedBean/Named
 		boolean isStereotype = annotationType.equals(COMPONENT_ANNOTATION_CLASSNAME) ||
 				metaAnnotationTypes.contains(COMPONENT_ANNOTATION_CLASSNAME) ||
 				annotationType.equals("javax.annotation.ManagedBean") ||
@@ -152,6 +154,7 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 		String beanClassName = definition.getBeanClassName();
 		Assert.state(beanClassName != null, "No bean class name set");
 		String shortClassName = ClassUtils.getShortName(beanClassName);
+		// 通过JDK源码构建beanName
 		return Introspector.decapitalize(shortClassName);
 	}
 
