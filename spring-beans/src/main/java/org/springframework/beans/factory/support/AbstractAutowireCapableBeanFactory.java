@@ -1594,12 +1594,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		 */
 		PropertyValues pvs = (mbd.hasPropertyValues() ? mbd.getPropertyValues() : null);
 
-		// 获取对应bd的自动装配模型 byType byName
+		// 获取对应bd的自动装配模型 byType byName(默认的@Resource、@Autowired没有指定自动装配模型, 所以不会进入if)
 		int resolvedAutowireMode = mbd.getResolvedAutowireMode();
 		if (resolvedAutowireMode == AUTOWIRE_BY_NAME || resolvedAutowireMode == AUTOWIRE_BY_TYPE) {
 			MutablePropertyValues newPvs = new MutablePropertyValues(pvs);
 			// Add property values based on autowire by name if applicable. 基于自动装配 byName 添加属性值(如果适用)。
 			if (resolvedAutowireMode == AUTOWIRE_BY_NAME) {
+				// 基于自动装配 byName 添加属性值
 				autowireByName(beanName, mbd, bw, newPvs);
 			}
 			// Add property values based on autowire by type if applicable. 基于自动装配 byType 添加属性值(如果适用)。
@@ -1662,9 +1663,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 			checkDependencies(beanName, mbd, filteredPds, pvs);
 		}
-
-		// 上面是通过找bean里的@Resource、@AutoWired注解方式指定的注入(可以理解为手动注入)，field.set
-		// 这里是通过找bean里的set方法指定的注入(可以理解为自动注入)，这里是通过反射（method.invoke）注入的
+		// 当前方法中, 最上面通过指定ByName/ByType模式注入的, 会扫描出需要注入的属性, 加入到PropertyValues中, 并没有完成注入,
+		// 之后是通过找bean里的@Resource、@AutoWired注解方式指定的注入，执行了field.set()方法, 完成了注入
+		// 最后这里是通过找bean里的之前添加的PropertyValues，这里是通过反射（method.invoke）注入
+		// 如果某些属性已经通过@Resource、@AutoWired注入了值, 但是PropertyValues中也存在, 会在这里覆盖掉@Resource、@AutoWired注入的值
 		if (pvs != null) {
 			// 应用属性值  writeMethod.invoke(getWrappedInstance(), value);
 			applyPropertyValues(beanName, mbd, bw, pvs);
@@ -1682,15 +1684,17 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 */
 	protected void autowireByName(
 			String beanName, AbstractBeanDefinition mbd, BeanWrapper bw, MutablePropertyValues pvs) {
-		// 拿到所有的属性名字：其实就是拿到所有的set方法名除去set后的名字
+		// 获取当前bean能进行自动注入的属性名：其实就是拿到所有的set方法名除去set后的名字
 		String[] propertyNames = unsatisfiedNonSimpleProperties(mbd, bw);
+		// 遍历每个属性名, 并去获取对应的bean对象, 并设置到pvs中
 		for (String propertyName : propertyNames) {
 			// 判断属性名是否存在于容器中
 			if (containsBean(propertyName)) {
-				// 如果存在, 则从容器中获取, 对应的Bean如果还没实例化, 也会通过getBean方法去创建bean
+				// 如果存在, 则从容器中获取, 如果对应的Bean还没实例化, 也会通过getBean方法去创建bean
 				Object bean = getBean(propertyName);
+				// 设置到pvs中, 只是存入pvs的集合中, 这里并没有对属性赋值
 				pvs.add(propertyName, bean);
-				// 注册@DependsOn
+				// 注册@DependsOn对应的缓存Map
 				registerDependentBean(propertyName, beanName);
 				if (logger.isTraceEnabled()) {
 					logger.trace("Added autowiring by name from bean name '" + beanName +
@@ -1726,13 +1730,14 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		Set<String> autowiredBeanNames = new LinkedHashSet<>(4);
-		// 拿到所有的属性名字：其实就是拿到所有的set方法名除去set后的名字
+		// 获取当前bean能进行自动注入的属性名：其实就是拿到所有的set方法名除去set后的名字
 		String[] propertyNames = unsatisfiedNonSimpleProperties(mbd, bw);
 		for (String propertyName : propertyNames) {
 			try {
 				PropertyDescriptor pd = bw.getPropertyDescriptor(propertyName);
 				// Don't try autowiring by type for type Object: never makes sense,
 				// even if it technically is a unsatisfied, non-simple property.
+				// 获取属性类型, 如果不等于Object
 				if (Object.class != pd.getPropertyType()) {
 					// 方法参数描述
 					MethodParameter methodParam = BeanUtils.getWriteMethodParameter(pd);
@@ -1747,6 +1752,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					 */
 					Object autowiredArgument = resolveDependency(desc, beanName, autowiredBeanNames, converter);
 					if (autowiredArgument != null) {
+						// 设置到pvs中, 只是存入pvs的集合中, 这里并没有对属性赋值
 						pvs.add(propertyName, autowiredArgument);
 					}
 					for (String autowiredBeanName : autowiredBeanNames) {
@@ -1779,7 +1785,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		Set<String> result = new TreeSet<>();
 		PropertyValues pvs = mbd.getPropertyValues();
 		/**
-		 * 属性描述
+		 * 属性描述器
 		 * spring调用java api(內省)拿到当前类中所有对属性进行控制的方法，包括set、get、is封装成PropertyDescriptor
 		 * 最终在 {@link Introspector#getTargetPropertyInfo() }遍历所有的方法找出set、get、is并返回
 		 *
@@ -1787,6 +1793,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		 */
 		PropertyDescriptor[] pds = bw.getPropertyDescriptors();
 		for (PropertyDescriptor pd : pds) {
+			// 什么样的属性能进行自动注入
+			// 该属性有对应的set方法
+			// 没有在ignoredDependencyTypes集合中
+			// 如果该属性对应的set方法是实现了某个接口中所定义的, 那么这个接口没有在ignoredDependencyInterfaces中
+			// 属性类型不是简单类型, 比如Number/Date/数组等(但是其中一些是可以通过@Autowired注解自动装配的)
 			if (pd.getWriteMethod() != null && !isExcludedFromDependencyCheck(pd) && !pvs.contains(pd.getName()) &&
 					!BeanUtils.isSimpleProperty(pd.getPropertyType())) {
 				result.add(pd.getName());
@@ -1844,7 +1855,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 */
 	protected boolean isExcludedFromDependencyCheck(PropertyDescriptor pd) {
 		return (AutowireUtils.isExcludedFromDependencyCheck(pd) ||
+				// 是否在ignoredDependencyTypes集合中
 				this.ignoredDependencyTypes.contains(pd.getPropertyType()) ||
+				// 如果该属性对应的set方法是实现了某个接口中所定义的, 那么这个接口是否在ignoredDependencyInterfaces中
 				AutowireUtils.isSetterDefinedInInterface(pd, this.ignoredDependencyInterfaces));
 	}
 

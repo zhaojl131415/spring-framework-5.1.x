@@ -7,4 +7,5 @@ package com.zhao.service;
  * @date 2020-03-08 11:10
  */
 public interface Service {
+	void hello();
 }

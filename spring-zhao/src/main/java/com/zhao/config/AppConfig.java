@@ -1,10 +1,10 @@
 package com.zhao.config;
 
 import com.zhao.cglib.ZhaoAopBeanPostProcessor;
-import com.zhao.service.X;
-import com.zhao.service.Y;
+import com.zhao.service.*;
 import com.zhao.zhaoBatis.ZhaoImportBeanDefinitionRegistrar;
 import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.beans.factory.annotation.Autowire;
 import org.springframework.context.annotation.*;
 
 
@@ -43,5 +43,10 @@ public class AppConfig {
 //		System.out.println("y init");
 //		return new Y();
 //	}
+
+	@Bean(autowire = Autowire.BY_NAME)
+	public OrderService orderService() {
+		return new OrderService();
+	}
 }
 

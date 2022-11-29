@@ -1,5 +1,6 @@
 package com.zhao.service;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -8,6 +9,10 @@ import org.springframework.stereotype.Component;
  * @description TODO
  * @date 2020-03-08 11:10
  */
-//@Component
+@Component
 public class Service1 implements Service {
+	@Override
+	public void hello() {
+		System.out.println("hello, i am service1");
+	}
 }

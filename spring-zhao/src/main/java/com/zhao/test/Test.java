@@ -62,10 +62,10 @@ public class Test {
 //		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
 //		System.out.println(ac.getBean("zhaoFactoryBean"));
 //		System.out.println(ac.getBean("zhaoFactoryBean"));
-		System.out.println(ac.getBean("zhaoFactoryBean"));
-		System.out.println(ac.getBean("zhaoFactoryBean"));
-		System.out.println(ac.getBean("&zhaoFactoryBean"));
-		System.out.println(ac.getBean("&zhaoFactoryBean"));
+//		System.out.println(ac.getBean("zhaoFactoryBean"));
+//		System.out.println(ac.getBean("zhaoFactoryBean"));
+//		System.out.println(ac.getBean("&zhaoFactoryBean"));
+//		System.out.println(ac.getBean("&zhaoFactoryBean"));
 //
 //		System.out.println(ac.getBean(CommodityService.class));
 //		ac.getBean(CommodityService.class).close();
@@ -90,7 +90,8 @@ public class Test {
 		ac.register(AppConfig.class);
 		ac.refresh();
 		 */
-
+		OrderService orderService = ac.getBean(OrderService.class);
+		orderService.test();
 //		System.out.println(ac.getBean(OrderService.class));
 //		System.out.println(ac.getBean(UserService.class));
 //		System.out.println(ac.getBean(CommodityService.class));

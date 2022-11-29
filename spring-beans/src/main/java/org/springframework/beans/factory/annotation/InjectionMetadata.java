@@ -54,7 +54,7 @@ public class InjectionMetadata {
 	// 需要注入的元素集合
 	private final Collection<InjectedElement> injectedElements;
 
-	// 用于存储每个Bean对应的所有注入点元素
+	/** 用于存储每个Bean对应的 过滤掉外部管理资源后 所有注入点元素 */
 	@Nullable
 	private volatile Set<InjectedElement> checkedElements;
 
@@ -68,6 +68,7 @@ public class InjectionMetadata {
 	// todo: injectedElements 和 checkedElements 的用意?
 	public void checkConfigMembers(RootBeanDefinition beanDefinition) {
 		Set<InjectedElement> checkedElements = new LinkedHashSet<>(this.injectedElements.size());
+		// 遍历需要注入的元数据元素
 		for (InjectedElement element : this.injectedElements) {
 			Member member = element.getMember();
 			// 是外部管理的配置成员吗?
@@ -88,13 +89,16 @@ public class InjectionMetadata {
 		Collection<InjectedElement> elementsToIterate =
 				(checkedElements != null ? checkedElements : this.injectedElements);
 		if (!elementsToIterate.isEmpty()) {
+			// 遍历注入点, 执行注入
 			for (InjectedElement element : elementsToIterate) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Processing injected element of bean '" + beanName + "': " + element);
 				}
 				/**
 				 * 调用子类的重写方法
+				 * 属性注入
 				 * @see AutowiredAnnotationBeanPostProcessor.AutowiredFieldElement#inject(java.lang.Object, java.lang.String, org.springframework.beans.PropertyValues)
+				 * 方法注入
 				 * @see AutowiredAnnotationBeanPostProcessor.AutowiredMethodElement#inject(java.lang.Object, java.lang.String, org.springframework.beans.PropertyValues)
 				 */
 				element.inject(target, beanName, pvs);
