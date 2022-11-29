@@ -1201,7 +1201,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					if (bean != null) {
 						/**
 						 * 创建代理，逻辑跟上面一样，唯一不同的是创建了个默认的TargetSource （SingletonTargetSource）
-						 * 如果已经获取到bean, 则执行后置处理器的后续方法.
+						 * 如果已经获取到bean, 则执行后置处理器的实例化后方法.
 						 */
 						bean = applyBeanPostProcessorsAfterInitialization(bean, beanName);
 					}

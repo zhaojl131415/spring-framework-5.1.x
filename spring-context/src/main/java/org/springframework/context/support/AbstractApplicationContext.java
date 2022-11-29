@@ -1056,6 +1056,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	}
 
 	/**
+	 * spring 容器 关闭, 销毁其bean工厂中的所有bean。
+	 * 委托给doClose() 进行实际的关闭。 如果已注册，还将删除JVM关闭挂钩，因为不再需要它。
 	 * Close this application context, destroying all beans in its bean factory.
 	 * <p>Delegates to {@code doClose()} for the actual closing procedure.
 	 * Also removes a JVM shutdown hook, if registered, as it's not needed anymore.
@@ -1065,6 +1067,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	@Override
 	public void close() {
 		synchronized (this.startupShutdownMonitor) {
+			// 执行关闭
 			doClose();
 			// If we registered a JVM shutdown hook, we don't need it anymore now:
 			// We've already explicitly closed the context.
@@ -1098,7 +1101,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			LiveBeansView.unregisterApplicationContext(this);
 
 			try {
-				// Publish shutdown event.
+				// Publish shutdown event. 发布关闭事件
 				publishEvent(new ContextClosedEvent(this));
 			}
 			catch (Throwable ex) {
@@ -1116,6 +1119,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			}
 
 			// Destroy all cached singletons in the context's BeanFactory.
+			/**
+			 * 销毁容器中所有缓存的单例bean
+			 * @see AbstractApplicationContext#destroyBeans()
+			 */
 			destroyBeans();
 
 			// Close the state of this context itself.
@@ -1147,6 +1154,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @see org.springframework.beans.factory.config.ConfigurableBeanFactory#destroySingletons()
 	 */
 	protected void destroyBeans() {
+		/**
+		 * @see DefaultListableBeanFactory#destroySingletons()
+		 */
 		getBeanFactory().destroySingletons();
 	}
 

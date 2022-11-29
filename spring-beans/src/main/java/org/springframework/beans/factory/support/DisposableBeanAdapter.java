@@ -387,10 +387,13 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 	 * @param beanDefinition the corresponding bean definition
 	 */
 	public static boolean hasDestroyMethod(Object bean, RootBeanDefinition beanDefinition) {
+		// 是否实现了DisposableBean 或 AutoCloseable接口
 		if (bean instanceof DisposableBean || bean instanceof AutoCloseable) {
 			return true;
 		}
+		// 如果没有实现上面两个接口, 则判断有没有指定销毁方法(可以在自定义后置处理器中操作BD, 为其指定一个销毁方法)
 		String destroyMethodName = beanDefinition.getDestroyMethodName();
+		// 如果指定的销毁方法名为: (inferred), 则判断bean中是否存在方法名为close/shutdown的方法
 		if (AbstractBeanDefinition.INFER_METHOD.equals(destroyMethodName)) {
 			return (ClassUtils.hasMethod(bean.getClass(), CLOSE_METHOD_NAME) ||
 					ClassUtils.hasMethod(bean.getClass(), SHUTDOWN_METHOD_NAME));
@@ -405,9 +408,15 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 	 */
 	public static boolean hasApplicableProcessors(Object bean, List<BeanPostProcessor> postProcessors) {
 		if (!CollectionUtils.isEmpty(postProcessors)) {
+			// 遍历后置处理器
 			for (BeanPostProcessor processor : postProcessors) {
+				// 判断后置处理器是否实现了DestructionAwareBeanPostProcessor接口
 				if (processor instanceof DestructionAwareBeanPostProcessor) {
 					DestructionAwareBeanPostProcessor dabpp = (DestructionAwareBeanPostProcessor) processor;
+					/**
+					 * 判断有没有指定当前bean需要销毁
+					 * @see InitDestroyAnnotationBeanPostProcessor#requiresDestruction(Object)
+					 */
 					if (dabpp.requiresDestruction(bean)) {
 						return true;
 					}
