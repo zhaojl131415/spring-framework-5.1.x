@@ -67,6 +67,8 @@ package org.springframework.core.env;
  * @see org.springframework.context.ConfigurableApplicationContext#getEnvironment
  * @see org.springframework.context.ConfigurableApplicationContext#setEnvironment
  * @see org.springframework.context.support.AbstractApplicationContext#createEnvironment
+ *
+ * 配置管理、profiles管理的的门面，从PropertyResolver那里继承了配置解析的能力，自身提供了profiles解析的能力
  */
 public interface Environment extends PropertyResolver {
 
@@ -82,6 +84,8 @@ public interface Environment extends PropertyResolver {
 	 * @see #getDefaultProfiles
 	 * @see ConfigurableEnvironment#setActiveProfiles
 	 * @see AbstractEnvironment#ACTIVE_PROFILES_PROPERTY_NAME
+	 *
+	 * 获取activeProfiles，可以用于定制更灵活的多环境差异化机制
 	 */
 	String[] getActiveProfiles();
 
@@ -91,6 +95,8 @@ public interface Environment extends PropertyResolver {
 	 * @see #getActiveProfiles
 	 * @see ConfigurableEnvironment#setDefaultProfiles
 	 * @see AbstractEnvironment#DEFAULT_PROFILES_PROPERTY_NAME
+	 *
+	 * 获取默认profiles，如果没有显式设置activeProfiles，则使用defaultProfiles作为activeProfiles
 	 */
 	String[] getDefaultProfiles();
 
@@ -114,6 +120,8 @@ public interface Environment extends PropertyResolver {
 	/**
 	 * Return whether the {@linkplain #getActiveProfiles() active profiles}
 	 * match the given {@link Profiles} predicate.
+	 *
+	 * 判断指定profiles是否为activeProfiles，在类上使用@Profile时，会用该方法的判断结果决定是否加载对应的beanDefinition
 	 */
 	boolean acceptsProfiles(Profiles profiles);
 

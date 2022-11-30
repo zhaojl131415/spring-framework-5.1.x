@@ -711,6 +711,8 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 
 	/**
 	 * Return whether this bean is a candidate for getting autowired into some other bean.
+	 * 返回此bean是否是将自动转换为其他bean的候选对象。
+	 * 可通过: @Bean(autowireCandidate = false) 指定
 	 */
 	@Override
 	public boolean isAutowireCandidate() {

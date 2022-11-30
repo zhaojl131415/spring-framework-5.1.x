@@ -56,6 +56,11 @@ import org.springframework.util.ObjectUtils;
  * @see PropertySourcesPropertyResolver
  * @see MutablePropertySources
  * @see org.springframework.context.annotation.PropertySource
+ *
+ *
+ * 配置管理的基础，
+ * 是对任何可以提供key/value对的配置源的抽象，比如map、properties、配置中心，都是可以提供key/value对的配置源，都可以看做是PropertySource，
+ * 它们存储配置数据、并提供配置读取功能(@Value("${jdbc.url}")、Environment.getProperty("jdbc.url")这两种配置解析方式都依赖于PropertySource的配置读取功能)
  */
 public abstract class PropertySource<T> {
 

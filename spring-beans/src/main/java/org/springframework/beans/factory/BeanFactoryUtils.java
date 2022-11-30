@@ -234,7 +234,7 @@ public abstract class BeanFactoryUtils {
 		 * @see DefaultListableBeanFactory#getBeanNamesForType(java.lang.Class, boolean, boolean)
 		 */
 		String[] result = lbf.getBeanNamesForType(type, includeNonSingletons, allowEagerInit);
-		// 如果实现了分层级的bean工厂,
+		// 如果实现了分层级的bean工厂(父容器), 则递归去父容器中查找
 		if (lbf instanceof HierarchicalBeanFactory) {
 			HierarchicalBeanFactory hbf = (HierarchicalBeanFactory) lbf;
 			// 并且找到了对应的父Bean工厂, 则递归调用

@@ -36,6 +36,7 @@ import org.springframework.lang.Nullable;
  */
 public class PrioritizedParameterNameDiscoverer implements ParameterNameDiscoverer {
 
+	// 参数名称发现器
 	private final List<ParameterNameDiscoverer> parameterNameDiscoverers = new LinkedList<>();
 
 

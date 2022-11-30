@@ -1,9 +1,6 @@
 package com.zhao.config;
 
-import com.zhao.cglib.ZhaoAopBeanPostProcessor;
 import com.zhao.service.*;
-import com.zhao.zhaoBatis.ZhaoImportBeanDefinitionRegistrar;
-import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowire;
 import org.springframework.context.annotation.*;
 
@@ -47,6 +44,16 @@ public class AppConfig {
 	@Bean(autowire = Autowire.BY_NAME)
 	public OrderService orderService() {
 		return new OrderService();
+	}
+
+	@Bean
+	public AaService aaService1() {
+		return new AaService();
+	}
+
+	@Bean(autowireCandidate = false)
+	public AaService aaService2() {
+		return new AaService();
 	}
 }
 

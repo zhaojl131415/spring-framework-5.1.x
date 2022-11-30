@@ -585,10 +585,14 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		String beanName = transformedBeanName(name);
 
 		// Check manually registered singletons.
+		// 通过beanName去单例池中获取bean对象
 		Object beanInstance = getSingleton(beanName, false);
 		if (beanInstance != null && beanInstance.getClass() != NullBean.class) {
+			// 如果对应的bean对象为工厂bean,
 			if (beanInstance instanceof FactoryBean) {
+				// 判断name是否以&开头,
 				if (!BeanFactoryUtils.isFactoryDereference(name)) {
+					// 如果不是以&开头, 则调用factoryBean.getObjectType()获取对象类型
 					Class<?> type = getTypeForFactoryBean((FactoryBean<?>) beanInstance);
 					return (type != null && typeToMatch.isAssignableFrom(type));
 				}
@@ -629,10 +633,12 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			return false;
 		}
 
-		// No singleton instance found -> check bean definition.
+		// No singleton instance found -> check bean definition. 如果在单例池中没找到, 则去检查BD
+		// 获取父容器
 		BeanFactory parentBeanFactory = getParentBeanFactory();
 		if (parentBeanFactory != null && !containsBeanDefinition(beanName)) {
 			// No bean definition found in this factory -> delegate to parent.
+			// 递归检查父容器
 			return parentBeanFactory.isTypeMatch(originalBeanName(name), typeToMatch);
 		}
 
@@ -945,6 +951,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			return null;
 		}
 		String result = value;
+		// 字符串值解析器
 		for (StringValueResolver resolver : this.embeddedValueResolvers) {
 			result = resolver.resolveStringValue(result);
 			if (result == null) {

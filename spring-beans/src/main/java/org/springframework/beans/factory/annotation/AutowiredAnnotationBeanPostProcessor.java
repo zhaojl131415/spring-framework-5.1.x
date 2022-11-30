@@ -677,11 +677,12 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 			}
 			else {
 				// 表示需要被注入的对象没有缓存，没有解析过，需要对属性进行解析去获取需要注入的值
-				// 依赖的描述：包含这个属性，是否必须注入
+				// 依赖描述器：包含这个属性，是否必须注入
 				DependencyDescriptor desc = new DependencyDescriptor(field, this.required);
 				desc.setContainingClass(bean.getClass());
 				Set<String> autowiredBeanNames = new LinkedHashSet<>(1);
 				Assert.state(beanFactory != null, "No BeanFactory available");
+				// 类型转换器
 				TypeConverter typeConverter = beanFactory.getTypeConverter();
 				try {
 					/**
@@ -760,27 +761,34 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 			else {
 				// 获取方法的参数类型数组
 				Class<?>[] paramTypes = method.getParameterTypes();
-				// 方法参数个数
+				// 实例化一个长度为: 方法参数个数 的对象数组, 用于存储每个参数对应的注入对象
 				arguments = new Object[paramTypes.length];
-				// 依赖描述符
+				// 实例化一个依赖描述符数组
 				DependencyDescriptor[] descriptors = new DependencyDescriptor[paramTypes.length];
 				Set<String> autowiredBeans = new LinkedHashSet<>(paramTypes.length);
 				Assert.state(beanFactory != null, "No BeanFactory available");
+				// 类型转换器
 				TypeConverter typeConverter = beanFactory.getTypeConverter();
 				// 遍历方法参数
 				for (int i = 0; i < arguments.length; i++) {
 					// 获取方法对应下标的参数
 					MethodParameter methodParam = new MethodParameter(method, i);
+					// 每个参数对应的依赖描述符
 					DependencyDescriptor currDesc = new DependencyDescriptor(methodParam, this.required);
 					currDesc.setContainingClass(bean.getClass());
+					// 存入依赖描述符数组
 					descriptors[i] = currDesc;
 					try {
-						// 根据对应的参数找到匹配的bean对象
+						/**
+						 * 根据对应的参数找到匹配的bean对象
+						 * @see DefaultListableBeanFactory#resolveDependency(DependencyDescriptor, String, Set, TypeConverter)
+						 */
 						Object arg = beanFactory.resolveDependency(currDesc, beanName, autowiredBeans, typeConverter);
 						if (arg == null && !this.required) {
 							arguments = null;
 							break;
 						}
+						// 将对象根据下标存入对应的数组
 						arguments[i] = arg;
 					}
 					catch (BeansException ex) {

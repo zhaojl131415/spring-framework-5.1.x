@@ -35,6 +35,8 @@ package org.springframework.core;
  * @see StandardReflectionParameterNameDiscoverer
  * @see LocalVariableTableParameterNameDiscoverer
  * @see KotlinReflectionParameterNameDiscoverer
+ *
+ * 默认参数名发现器
  */
 public class DefaultParameterNameDiscoverer extends PrioritizedParameterNameDiscoverer {
 
@@ -43,6 +45,7 @@ public class DefaultParameterNameDiscoverer extends PrioritizedParameterNameDisc
 			if (KotlinDetector.isKotlinReflectPresent()) {
 				addDiscoverer(new KotlinReflectionParameterNameDiscoverer());
 			}
+			// 添加参数名称发现器: 调用的时候依次调用发现器来获取方法的参数名, 发射(jdk1.8)和本地变量表
 			addDiscoverer(new StandardReflectionParameterNameDiscoverer());
 			addDiscoverer(new LocalVariableTableParameterNameDiscoverer());
 		}

@@ -38,6 +38,11 @@ import org.springframework.lang.Nullable;
  * @author Juergen Hoeller
  * @since 3.1
  * @see PropertySourcesPropertyResolver
+ *
+ * 可变的PropertySource集合
+ * 它允许我们操作其管理的PropertySource集合，包括：add*(新增)、remove(删除)、replace(替换)等。
+ * addFirst、addLast、addBefore这种添加操作可以控制PropertySource的优先级，排在前面的PropertySource优先级高于后面，
+ * 这里的优先级简而言之就是同一个key如果在多个PropertySource中都存在，以优先级高的为准
  */
 public class MutablePropertySources implements PropertySources {
 

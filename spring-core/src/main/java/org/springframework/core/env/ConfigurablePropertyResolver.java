@@ -27,6 +27,8 @@ import org.springframework.lang.Nullable;
  *
  * @author Chris Beams
  * @since 3.1
+ *
+ * PropertyResolver的子接口，允许开发者对配置解析工作进行干预
  */
 public interface ConfigurablePropertyResolver extends PropertyResolver {
 
@@ -54,16 +56,20 @@ public interface ConfigurablePropertyResolver extends PropertyResolver {
 	 * @see PropertyResolver#getProperty(String, Class)
 	 * @see #getConversionService()
 	 * @see org.springframework.core.convert.converter.ConverterRegistry#addConverter
+	 *
+	 * 设置类型转换服务，getProperty(String key, Class<T> targetType)方法中的类型转换工作，就是通过ConversionService完成的
 	 */
 	void setConversionService(ConfigurableConversionService conversionService);
 
 	/**
 	 * Set the prefix that placeholders replaced by this resolver must begin with.
+	 * 设置配置占位符前缀，spring中默认的前缀为"${"
 	 */
 	void setPlaceholderPrefix(String placeholderPrefix);
 
 	/**
 	 * Set the suffix that placeholders replaced by this resolver must end with.
+	 * 设置配置占位符后缀，spring中默认的后缀为"}"
 	 */
 	void setPlaceholderSuffix(String placeholderSuffix);
 

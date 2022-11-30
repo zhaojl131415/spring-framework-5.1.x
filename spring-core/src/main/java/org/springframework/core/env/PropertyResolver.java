@@ -26,12 +26,17 @@ import org.springframework.lang.Nullable;
  * @since 3.1
  * @see Environment
  * @see PropertySourcesPropertyResolver
+ *
+ * 配置解析的顶层接口
+ * 核心方法看起来和PropertySource提供的方法有部分重叠，不过PropertySource抽象的是配置源，PropertyResolver抽象的是配置解析的能力
  */
 public interface PropertyResolver {
 
 	/**
 	 * Return whether the given property key is available for resolution,
 	 * i.e. if the value for the given key is not {@code null}.
+	 *
+	 * 是否包含指定property
 	 */
 	boolean containsProperty(String key);
 
@@ -42,6 +47,8 @@ public interface PropertyResolver {
 	 * @see #getProperty(String, String)
 	 * @see #getProperty(String, Class)
 	 * @see #getRequiredProperty(String)
+	 *
+	 * 查询指定property的值
 	 */
 	@Nullable
 	String getProperty(String key);
@@ -62,6 +69,8 @@ public interface PropertyResolver {
 	 * @param key the property name to resolve
 	 * @param targetType the expected type of the property value
 	 * @see #getRequiredProperty(String, Class)
+	 *
+	 * 获取原始的property值后，通过ConversionService将其转换为指定类型
 	 */
 	@Nullable
 	<T> T getProperty(String key, Class<T> targetType);
@@ -99,6 +108,8 @@ public interface PropertyResolver {
 	 * @throws IllegalArgumentException if given text is {@code null}
 	 * @see #resolveRequiredPlaceholders
 	 * @see org.springframework.util.SystemPropertyUtils#resolvePlaceholders(String)
+	 *
+	 * 将诸如${user.name}的占位符替换为property值
 	 */
 	String resolvePlaceholders(String text);
 

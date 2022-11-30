@@ -32,9 +32,16 @@ import java.util.Properties;
  * @author Chris Beams
  * @author Juergen Hoeller
  * @since 3.1
+ *
+ * 继承于MapPropertySource，由于Properties继承于Map，所以在MapPropertySource的基础上，PropertiesPropertySource要做的仅仅是把配置源Properties对象转换成Map对象而已，转换工作是在构造函数中做的
  */
 public class PropertiesPropertySource extends MapPropertySource {
 
+	/**
+	 * 继承于MapPropertySource，由于Properties继承于Map，所以在MapPropertySource的基础上，PropertiesPropertySource要做的仅仅是把配置源Properties对象转换成Map对象而已
+	 * @param name
+	 * @param source
+	 */
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	public PropertiesPropertySource(String name, Properties source) {
 		super(name, (Map) source);

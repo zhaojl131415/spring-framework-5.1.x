@@ -153,12 +153,15 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 		boolean match = super.isAutowireCandidate(bdHolder, descriptor);
 		if (match) {
 			// 验证@Qualifier注解
+			// descriptor.getAnnotations()拿的是属性和方法参数前的注解, 拿不到方法上的注解
 			match = checkQualifiers(bdHolder, descriptor.getAnnotations());
 			if (match) {
 				MethodParameter methodParam = descriptor.getMethodParameter();
 				if (methodParam != null) {
 					Method method = methodParam.getMethod();
 					if (method == null || void.class == method.getReturnType()) {
+						// 验证@Qualifier注解
+						// descriptor.getAnnotations()拿的是方法上的注解
 						match = checkQualifiers(bdHolder, methodParam.getMethodAnnotations());
 					}
 				}
@@ -186,7 +189,7 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 			if (isQualifier(type)) {
 				// 检查当前@Qualifier注解中设置的值 是否 和bdHolder中的值相等,
 				if (!checkQualifier(bdHolder, annotation, typeConverter)) {
-					// 如果不匹配,
+					// 如果不匹配, fallbackToMeta:true, checkMeta:true
 					fallbackToMeta = true;
 				}
 				else {
@@ -398,6 +401,7 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 	}
 
 	/**
+	 * 从给定的注释中提取value属性
 	 * Extract the value attribute from the given annotation.
 	 * @since 4.3
 	 */

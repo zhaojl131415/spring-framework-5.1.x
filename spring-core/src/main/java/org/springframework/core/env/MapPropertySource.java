@@ -22,6 +22,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
+ * 以Map为配置源的PropertySource
  * {@link PropertySource} that reads keys and values from a {@code Map} object.
  *
  * @author Chris Beams
@@ -36,12 +37,22 @@ public class MapPropertySource extends EnumerablePropertySource<Map<String, Obje
 	}
 
 
+	/**
+	 * 根据配置源key获取value值
+	 * @param name the property to find
+	 * @return
+	 */
 	@Override
 	@Nullable
 	public Object getProperty(String name) {
 		return this.source.get(name);
 	}
 
+	/**
+	 * 根据配置源去判断key是否存在
+	 * @param name the name of the property to find
+	 * @return
+	 */
 	@Override
 	public boolean containsProperty(String name) {
 		return this.source.containsKey(name);

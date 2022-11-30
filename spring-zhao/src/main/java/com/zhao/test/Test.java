@@ -1,17 +1,11 @@
 package com.zhao.test;
 
 import com.zhao.config.AppConfig;
-import com.zhao.factoryBean.Z;
+import com.zhao.loadBalanced.RuleService;
 import com.zhao.service.*;
-import com.zhao.web.ZhaoBeanDefinitionRegistryPostProcessor;
 import com.zhao.web.ZhaoBeanFactoryPostProcessor;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
-import org.springframework.beans.factory.support.ChildBeanDefinition;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.support.GenericApplicationContext;
 
 /**
  * @author zhaojinliang
@@ -90,8 +84,12 @@ public class Test {
 		ac.register(AppConfig.class);
 		ac.refresh();
 		 */
+		// 同一接口有多个实现类, 如果有指定autowire模式为byName/byType方式, 则优先通过set方法注入, 其次@Resource/@AutoWired注入
 		OrderService orderService = ac.getBean(OrderService.class);
 		orderService.test();
+		// 自己注入自己与@Bean注入: 优先@Bean注入
+		AaService a = (AaService) ac.getBean("aaService");
+		a.test();
 //		System.out.println(ac.getBean(OrderService.class));
 //		System.out.println(ac.getBean(UserService.class));
 //		System.out.println(ac.getBean(CommodityService.class));
@@ -100,5 +98,10 @@ public class Test {
 //		((UserService) ac.getBean("userService")).testAop();
 
 //		ac.getBean(UserService.class).testAop();
+
+
+		// 自定义注解借助@Qualifier注解通过策略模式实现负载均衡
+		RuleService ruleService = ac.getBean(RuleService.class);
+		ruleService.test();
 	}
 }

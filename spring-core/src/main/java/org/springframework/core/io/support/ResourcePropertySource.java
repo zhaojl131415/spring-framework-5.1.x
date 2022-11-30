@@ -41,6 +41,8 @@ import org.springframework.util.StringUtils;
  * @since 3.1
  * @see org.springframework.core.io.Resource
  * @see org.springframework.core.io.support.EncodedResource
+ *
+ * 继承于PropertiesPropertySource，在后者的基础上，ResourcePropertySource要做的仅仅是通过一个Resource对象、或者一个诸如"classpath:db.properties"的文件路径加载出Properties对象而已，转换工作同样是在构造函数中做的
  */
 public class ResourcePropertySource extends PropertiesPropertySource {
 
@@ -73,6 +75,7 @@ public class ResourcePropertySource extends PropertiesPropertySource {
 	 * loaded from the given encoded resource.
 	 */
 	public ResourcePropertySource(String name, Resource resource) throws IOException {
+		// 从resource中加载properties
 		super(name, PropertiesLoaderUtils.loadProperties(new EncodedResource(resource)));
 		this.resourceName = getNameForResource(resource);
 	}

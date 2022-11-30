@@ -28,6 +28,8 @@ import org.springframework.lang.Nullable;
  * @see PropertySource
  * @see PropertySources
  * @see AbstractEnvironment
+ *
+ * PropertyResolver的主要实现类，维护一个PropertySources引用，通过遍历它维护的一组PropertySource来实现其配置解析工作
  */
 public class PropertySourcesPropertyResolver extends AbstractPropertyResolver {
 

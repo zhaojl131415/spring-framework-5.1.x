@@ -65,6 +65,8 @@ public class GenericTypeAwareAutowireCandidateResolver extends SimpleAutowireCan
 	@Override
 	public boolean isAutowireCandidate(BeanDefinitionHolder bdHolder, DependencyDescriptor descriptor) {
 		/**
+		 * 跟泛型相关
+		 *
 		 * 继续交给父类判断是否为自动装配候选对象
 		 * @see SimpleAutowireCandidateResolver#isAutowireCandidate(org.springframework.beans.factory.config.BeanDefinitionHolder, org.springframework.beans.factory.config.DependencyDescriptor)
 		 */

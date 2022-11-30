@@ -49,16 +49,19 @@ public class ContextAnnotationAutowireCandidateResolver extends QualifierAnnotat
 	@Override
 	@Nullable
 	public Object getLazyResolutionProxyIfNecessary(DependencyDescriptor descriptor, @Nullable String beanName) {
+		// 如果依赖描述符加了Lazy注解, 则构建一个cglib的代理对象, 否则返回null
 		return (isLazy(descriptor) ? buildLazyResolutionProxy(descriptor, beanName) : null);
 	}
 
 	protected boolean isLazy(DependencyDescriptor descriptor) {
+		// 判断依赖描述符(属性)上是否添加Lazy注解
 		for (Annotation ann : descriptor.getAnnotations()) {
 			Lazy lazy = AnnotationUtils.getAnnotation(ann, Lazy.class);
 			if (lazy != null && lazy.value()) {
 				return true;
 			}
 		}
+		// 判断依赖描述符的方法参数上是否添加Lazy注解
 		MethodParameter methodParam = descriptor.getMethodParameter();
 		if (methodParam != null) {
 			Method method = methodParam.getMethod();
@@ -87,6 +90,8 @@ public class ContextAnnotationAutowireCandidateResolver extends QualifierAnnotat
 			}
 			@Override
 			public Object getTarget() {
+				// 当注入的代理对象使用的时候, 才会通过spring容器根据依赖描述符找到对应的对象, 再去使用
+				// todo: 构造器/方法等解决循环依赖的关键?
 				Object target = beanFactory.doResolveDependency(descriptor, beanName, null, null);
 				if (target == null) {
 					Class<?> type = getTargetClass();
@@ -114,6 +119,7 @@ public class ContextAnnotationAutowireCandidateResolver extends QualifierAnnotat
 		if (dependencyType.isInterface()) {
 			pf.addInterface(dependencyType);
 		}
+		// 生成一个cglib的代理对象提供注入
 		return pf.getProxy(beanFactory.getBeanClassLoader());
 	}
 
