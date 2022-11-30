@@ -95,11 +95,15 @@ public class InjectionMetadata {
 					logger.trace("Processing injected element of bean '" + beanName + "': " + element);
 				}
 				/**
-				 * 调用子类的重写方法
-				 * 属性注入
+				 * 注解@Resource注入
+				 * @see InjectedElement#inject(Object, String, PropertyValues)
+				 *
+				 * 注解@Autowired调用子类的重写方法
+				 * 注解@Autowired属性注入
 				 * @see AutowiredAnnotationBeanPostProcessor.AutowiredFieldElement#inject(java.lang.Object, java.lang.String, org.springframework.beans.PropertyValues)
-				 * 方法注入
+				 * 注解@Autowired方法注入
 				 * @see AutowiredAnnotationBeanPostProcessor.AutowiredMethodElement#inject(java.lang.Object, java.lang.String, org.springframework.beans.PropertyValues)
+				 *
 				 */
 				element.inject(target, beanName, pvs);
 			}
@@ -189,10 +193,13 @@ public class InjectionMetadata {
 		 */
 		protected void inject(Object target, @Nullable String requestingBeanName, @Nullable PropertyValues pvs)
 				throws Throwable {
-
 			if (this.isField) {
 				Field field = (Field) this.member;
 				ReflectionUtils.makeAccessible(field);
+				/**
+				 * 通过反射对属性set注入
+				 * @see org.springframework.context.annotation.CommonAnnotationBeanPostProcessor.ResourceElement#getResourceToInject(Object, String)
+				 */
 				field.set(target, getResourceToInject(target, requestingBeanName));
 			}
 			else {
@@ -202,6 +209,7 @@ public class InjectionMetadata {
 				try {
 					Method method = (Method) this.member;
 					ReflectionUtils.makeAccessible(method);
+					// 通过反射对执行方法注入
 					method.invoke(target, getResourceToInject(target, requestingBeanName));
 				}
 				catch (InvocationTargetException ex) {
