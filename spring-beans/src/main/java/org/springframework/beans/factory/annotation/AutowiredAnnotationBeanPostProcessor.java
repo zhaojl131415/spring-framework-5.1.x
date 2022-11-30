@@ -633,8 +633,15 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 	@Nullable
 	private Object resolvedCachedArgument(@Nullable String beanName, @Nullable Object cachedArgument) {
 		if (cachedArgument instanceof DependencyDescriptor) {
+			/**
+			 * 这里的缓存其实是: {@link ShortcutDependencyDescriptor}  快捷依赖描述符
+			 */
 			DependencyDescriptor descriptor = (DependencyDescriptor) cachedArgument;
 			Assert.state(this.beanFactory != null, "No BeanFactory available");
+			/**
+			 * 通过快捷依赖描述符快速获取对应的注入对象
+			 * @see DefaultListableBeanFactory#resolveDependency(DependencyDescriptor, String, Set, TypeConverter)
+			 */
 			return this.beanFactory.resolveDependency(descriptor, beanName, null, null);
 		}
 		else {
@@ -650,8 +657,11 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 
 		private final boolean required;
 
+		// 这两个缓存其实是提供给非单例bean的情况使用的, 单例bean一次就过去了, 不会再回来了, 所以不需要缓存
+		// 判断是否有缓存
 		private volatile boolean cached = false;
 
+		// 缓存字段的值
 		@Nullable
 		private volatile Object cachedFieldValue;
 
@@ -667,10 +677,12 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 			Object value;
 			// cached 默认为false，等整个属性完成的时候改为true，会给cachedFieldValue赋值：ShortcutDependencyDescriptor
 			if (this.cached) {
-				// todo 什么情况下会进这个cached？？ 同一个元素注入两次？？ @scope(request)多线程请求？？
+				// 对于非单例bean, 第一次创建的时候, 也找注入点, 然后进行属性注入, 此时cashe为false, 注入完成后cache为true,
+				// 第二次创建的时候, 先找注入点(此时会拿到缓存好的注入点), 此时的cache为true, 也就会进入这里,
+				// 注入点内并没有缓存被注入的具体bean对象, 而是beanName, 这样就能保证会创建不同的bean对象注入
 				// 表示需要被注入的对象，已经有缓存，不再需要对属性进行解析去获取需要注入的值
 				/**
-				 * 缓存中中获取的依赖描述符
+				 * 从缓存中获取的快捷依赖描述符, spring容器通过这个快捷依赖描述符可以直接创建一个对象. 可以省略掉一些之间的流程.
 				 * @see ShortcutDependencyDescriptor
 				 */
 				value = resolvedCachedArgument(beanName, this.cachedFieldValue);
@@ -705,6 +717,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 								if (beanFactory.containsBean(autowiredBeanName) &&
 										beanFactory.isTypeMatch(autowiredBeanName, field.getType())) {
 									// 存入缓存, 便于之后在进入此方法中, 在上面代码中的缓存能获取到.
+									// 这里并没有缓存被注入的具体bean对象, 而是beanName, 构建了一个快捷依赖描述符, 这样为了在非单例bean后续注入可以快速创建而准备的
 									this.cachedFieldValue = new ShortcutDependencyDescriptor(
 											desc, autowiredBeanName, field.getType());
 								}
@@ -735,8 +748,11 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 
 		private final boolean required;
 
+		// 这两个缓存其实是提供给非单例bean的情况使用的, 单例bean一次就过去了, 不会再回来了, 所以不需要缓存
+		// 判断是否有缓存
 		private volatile boolean cached = false;
 
+		// 缓存字段的值
 		@Nullable
 		private volatile Object[] cachedMethodArguments;
 
@@ -754,6 +770,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 			// 成员为方法
 			Method method = (Method) this.member;
 			Object[] arguments;
+			// 是否有缓存, 可以参照上面字段属性注入方法的实现
 			if (this.cached) {
 				// Shortcut for avoiding synchronization...
 				arguments = resolveCachedArguments(beanName);

@@ -1242,6 +1242,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	}
 
 	/**
+	 * 获取注入对象
 	 *
 	 * @param descriptor the descriptor for the dependency (field/method/constructor) 依赖描述符: 可能是属性/方法参数/构造器参数
 	 * @param requestingBeanName the name of the bean which declares the given dependency
@@ -1295,7 +1296,11 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 					descriptor, requestingBeanName);
 
 			if (result == null) {
-				// 获取需要被注入的对象
+				//
+				/**
+				 * 获取需要被注入的对象
+				 * 这里的descriptor如果是非单例bean的第二次注入, 值为缓存的{@link AutowiredAnnotationBeanPostProcessor.ShortcutDependencyDescriptor}
+				 */
 				result = doResolveDependency(descriptor, requestingBeanName, autowiredBeanNames, typeConverter);
 			}
 			return result;
@@ -1309,6 +1314,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		InjectionPoint previousInjectionPoint = ConstructorResolver.setCurrentInjectionPoint(descriptor);
 		try {
 			/**
+			 * 从非单例bean的第二次注入起,
 			 * AutowiredAnnotationBeanPostProcessor.AutowiredFieldElement.inject()中的如果cached为true，
 			 * 表示cacheFieldValue已经赋值了ShortcutDependencyDescriptor，这里接收的descriptor也就是cacheFieldValue传过来的，
 			 * 这里就会执行到方法 {@link AutowiredAnnotationBeanPostProcessor.ShortcutDependencyDescriptor#resolveShortcut(org.springframework.beans.factory.BeanFactory)}
