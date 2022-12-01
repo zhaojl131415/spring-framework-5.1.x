@@ -234,6 +234,14 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 * @param beanName the name of the bean to look for
 	 * @param allowEarlyReference whether early references should be created or not 是否应该创建早期引用
 	 * @return the registered singleton object, or {@code null} if none found
+	 *
+	 * todo: 持续关注
+	 * 5.3版本对此方法进行了修改, 对加锁的位置做了修改, 但是改的有点问题, 可能会导致出现提前获取对象的早期对象的bug
+	 * issues: https://github.com/spring-projects/spring-framework/pull/26376
+	 * 新版本这里做改动是为了解决: 死锁问题. 但是好像又引起了别的问题.
+	 * issues:
+	 * https://github.com/spring-projects/spring-framework/issues/25667
+	 * https://github.com/spring-projects/spring-framework/issues/13117
 	 */
 	@Nullable
 	protected Object getSingleton(String beanName, boolean allowEarlyReference) {
