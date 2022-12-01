@@ -140,6 +140,8 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 
 	private final Set<String> targetSourcedBeans = Collections.newSetFromMap(new ConcurrentHashMap<>(16));
 
+	// 早期代理引用缓存
+	// 可以通过判断缓存内是否存在, 来判断是否出现循环依赖且需要aop, 当前对象已经提前完成了aop的情况, 从而避免同一对象触发多次aop的问题
 	private final Map<Object, Object> earlyProxyReferences = new ConcurrentHashMap<>(16);
 
 	private final Map<Object, Class<?>> proxyTypes = new ConcurrentHashMap<>(16);
@@ -240,10 +242,17 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		return null;
 	}
 
+	/**
+	 * 获取早期的bean代理对象
+	 * 只有当bean出现了循环依赖, 且需要aop的情况才会进入此方法
+	 */
 	@Override
 	public Object getEarlyBeanReference(Object bean, String beanName) {
+		// 获取缓存key
 		Object cacheKey = getCacheKey(bean.getClass(), beanName);
+		// 加入早期代理引用缓存, 表示当前对象已经提前完成了aop
 		this.earlyProxyReferences.put(cacheKey, bean);
+		// 如果需要的话, 执行bean的包装: aop
 		return wrapIfNecessary(bean, beanName, cacheKey);
 	}
 
@@ -315,17 +324,29 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	public Object postProcessAfterInitialization(@Nullable Object bean, String beanName) {
 		if (bean != null) {
 			Object cacheKey = getCacheKey(bean.getClass(), beanName);
+			/**
+			 * todo: 这里为什么是remove, 而不是get, 难道后续不要再用了?
+			 * 如果后续真的不要再用了, 是可以移除来释放内存, 节省空间.
+			 * 猜想: 因为当前方法是创建bean生命周期的最后一步, 这里完成后就会将返回的对象放入spring容器的单例池(一级缓存)中,
+			 * 		之后再获取bean就都通过单例池获取, 不会再走创建bean的逻辑, 所以也不可能会在走到这儿来再进行aop, 所以是remove
+			 * <p/>
+			 * 从缓存中移除缓存key, 会返回被移除的value,
+			 * 如果被移除的value跟当前bean不相等, 表示当前bean没有提完完成aop, 则可以进入if完成aop,
+			 * 否则表示之前发生循环依赖, 提前完成了aop, 这里不做处理, 最后返回bean
+			 */
 			if (this.earlyProxyReferences.remove(cacheKey) != bean) {
 				/**
 				 * 必要时对需要aop代理的对象进行包装
 				 * @see AbstractAutoProxyCreator#wrapIfNecessary(java.lang.Object, java.lang.String, java.lang.Object)
 				 *
 				 * 扩展点: 对需要扩展aop的对象可以通过继承AbstractAutoProxyCreator抽象类并重写wrapIfNecessary方法
-				 * 扩展案例: seata中的GlobalTransactionScanner
+				 * 扩展案例: seata扫描，并根据AT/TCC模式添加添加对应的拦截器
+				 * @see io.seata.spring.annotation.GlobalTransactionScanner#wrapIfNecessary
 				 */
 				return wrapIfNecessary(bean, beanName, cacheKey);
 			}
 		}
+		// 如果之前发生循环依赖, 提前完成了aop, 这里返回的是原始bean对象, 并不是bean的代理对象
 		return bean;
 	}
 
@@ -372,7 +393,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		if (StringUtils.hasLength(beanName) && this.targetSourcedBeans.contains(beanName)) {
 			return bean;
 		}
-		// 判断是否不需要被搭理
+		// 判断是否不需要被代理
 		if (Boolean.FALSE.equals(this.advisedBeans.get(cacheKey))) {
 			return bean;
 		}
@@ -390,7 +411,9 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		 * @see AbstractAdvisorAutoProxyCreator#getAdvicesAndAdvisorsForBean(java.lang.Class, java.lang.String, org.springframework.aop.TargetSource)
 		 * 返回的是个Advisor集合
 		 *
-		 * seata有扩展, 返回的是个拦截器: GlobalTransactionalInterceptor
+		 * seata有扩展, 返回的是个拦截器:
+		 * AT模式: GlobalTransactionalInterceptor
+		 * TCC模式: TccActionInterceptor
 		 */
 		Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
 		if (specificInterceptors != DO_NOT_PROXY) {

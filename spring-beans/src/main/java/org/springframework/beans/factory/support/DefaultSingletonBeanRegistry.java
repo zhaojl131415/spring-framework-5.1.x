@@ -79,6 +79,8 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	// 在生产对象（IndexService）对象之前可以做一些事情，比如代理（aop），
 	// 如果缓存的是对象（IndexService），我们需要用的时候只能原封不动的拿出来，而不能对他进行改造，
 	// 单例工厂的作用就在于在需要的时候可以进行改造。
+	// 如果需要aop, 会执行工厂的方法, 取出工厂内的对象, 提前完成aop，包装成一个代理对象存入三级缓存(earlySingletonObjects),
+	// 如果无需aop, 则直接获取工厂内的对象存入三级缓存(earlySingletonObjects)
 
 	// 3、earlySingletonObjects 早期对象java object: 效率问题，
 	// java object，通过二级缓存中的工厂生成的Object，
@@ -89,15 +91,17 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	// 只有当object执行完生命周期成为spring bean之后才存入一级缓存中。
 
 	/** Cache of singleton objects: bean name to bean instance. 单例对象的缓存:key：bean名，value：bean实例。*/
-	// 一级缓存：单例缓存池：正常情况下，所有单例bean被容器初始化完成之后，缓存在这个map中
+	// 一级缓存：单例缓存池：正常情况下，所有单例bean经过了完整的声明周期之后，才会缓存在这个map中
 	private final Map<String, Object> singletonObjects = new ConcurrentHashMap<>(256);
 
 	/** Cache of singleton factories: bean name to ObjectFactory. */
-	// 二级缓存：缓存单例工厂
+	// 二级缓存：缓存单例工厂, 只有出现了循环依赖才会用得到,
+	// 如果需要aop, 会执行工厂的方法, 取出工厂内的对象, 提前完成aop，包装成一个代理对象存入三级缓存(earlySingletonObjects),
+	// 如果无需aop, 则直接获取工厂内的对象存入三级缓存(earlySingletonObjects)
 	private final Map<String, ObjectFactory<?>> singletonFactories = new HashMap<>(16);
 
 	/** Cache of early singleton objects: bean name to bean instance. */
-	// 三级缓存：早期对象（对象属性还没来得及赋值）
+	// 三级缓存：缓存未经过完整生命周期的早期对象（对象属性还没来得及赋值）
 	private final Map<String, Object> earlySingletonObjects = new HashMap<>(16);
 
 	/** Set of registered singletons, containing the bean names in registration order. */
@@ -105,7 +109,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	private final Set<String> registeredSingletons = new LinkedHashSet<>(256);
 
 	/** Names of beans that are currently in creation. */
-	// 当前正在创建的bean的名称。
+	// 缓存当前正在创建的bean的名称
 	private final Set<String> singletonsCurrentlyInCreation =
 			Collections.newSetFromMap(new ConcurrentHashMap<>(16));
 
@@ -246,7 +250,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 				 * 早期对象：指的是bean刚刚调用了构造方法，属性还没来得及赋值
 				 */
 				singletonObject = this.earlySingletonObjects.get(beanName);
-				// allowEarlyReference 是否允许循环依赖
+				// allowEarlyReference 是否允许循环依赖(默认为true)
 				// 如 singletonObject 为空, 且允许循环依赖
 				if (singletonObject == null && allowEarlyReference) {
 					// 获取二级缓存中的工厂
@@ -255,7 +259,8 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					if (singletonFactory != null) {
 						/**
 						 * 通过二级缓存的工厂接口（() -> getEarlyBeanReference(beanName, mbd, bean)）
-						 * 调用后置处理器，提前完成aop，创建一个完成了sop的完成的spring bean
+						 * 调用后置处理器，如果需要aop, 则取出工厂内的对象, 提前完成aop，包装成一个代理对象返回, 无需aop, 直接返回工厂内的对象
+						 * @see AbstractAutowireCapableBeanFactory#getEarlyBeanReference(String, RootBeanDefinition, Object)
 						 */
 						singletonObject = singletonFactory.getObject();
 						/**

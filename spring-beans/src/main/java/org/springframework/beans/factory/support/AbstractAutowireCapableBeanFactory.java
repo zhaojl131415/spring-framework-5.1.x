@@ -445,6 +445,12 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		return result;
 	}
 
+	/**
+	 * bean对象初始化后执行Bean后置处理器
+	 * 这个方法有两处调用:
+	 * 1.在创建bean之前调用一次
+	 * 2.在bean对象创建, 完成属性填充, 执行完初始化之后, 还会在调用一次
+	 */
 	@Override
 	public Object applyBeanPostProcessorsAfterInitialization(Object existingBean, String beanName)
 			throws BeansException {
@@ -457,7 +463,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		for (BeanPostProcessor processor : getBeanPostProcessors()) {
 			/**
 			 * 后续版本对这里有过优化, 添加了判断后置处理器是否实现了InstantiationAwareBeanPostProcessor
+			 * aop
 			 * @see org.springframework.aop.framework.autoproxy.AbstractAutoProxyCreator#postProcessAfterInitialization(java.lang.Object, java.lang.String)
+			 *
+			 * 注解@Async
+			 * @see org.springframework.aop.framework.AbstractAdvisingBeanPostProcessor#postProcessAfterInitialization(Object, String)
 			 */
 			Object current = processor.postProcessAfterInitialization(result, beanName);
 			if (current == null) {
@@ -651,16 +661,17 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// Eagerly cache singletons to be able to resolve circular references
 		// even when triggered by lifecycle interfaces like BeanFactoryAware.
-		// 判断是否允许循环依赖
+		// 判断是否为单例 且 是否允许循环依赖(默认true) 且 当前对象是否在创建中
 		boolean earlySingletonExposure = (mbd.isSingleton() && this.allowCircularReferences &&
 				isSingletonCurrentlyInCreation(beanName));
+		// 循环依赖需要提早暴露早期单例对象, 如果发生了循环依赖, 才会进入if
 		if (earlySingletonExposure) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Eagerly caching bean '" + beanName +
 						"' to allow for resolving potential circular references");
 			}
 			/**
-			 * 第四次调用后置处理器（SmartInstantiationAwareBeanPostProcessor），添加至二级缓存:单例bean工厂接口
+			 * 第四次调用后置处理器（SmartInstantiationAwareBeanPostProcessor），循环依赖添加至二级缓存: 单例bean工厂接口
 			 * 二级缓存工厂作用: 为了代理(aop)这个早期对象
 			 * 判断是否需要aop
  			 */
@@ -687,10 +698,22 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 		}
 
+		/**
+		 * 如果之前发生循环依赖, 提前完成了aop, 执行初始化后得到的{@link exposedObject}实际是原始bean对象, 并不是bean的代理对象,
+		 * 最后需要放入spring单例池(一级缓存)的, 当然不能是原始对象, 必须是bean的代理对象, 所以在这里需要替换成bean代理对象再返回
+		 */
 		if (earlySingletonExposure) {
+			/**
+			 * 从单例池中获取bean代理对象
+			 * 因为提前完成aop的代理对象之前已经存入了spring容器的早期对象单例池{@link DefaultSingletonBeanRegistry#earlySingletonObjects}(三级缓存)
+			 * 所以直接能通过getSingleton方法获取
+			 */
 			Object earlySingletonReference = getSingleton(beanName, false);
 			if (earlySingletonReference != null) {
 				if (exposedObject == bean) {
+					/**
+					 * 如果初始化后得到的{@link exposedObject}是原始bean对象, 则将bean代理对象赋值给{@link exposedObject}, 最后返回bean代理对象
+					 */
 					exposedObject = earlySingletonReference;
 				}
 				else if (!this.allowRawInjectionDespiteWrapping && hasDependentBean(beanName)) {
@@ -1031,6 +1054,15 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			for (BeanPostProcessor bp : getBeanPostProcessors()) {
 				if (bp instanceof SmartInstantiationAwareBeanPostProcessor) {
 					SmartInstantiationAwareBeanPostProcessor ibp = (SmartInstantiationAwareBeanPostProcessor) bp;
+					/**
+					 * 循环依赖获取早期bean对象引用
+					 *
+					 * bean对象不需要aop: 直接返回bean
+					 * @see SmartInstantiationAwareBeanPostProcessor#getEarlyBeanReference(java.lang.Object, java.lang.String)
+					 *
+					 * bean对象需要aop:
+					 * @see org.springframework.aop.framework.autoproxy.AbstractAutoProxyCreator#getEarlyBeanReference(Object, String)
+					 */
 					exposedObject = ibp.getEarlyBeanReference(exposedObject, beanName);
 				}
 			}
