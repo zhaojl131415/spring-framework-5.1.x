@@ -82,6 +82,10 @@ public class CglibSubclassingInstantiationStrategy extends SimpleInstantiationSt
 			@Nullable Constructor<?> ctor, Object... args) {
 
 		// Must generate CGLIB subclass...
+		/**
+		 * 生成CGlib的子类
+		 * @see CglibSubclassCreator#instantiate(Constructor, Object...)
+		 */
 		return new CglibSubclassCreator(bd, owner).instantiate(ctor, args);
 	}
 
@@ -114,6 +118,7 @@ public class CglibSubclassingInstantiationStrategy extends SimpleInstantiationSt
 		 * @return new instance of the dynamically generated subclass
 		 */
 		public Object instantiate(@Nullable Constructor<?> ctor, Object... args) {
+			// 生成代理类
 			Class<?> subclass = createEnhancedSubclass(this.beanDefinition);
 			Object instance;
 			if (ctor == null) {
@@ -121,7 +126,9 @@ public class CglibSubclassingInstantiationStrategy extends SimpleInstantiationSt
 			}
 			else {
 				try {
+					// 获取代理类的构造方法
 					Constructor<?> enhancedSubclassConstructor = subclass.getConstructor(ctor.getParameterTypes());
+					// 通过代理类的构造方法实例化一个代理对象
 					instance = enhancedSubclassConstructor.newInstance(args);
 				}
 				catch (Exception ex) {
@@ -133,7 +140,9 @@ public class CglibSubclassingInstantiationStrategy extends SimpleInstantiationSt
 			// enhanced class (via the Enhancer) in order to avoid memory leaks.
 			Factory factory = (Factory) instance;
 			factory.setCallbacks(new Callback[] {NoOp.INSTANCE,
+					// @Lookup注解方法拦截器
 					new LookupOverrideMethodInterceptor(this.beanDefinition, this.owner),
+					// 拦截xml中<replace-method>的方法, 很少用
 					new ReplaceOverrideMethodInterceptor(this.beanDefinition, this.owner)});
 			return instance;
 		}
@@ -279,13 +288,18 @@ public class CglibSubclassingInstantiationStrategy extends SimpleInstantiationSt
 			this.owner = owner;
 		}
 
+		/**
+		 * 拦截添加了@Lookup注解的方法
+		 */
 		@Override
 		public Object intercept(Object obj, Method method, Object[] args, MethodProxy mp) throws Throwable {
-			// Cast is safe, as CallbackFilter filters are used selectively.
+			// Cast is safe, as CallbackFilter filters are used selectively. 强制转换是安全的，因为有选择地使用回调过滤器过滤器。
+			// 获取方法上的@Lookup注解
 			LookupOverride lo = (LookupOverride) getBeanDefinition().getMethodOverrides().getOverride(method);
 			Assert.state(lo != null, "LookupOverride not found");
 			Object[] argsToUse = (args.length > 0 ? args : null);  // if no-arg, don't insist on args at all
 			if (StringUtils.hasText(lo.getBeanName())) {
+				// 利用BeanFactory生成对应的bean对象
 				return (argsToUse != null ? this.owner.getBean(lo.getBeanName(), argsToUse) :
 						this.owner.getBean(lo.getBeanName()));
 			}
