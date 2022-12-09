@@ -1310,7 +1310,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		/**
-		 * 该方法是spring 5.0新增的 如果存在Supplier回调,则使用给定的回调方法初始化策略
+		 * 该方法是spring 5.0新增的 如果存在Supplier回调, 则使用给定的回调方法初始化策略
 		 */
 		Supplier<?> instanceSupplier = mbd.getInstanceSupplier();
 		if (instanceSupplier != null) {
@@ -1319,6 +1319,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		/**
 		 * 工厂方法:通过配置类来进行配置的话,采用的就是工厂方法,方法名称就是自定义工厂方法的名称
+		 * 注解@Bean对应的BD也会进入这个if
 		 */
 		if (mbd.getFactoryMethodName() != null) {
 			return instantiateUsingFactoryMethod(beanName, mbd, args);
@@ -1346,7 +1347,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				if (mbd.resolvedConstructorOrFactoryMethod != null) {
 					// 修改为解析过构造函数
 					resolved = true;
-					// 修改为true, 表示构造函数或工厂方法被解析过
+					// 修改为true, 表示构造函数或工厂方法的参数被解析到
 					autowireNecessary = mbd.constructorArgumentsResolved;
 				}
 			}
@@ -1355,7 +1356,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (resolved) {
 			// 这里只有原型的对象, 才会走到这里, 单例bean只有执行一次createBean(), 不可能会走到这里
 			if (autowireNecessary) {
-				// 通过有参的构造函数进行反射调用
+				// 如果解析到了构造函数或工厂方法的参数, 通过有参的构造函数进行反射调用
 				return autowireConstructor(beanName, mbd, null, null);
 			}
 			else {
@@ -1483,6 +1484,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					 * 如果提供了多个模糊的构造方法, 推断出0个, 这里返回空, 后面创建实例会使用默认的无参构造方法
 					 * 如果提供了一个精确的构造方法(@AutoWired), 不是默认的, 会推断出这个, 后面创建实例会使用这个构造方法
 					 * 如果提供了多个的精确构造方法(@AutoWired(required = false)), 会推断出多个
+					 * @see AutowiredAnnotationBeanPostProcessor#determineCandidateConstructors(Class, String)
 					 */
 					Constructor<?>[] ctors = ibp.determineCandidateConstructors(beanClass, beanName);
 					if (ctors != null) {
@@ -1511,6 +1513,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 						getAccessControlContext());
 			}
 			else {
+				/**
+				 * 通过构造方法反射实例化bean
+				 * @see SimpleInstantiationStrategy#instantiate(RootBeanDefinition, String, BeanFactory)
+				 */
 				beanInstance = getInstantiationStrategy().instantiate(mbd, beanName, parent);
 			}
 			BeanWrapper bw = new BeanWrapperImpl(beanInstance);
@@ -1537,7 +1543,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 */
 	protected BeanWrapper instantiateUsingFactoryMethod(
 			String beanName, RootBeanDefinition mbd, @Nullable Object[] explicitArgs) {
-
+		// 利用FactoryBean来实例化对象
 		return new ConstructorResolver(this).instantiateUsingFactoryMethod(beanName, mbd, explicitArgs);
 	}
 

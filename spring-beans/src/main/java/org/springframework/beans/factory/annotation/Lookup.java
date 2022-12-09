@@ -53,7 +53,17 @@ import java.lang.annotation.Target;
  * @see org.springframework.beans.factory.BeanFactory#getBean(Class, Object...)
  * @see org.springframework.beans.factory.BeanFactory#getBean(String, Object...)
  *
+ * 为了解决A单例bean里引入一个B原型bean的依赖, 在spring容器中A单例bean初始化的时候, 就已经将B原型bean实例化注入了, 会导致被依赖的B原型bean每次都是同一个对象.
+ * 这显然不是我们想要的结果, 我们需要B原型bean，而事实上B原型bean的依赖只注入了一次, 变成了事实上的单例bean.
+ * 详见: https://note.youdao.com/s/G8BRwG8U
  *
+ * 这是一个作用在方法上的注解，被其标注的方法会被重写
+ * 被标注的方法要满足一下语法要求:
+ * <public|protected> [abstract] <return-type> theMethodName(no-arguments);
+ * public|protected要求方法必须是可以被子类重写和调用的
+ * abstract可选，如果是抽象方法，CGLIB的动态代理类就会实现这个方法，如果不是抽象方法，就会覆盖这个方法
+ * return-type是非单例的类型
+ * no-arguments不允许有参数
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

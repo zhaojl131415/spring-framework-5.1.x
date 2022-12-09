@@ -51,6 +51,9 @@ import org.springframework.util.ClassUtils;
  */
 abstract class AutowireUtils {
 
+	/**
+	 * 先按方法是否为public排, 同为public再按方法参数数量排
+	 */
 	private static final Comparator<Executable> EXECUTABLE_COMPARATOR = (e1, e2) -> {
 		boolean p1 = Modifier.isPublic(e1.getModifiers());
 		boolean p2 = Modifier.isPublic(e2.getModifiers());
@@ -71,6 +74,7 @@ abstract class AutowireUtils {
 	 * @param constructors the constructor array to sort
 	 */
 	public static void sortConstructors(Constructor<?>[] constructors) {
+		// 根据比较器进行排序: 先按方法是否为public排, 同为public再按方法参数数量排
 		Arrays.sort(constructors, EXECUTABLE_COMPARATOR);
 	}
 
