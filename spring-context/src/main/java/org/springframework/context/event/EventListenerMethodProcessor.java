@@ -35,13 +35,17 @@ import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.AnnotatedBeanDefinitionReader;
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.core.MethodIntrospector;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
+import org.springframework.core.env.Environment;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -58,6 +62,12 @@ import org.springframework.util.CollectionUtils;
  * @since 4.2
  * @see EventListenerFactory
  * @see DefaultEventListenerFactory
+ * <p/>
+ * 在spring启动时, 会实例化一个阅读器: {@link AnnotatedBeanDefinitionReader},
+ * 在这个阅读器的构造方法{@link AnnotatedBeanDefinitionReader#AnnotatedBeanDefinitionReader(BeanDefinitionRegistry, Environment)}中,
+ * 注册了几个spring内置的关键处理器的BD, 存入了BDMap, 其中就包括当前处理器,
+ * 这些被存入BDMap的处理器, 最后也会走spring bean的生命周期.
+ * 这个处理器实现了{@link SmartInitializingSingleton}接口, 重写了{@link #afterSingletonsInstantiated()}方法, 在完成spring生命周期实例化后,会调用此方法.
  */
 public class EventListenerMethodProcessor
 		implements SmartInitializingSingleton, ApplicationContextAware, BeanFactoryPostProcessor {
@@ -95,7 +105,10 @@ public class EventListenerMethodProcessor
 		this.eventListenerFactories = factories;
 	}
 
-
+	/**
+	 * 在完成spring生命周期实例化后,会调用此方法.
+	 * 因为这个处理器实现了{@link SmartInitializingSingleton}接口, 重写了{@link #afterSingletonsInstantiated()}方法
+	 */
 	@Override
 	public void afterSingletonsInstantiated() {
 		ConfigurableListableBeanFactory beanFactory = this.beanFactory;
@@ -132,6 +145,7 @@ public class EventListenerMethodProcessor
 					}
 					try {
 						// 最终走到这: 扫描@EventListener
+						// 找到所有加了@EventListener的方法, 构建成ApplicationListener, 加入到spring的监听器集合中
 						processBean(beanName, type);
 					}
 					catch (Throwable ex) {
@@ -143,6 +157,12 @@ public class EventListenerMethodProcessor
 		}
 	}
 
+	/**
+	 * 处理bean: 找到所有加了@EventListener的方法, 构建成ApplicationListener, 加入到spring的监听器集合中,
+	 * 这里并不执行事件监听.
+	 * @param beanName
+	 * @param targetType
+	 */
 	private void processBean(final String beanName, final Class<?> targetType) {
 		// 判断bean上是否有注解, 是否为java包下的文件, 是否为spring容器类
 		if (!this.nonAnnotatedClasses.contains(targetType) &&
@@ -181,13 +201,19 @@ public class EventListenerMethodProcessor
 					for (EventListenerFactory factory : factories) {
 						if (factory.supportsMethod(method)) {
 							Method methodToUse = AopUtils.selectInvocableMethod(method, context.getType(beanName));
-							// 创建监听器方法适配器(ApplicationListenerMethodAdapter) 包装 对应方法
+							/**
+							 * 创建监听器方法适配器{@link ApplicationListenerMethodAdapter} 包装 对应方法
+							 * @see DefaultEventListenerFactory#createApplicationListener(String, Class, Method)
+							 */
 							ApplicationListener<?> applicationListener =
 									factory.createApplicationListener(beanName, targetType, methodToUse);
 							if (applicationListener instanceof ApplicationListenerMethodAdapter) {
 								((ApplicationListenerMethodAdapter) applicationListener).init(context, this.evaluator);
 							}
-							// 将监听器添加到spring容器中
+							/**
+							 * 将监听器添加到spring容器中
+							 * @see AbstractApplicationContext#addApplicationListener(ApplicationListener)
+							 */
 							context.addApplicationListener(applicationListener);
 							break;
 						}

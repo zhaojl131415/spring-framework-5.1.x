@@ -241,11 +241,13 @@ public abstract class AbstractApplicationEventMulticaster
 			}
 		}
 		if (!listenerBeans.isEmpty()) {
+			// 拿到spring容器: BeanFactory
 			BeanFactory beanFactory = getBeanFactory();
 			for (String listenerBeanName : listenerBeans) {
 				try {
 					Class<?> listenerType = beanFactory.getType(listenerBeanName);
 					if (listenerType == null || supportsEvent(listenerType, eventType)) {
+						// 获取监听器bean, 如果没有实例化, 会在这里完成实例化
 						ApplicationListener<?> listener =
 								beanFactory.getBean(listenerBeanName, ApplicationListener.class);
 						if (!allListeners.contains(listener) && supportsEvent(listener, eventType, sourceType)) {

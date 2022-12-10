@@ -16,6 +16,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 public class Test {
 	public static void main(String[] args) throws BeansException {
 		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
+//		AnnotationConfigWebApplicationContext
 //		System.out.println(ac.getBean("orderService"));
 //		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext();
 //		ac.register(AppConfig.class);
@@ -103,5 +104,7 @@ public class Test {
 		// 自定义注解借助@Qualifier注解通过策略模式实现负载均衡
 		RuleService ruleService = ac.getBean(RuleService.class);
 		ruleService.test();
+
+		ac.publishEvent("zhao publish event!");
 	}
 }

@@ -131,6 +131,9 @@ public abstract class AnnotationConfigUtils {
 
 	/**
 	 * 注册后置处理器
+	 * 1.指定排序比较器/自动装配候选解析器
+	 * 2.注册spring内置的关键处理器的BD, 将其放入BDMap中
+	 *
 	 * Register all relevant annotation post processors in the given registry.
 	 * @param registry the registry to operate on
 	 */
@@ -141,6 +144,8 @@ public abstract class AnnotationConfigUtils {
 	/**
 	 * spring一开始就把这几个（开天辟地的）后置处理器放入beanDefinitionMap中,
 	 * 然后把他们实例化出来，放到spring容器中，以后要用就直接取
+	 * 1.指定排序比较器/自动装配候选解析器
+	 * 2.注册spring内置的关键处理器的BD, 将其放入BDMap中
 	 *
 	 * Register all relevant annotation post processors in the given registry.
 	 * @param registry the registry to operate on
@@ -154,26 +159,31 @@ public abstract class AnnotationConfigUtils {
 
 		DefaultListableBeanFactory beanFactory = unwrapDefaultListableBeanFactory(registry);
 		if (beanFactory != null) {
+			// 设置排序比较器OrderComparator为AnnotationAwareOrderComparator, 用来排序
 			if (!(beanFactory.getDependencyComparator() instanceof AnnotationAwareOrderComparator)) {
 				beanFactory.setDependencyComparator(AnnotationAwareOrderComparator.INSTANCE);
 			}
+			// 设置自动装配候选解析器为ContextAnnotationAutowireCandidateResolver, 用来判断某个bean能否进行依赖注入
 			if (!(beanFactory.getAutowireCandidateResolver() instanceof ContextAnnotationAutowireCandidateResolver)) {
 				beanFactory.setAutowireCandidateResolver(new ContextAnnotationAutowireCandidateResolver());
 			}
 		}
 
 		Set<BeanDefinitionHolder> beanDefs = new LinkedHashSet<>(8);
-		// 判断bdmap中是否包含key
-		// ConfigurationClassPostProcessor: 在这个类中, 会解析加了@Configuration的配置类, 还会解析@ComponentScan和@ComponentScans注解的扫描包, 以及@Import/@Bean等注解
+		// 判断bdmap中是否包含key: internalConfigurationAnnotationProcessor
 		if (!registry.containsBeanDefinition(CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME)) {
+			// ConfigurationClassPostProcessor: 在这个类中, 会解析加了@Configuration的配置类, 还会解析@ComponentScan和@ComponentScans注解的扫描包, 以及@Import/@Bean等注解
 			RootBeanDefinition def = new RootBeanDefinition(ConfigurationClassPostProcessor.class);
 			def.setSource(source);
+			// 注册ConfigurationClassPostProcessor的BD
 			beanDefs.add(registerPostProcessor(registry, def, CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
-		// AutowiredAnnotationBeanPostProcessor用来处理@AutoWired
+		// 判断bdmap中是否包含key: internalAutowiredAnnotationProcessor
 		if (!registry.containsBeanDefinition(AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME)) {
+			// AutowiredAnnotationBeanPostProcessor用来处理@AutoWired
 			RootBeanDefinition def = new RootBeanDefinition(AutowiredAnnotationBeanPostProcessor.class);
 			def.setSource(source);
+			// 注册AutowiredAnnotationBeanPostProcessor的BD
 			beanDefs.add(registerPostProcessor(registry, def, AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
