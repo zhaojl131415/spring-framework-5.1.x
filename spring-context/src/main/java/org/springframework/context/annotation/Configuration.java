@@ -414,6 +414,9 @@ import org.springframework.stereotype.Component;
  * @see ConfigurationClassPostProcessor
  * @see org.springframework.core.env.Environment
  * @see org.springframework.test.context.ContextConfiguration
+ *
+ *
+ * spring 5.3版本这个类做了修改, 添加了一个属性为proxyBeanMethods, 默认为true, 表示为full配置类, false为lite配置类
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

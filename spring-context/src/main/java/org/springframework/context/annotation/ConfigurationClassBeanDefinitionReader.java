@@ -113,19 +113,21 @@ class ConfigurationClassBeanDefinitionReader {
 	 */
 	public void loadBeanDefinitions(Set<ConfigurationClass> configurationModel) {
 		TrackedConditionEvaluator trackedConditionEvaluator = new TrackedConditionEvaluator();
+		// 遍历解析后的配置类集合
 		for (ConfigurationClass configClass : configurationModel) {
+			// 从配置类中加载BD
 			loadBeanDefinitionsForConfigurationClass(configClass, trackedConditionEvaluator);
 		}
 	}
 
 	/**
-	 * 加载配置文件AppConfig对应的Bean定义
+	 * 加载配置文件对应的Bean定义
 	 * Read a particular {@link ConfigurationClass}, registering bean definitions
 	 * for the class itself and all of its {@link Bean} methods.
 	 */
 	private void loadBeanDefinitionsForConfigurationClass(
 			ConfigurationClass configClass, TrackedConditionEvaluator trackedConditionEvaluator) {
-
+		// 条件判断是否跳过
 		if (trackedConditionEvaluator.shouldSkip(configClass)) {
 			String beanName = configClass.getBeanName();
 			if (StringUtils.hasLength(beanName) && this.registry.containsBeanDefinition(beanName)) {
@@ -135,18 +137,23 @@ class ConfigurationClassBeanDefinitionReader {
 			return;
 		}
 
-		// import
+		// 配置类是被import进来的: @Component的内部类, @Import所导入的类都是被导入的类
 		if (configClass.isImported()) {
+			// 将被导入的配置类构建成一个BD, 加入到BDMap中
 			registerBeanDefinitionForImportedConfigurationClass(configClass);
 		}
-		// bean方法
+		// 遍历配置类中构建的@Bean标识的方法对象集合
 		for (BeanMethod beanMethod : configClass.getBeanMethods()) {
+			/**
+			 * 实现@Bean逻辑的关键:
+			 * 通过@Bean方法对象构建一个BD, 加入BDMap中
+			 */
 			loadBeanDefinitionsForBeanMethod(beanMethod);
 		}
-
+		// 处理@ImportResource("spring.xml"), 构建一个BD, 加入BDMap中
 		loadBeanDefinitionsFromImportedResources(configClass.getImportedResources());
 		/**
-		 * 从注册器加载Bean定义
+		 * 从注册器加载Bean定义: 获取所有实现{@link ImportBeanDefinitionRegistrar}接口的实例对象, 遍历执行对应的registerBeanDefinitions()方法
 		 *
 		 * 注册器来源于通过实现{@link ImportBeanDefinitionRegistrar}接口的注册器
 		 * 比如: 实现aop的{@link EnableAspectJAutoProxy}注解中, 就通过@Import(AspectJAutoProxyRegistrar.class)代码,
@@ -165,10 +172,12 @@ class ConfigurationClassBeanDefinitionReader {
 		ScopeMetadata scopeMetadata = scopeMetadataResolver.resolveScopeMetadata(configBeanDef);
 		configBeanDef.setScope(scopeMetadata.getScopeName());
 		String configBeanName = this.importBeanNameGenerator.generateBeanName(configBeanDef, this.registry);
+		// 处理@Lazy/@Primary/@DependsOn/@Role/@Description注解
 		AnnotationConfigUtils.processCommonDefinitionAnnotations(configBeanDef, metadata);
 
 		BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(configBeanDef, configBeanName);
 		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
+		// 将BD注册到BDMap中
 		this.registry.registerBeanDefinition(definitionHolder.getBeanName(), definitionHolder.getBeanDefinition());
 		configClass.setBeanName(configBeanName);
 
@@ -208,8 +217,16 @@ class ConfigurationClassBeanDefinitionReader {
 			this.registry.registerAlias(beanName, alias);
 		}
 
+
 		// Has this effectively been overridden before (e.g. via XML)?
+		// 如果出现两个@Bean标识的方法名字一样, 比如方法重载, 则直接return
+		/**
+		 * 判重处理: 如果同一个类被重复注入
+		 * 方式1: @Bean和@Component两种方式注入, 在处理配置类时, 会先将@Component的构建成BD存入BDMap中, 这里不会进入if, 继续执行后续代码, 构建一个新的BD, 覆盖@Component构建的BD
+		 * 方式2: 多次@Bean注入同一个类, @Bean标识的方法名字一样, 比如方法重载, 这里会进入if, 只要不和配置类的名字一致导致抛出异常, 会直接return, 后续会根据推断构造方法, 选择参数多的@Bean方法进行实例化注入.
+		 */
 		if (isOverriddenByExistingDefinition(beanMethod, beanName)) {
+			// 如果@Bean的名字和配置类的名字一直, 则抛出异常.
 			if (beanName.equals(beanMethod.getConfigurationClass().getBeanName())) {
 				throw new BeanDefinitionStoreException(beanMethod.getConfigurationClass().getResource().getDescription(),
 						beanName, "Bean name derived from @Bean method '" + beanMethod.getMetadata().getMethodName() +
@@ -217,7 +234,7 @@ class ConfigurationClassBeanDefinitionReader {
 			}
 			return;
 		}
-
+		// 构建配置类BD
 		ConfigurationClassBeanDefinition beanDef = new ConfigurationClassBeanDefinition(configClass, metadata);
 		beanDef.setResource(configClass.getResource());
 		beanDef.setSource(this.sourceExtractor.extractSource(metadata, configClass.getResource()));
@@ -232,10 +249,11 @@ class ConfigurationClassBeanDefinitionReader {
 			beanDef.setFactoryBeanName(configClass.getBeanName());
 			beanDef.setUniqueFactoryMethodName(methodName);
 		}
+		// 指定自动装配模式
 		beanDef.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_CONSTRUCTOR);
 		beanDef.setAttribute(org.springframework.beans.factory.annotation.RequiredAnnotationBeanPostProcessor.
 				SKIP_REQUIRED_CHECK_ATTRIBUTE, Boolean.TRUE);
-
+		// 处理@Lazy/@Primary/@DependsOn/@Role/@Description注解
 		AnnotationConfigUtils.processCommonDefinitionAnnotations(beanDef, metadata);
 
 		Autowire autowire = bean.getEnum("autowire");
@@ -281,6 +299,10 @@ class ConfigurationClassBeanDefinitionReader {
 			logger.trace(String.format("Registering bean definition for @Bean method %s.%s()",
 					configClass.getMetadata().getClassName(), beanName));
 		}
+		/**
+		 * 将配置类BD注册到BDMap中
+		 * @see DefaultListableBeanFactory#registerBeanDefinition(String, BeanDefinition)
+		 */
 		this.registry.registerBeanDefinition(beanName, beanDefToRegister);
 	}
 
@@ -288,20 +310,24 @@ class ConfigurationClassBeanDefinitionReader {
 		if (!this.registry.containsBeanDefinition(beanName)) {
 			return false;
 		}
+		// 根据name, 获取已存在的BD
 		BeanDefinition existingBeanDef = this.registry.getBeanDefinition(beanName);
 
 		// Is the existing bean definition one that was created from a configuration class?
 		// -> allow the current bean method to override, since both are at second-pass level.
 		// However, if the bean method is an overloaded case on the same configuration class,
 		// preserve the existing bean definition.
+		// 只有@Bean注解的类, 才会被构建成ConfigurationClassBeanDefinition
 		if (existingBeanDef instanceof ConfigurationClassBeanDefinition) {
 			ConfigurationClassBeanDefinition ccbd = (ConfigurationClassBeanDefinition) existingBeanDef;
+			// 这里在后续版本5.3有改动
 			return ccbd.getMetadata().getClassName().equals(
 					beanMethod.getConfigurationClass().getMetadata().getClassName());
 		}
 
 		// A bean definition resulting from a component scan can be silently overridden
 		// by an @Bean method, as of 4.2...
+		// 通过@Component扫描出来的
 		if (existingBeanDef instanceof ScannedGenericBeanDefinition) {
 			return false;
 		}
@@ -331,7 +357,7 @@ class ConfigurationClassBeanDefinitionReader {
 			Map<String, Class<? extends BeanDefinitionReader>> importedResources) {
 
 		Map<Class<?>, BeanDefinitionReader> readerInstanceCache = new HashMap<>();
-
+		// 根据importResource的资源构建对应的阅读器类
 		importedResources.forEach((resource, readerClass) -> {
 			// Default reader selection necessary?
 			if (BeanDefinitionReader.class == readerClass) {
@@ -348,7 +374,7 @@ class ConfigurationClassBeanDefinitionReader {
 			BeanDefinitionReader reader = readerInstanceCache.get(readerClass);
 			if (reader == null) {
 				try {
-					// Instantiate the specified BeanDefinitionReader
+					// Instantiate the specified BeanDefinitionReader 实例化指定的BD阅读器.
 					reader = readerClass.getConstructor(BeanDefinitionRegistry.class).newInstance(this.registry);
 					// Delegate the current ResourceLoader to it if possible
 					if (reader instanceof AbstractBeanDefinitionReader) {
@@ -365,19 +391,23 @@ class ConfigurationClassBeanDefinitionReader {
 			}
 
 			// TODO SPR-6310: qualify relative path locations as done in AbstractContextLoader.modifyLocations
+			/**
+			 * @see AbstractBeanDefinitionReader#loadBeanDefinitions(String)
+			 */
 			reader.loadBeanDefinitions(resource);
 		});
 	}
 
 	/**
-	 * 从注册器加载Bean定义
+	 * 从注册器加载Bean定义: 获取所有实现{@link ImportBeanDefinitionRegistrar}接口的实例对象, 遍历执行对应的registerBeanDefinitions()方法
 	 * @param registrars
 	 */
 	private void loadBeanDefinitionsFromRegistrars(Map<ImportBeanDefinitionRegistrar, AnnotationMetadata> registrars) {
-		// 遍历注册器
+		// 遍历注册器: 所有实现ImportBeanDefinitionRegistrar接口的实例对象
 		registrars.forEach((registrar, metadata) ->
 				/**
-				 * 注册bean定义
+				 * 执行对应的registerBeanDefinitions()方法, 注册bean定义
+				 * 案例: AOP
 				 * @see AspectJAutoProxyRegistrar#registerBeanDefinitions(org.springframework.core.type.AnnotationMetadata, org.springframework.beans.factory.support.BeanDefinitionRegistry)
 				 */
 				registrar.registerBeanDefinitions(metadata, this.registry));
@@ -389,6 +419,8 @@ class ConfigurationClassBeanDefinitionReader {
 	 * was created from a configuration class as opposed to any other configuration source.
 	 * Used in bean overriding cases where it's necessary to determine whether the bean
 	 * definition was created externally.
+	 *
+	 * 只有@Bean注解的类, 才会被构建成ConfigurationClassBeanDefinition
 	 */
 	@SuppressWarnings("serial")
 	private static class ConfigurationClassBeanDefinition extends RootBeanDefinition implements AnnotatedBeanDefinition {

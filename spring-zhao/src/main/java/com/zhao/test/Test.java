@@ -1,6 +1,9 @@
 package com.zhao.test;
 
 import com.zhao.config.AppConfig;
+import com.zhao.importAnnotation.ZhaoDeferredImportSelectorService;
+import com.zhao.importAnnotation.ZhaoImportService;
+import com.zhao.importAnnotation.ZhaoImportService2;
 import com.zhao.loadBalanced.RuleService;
 import com.zhao.service.*;
 import com.zhao.web.ZhaoBeanFactoryPostProcessor;
@@ -15,11 +18,11 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
  */
 public class Test {
 	public static void main(String[] args) throws BeansException {
-		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
+//		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
 //		AnnotationConfigWebApplicationContext
 //		System.out.println(ac.getBean("orderService"));
-//		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext();
-//		ac.register(AppConfig.class);
+		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext();
+		ac.register(AppConfig.class);
 //		ac.register(ZhaoService.class);
 		ac.addBeanFactoryPostProcessor(new ZhaoBeanFactoryPostProcessor());
 //		ac.addBeanFactoryPostProcessor(new ZhaoBeanDefinitionRegistryPostProcessor());
@@ -44,7 +47,7 @@ public class Test {
 //		bdC.setBeanClass(CService.class);
 //		ac.registerBeanDefinition("cService", bdC);
 
-//		ac.refresh();
+		ac.refresh();
 
 //		System.out.println(ac.getBean("zhaoService"));
 //		System.out.println(ac.getBean("bService"));
@@ -106,5 +109,18 @@ public class Test {
 		ruleService.test();
 
 		ac.publishEvent("zhao publish event!");
+
+		// @Import
+		ZhaoImportService zhaoImportService = ac.getBean(ZhaoImportService.class);
+		System.out.println(zhaoImportService);
+		zhaoImportService.test();
+
+		ZhaoImportService2 zhaoImportService2 = ac.getBean(ZhaoImportService2.class);
+		System.out.println(zhaoImportService2);
+		zhaoImportService2.test();
+
+		ZhaoDeferredImportSelectorService zhaoDeferredImportSelectorService = ac.getBean(ZhaoDeferredImportSelectorService.class);
+		System.out.println(zhaoDeferredImportSelectorService);
+		zhaoDeferredImportSelectorService.test();
 	}
 }

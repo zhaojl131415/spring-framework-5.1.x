@@ -1,5 +1,8 @@
 package com.zhao.config;
 
+import com.zhao.importAnnotation.ZhaoDeferredImportSelector;
+import com.zhao.importAnnotation.ZhaoImportSelector;
+import com.zhao.importAnnotation.ZhaoImportService2;
 import com.zhao.service.*;
 import org.springframework.beans.factory.annotation.Autowire;
 import org.springframework.context.annotation.*;
@@ -25,6 +28,7 @@ import org.springframework.context.annotation.*;
 @EnableAspectJAutoProxy(proxyTargetClass = true)
 @ComponentScan("com.zhao")
 @Configuration
+@Import({ZhaoImportSelector.class, ZhaoImportService2.class, ZhaoDeferredImportSelector.class})
 //@Import(ZhaoAopBeanPostProcessor.class)
 public class AppConfig {
 //
@@ -48,6 +52,7 @@ public class AppConfig {
 
 	@Bean
 	public AaService aaService1() {
+		aaService2();
 		return new AaService();
 	}
 

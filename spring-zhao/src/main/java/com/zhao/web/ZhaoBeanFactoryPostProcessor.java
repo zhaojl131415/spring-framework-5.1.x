@@ -38,7 +38,7 @@ import org.springframework.stereotype.Component;
 public class ZhaoBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		GenericBeanDefinition definition = (GenericBeanDefinition) beanFactory.getBeanDefinition("orderService");
-		definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_NO);
+		BeanDefinition definition = beanFactory.getBeanDefinition("orderService");
+		System.out.println("ZhaoBeanFactoryPostProcessor 获取BD的名称: " + definition.getBeanClassName());
 	}
 }

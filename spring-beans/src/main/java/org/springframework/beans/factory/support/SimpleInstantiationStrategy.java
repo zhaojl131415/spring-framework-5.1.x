@@ -27,6 +27,7 @@ import org.springframework.beans.BeanInstantiationException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.cglib.proxy.MethodProxy;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
@@ -42,7 +43,7 @@ import org.springframework.util.StringUtils;
  * @since 1.1
  */
 public class SimpleInstantiationStrategy implements InstantiationStrategy {
-
+	// 记录当前线程正在执行的工厂方法
 	private static final ThreadLocal<Method> currentlyInvokedFactoryMethod = new ThreadLocal<>();
 
 
@@ -158,7 +159,14 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 
 			Method priorInvokedFactoryMethod = currentlyInvokedFactoryMethod.get();
 			try {
+				// 记录当前线程正在执行的工厂方法
 				currentlyInvokedFactoryMethod.set(factoryMethod);
+				/**
+				 * factoryBean就是全配置类的代理对象, factoryMethod就是全配置类中的@Bean修饰的方法, 在这里就是相当于是去执行这个@Bean修饰的方法.
+				 * 但是因为全配置类在加入BDMap的之前对其进行了增强, 成了代理类,
+				 * 这个代理类添加了一个Bean方法拦截器, 所以在执行@Bean修饰的方法时会被这个拦截器拦截, 进入拦截方法
+				 * @see org.springframework.context.annotation.ConfigurationClassEnhancer.BeanMethodInterceptor#intercept(Object, Method, Object[], MethodProxy)
+				 */
 				Object result = factoryMethod.invoke(factoryBean, args);
 				if (result == null) {
 					result = new NullBean();

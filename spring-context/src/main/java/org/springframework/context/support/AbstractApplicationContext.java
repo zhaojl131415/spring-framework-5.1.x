@@ -775,8 +775,12 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory beanFactory) {
 		/**
-		 * 这个地方需要注意getBeanFactoryPostProcessors()是获取手动给spring的自定义BeanFactoryProcessor实现类, 默认为空
-		 * 自定义并不仅仅是程序员自己写的, 第三方的(比如:mybatis)
+		 * getBeanFactoryPostProcessors(): 获取手动给spring自定义的{@link BeanFactoryPostProcessor}实现类(包括第三方mybatis等), 默认为空
+		 *
+		 * 因为当前方法是在spring的{@link #refresh()}内部被调用的, 在这里获取BeanFactory后置处理器,
+		 * 也只能获取到在调用{@link #refresh()}之前执行{@link #addBeanFactoryPostProcessor(BeanFactoryPostProcessor)}插入的后置处理器.
+		 *
+		 * 执行bean工厂后置处理器
 		 */
 		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
 

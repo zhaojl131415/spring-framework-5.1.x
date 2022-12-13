@@ -74,6 +74,7 @@ class ConfigurationClassEnhancer {
 
 	// The callbacks to use. Note that these callbacks must be stateless.
 	private static final Callback[] CALLBACKS = new Callback[] {
+			// Bean方法拦截器
 			new BeanMethodInterceptor(),
 			new BeanFactoryAwareMethodInterceptor(),
 			NoOp.INSTANCE
@@ -142,6 +143,11 @@ class ConfigurationClassEnhancer {
 		Class<?> subclass = enhancer.createClass();
 		// Registering callbacks statically (as opposed to thread-local)
 		// is critical for usage in an OSGi environment (SPR-5932)...
+		//
+		/**
+		 * 注册静态回调, CALLBACKS内添加了Bean方法拦截器{@link BeanMethodInterceptor},
+		 * 在@Bean修饰的方法被调用时, 会执行这个拦截器的拦截方法:{@link BeanMethodInterceptor#intercept(Object, Method, Object[], MethodProxy)}
+		 */
 		Enhancer.registerStaticCallbacks(subclass, CALLBACKS);
 		return subclass;
 	}
@@ -373,7 +379,7 @@ class ConfigurationClassEnhancer {
 			 * 	判断当前创建bean的方法和当前执行的方法是否一样
 			 * 	如果执行到自己的方法时，也就是x bean的代理类中执行super.x();y bean的代理类中执行super.y();
 			 * 	这种是通过判断条件进入if，执行if内部代码,调用父类方法创建bean；
-			 * 	而y bean的代理类中执行到x()时，条件通不过，执行后面代码，调用自己逻辑去创建bean
+			 * 	而y bean的代理类中执行到x()时, 正在执行的工厂方法是y, 而beanMethod却是x，所以条件通不过，执行后面代码，调用自己逻辑去创建bean
 			 */
 			if (isCurrentlyInvokedFactoryMethod(beanMethod)) {
 				// The factory is calling the bean method in order to instantiate and register the bean
@@ -393,6 +399,7 @@ class ConfigurationClassEnhancer {
 				return cglibMethodProxy.invokeSuper(enhancedConfigInstance, beanMethodArgs);
 			}
 			// 解决Bean引用，如果是一个@Bean引用了另一@Bean
+			// 调用自己逻辑去创建bean
 			return resolveBeanReference(beanMethod, beanMethodArgs, beanFactory, beanName);
 		}
 

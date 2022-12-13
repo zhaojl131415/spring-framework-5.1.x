@@ -964,9 +964,10 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 						"Validation of bean definition failed", ex);
 			}
 		}
-
+		// 判断重复BD
 		BeanDefinition existingDefinition = this.beanDefinitionMap.get(beanName);
 		if (existingDefinition != null) {
+			// 如果存在重复的BD, 判断是否允许BD覆盖, 默认为true
 			if (!isAllowBeanDefinitionOverriding()) {
 				throw new BeanDefinitionOverrideException(beanName, beanDefinition, existingDefinition);
 			}
@@ -993,8 +994,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 				}
 			}
 			/**
-			 * beanDefinitionMap是Map<String, BeanDefinition>，
-			 * 这里就是把beanName作为key，ScopedProxyMode作为value，推到map里面
+			 * 存在重复, 直接覆盖
 			 */
 			this.beanDefinitionMap.put(beanName, beanDefinition);
 		}

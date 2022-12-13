@@ -86,7 +86,7 @@ abstract class ConfigurationClassUtils {
 		if (className == null || beanDef.getFactoryMethodName() != null) {
 			return false;
 		}
-		// 存元数据信息
+		// 存元数据信息(注解信息)
 		AnnotationMetadata metadata;
 		// 配置类的BD类型为：AnnotatedGenericBeanDefinition
 		// AnnotatedGenericBeanDefinition extends GenericBeanDefinition implements AnnotatedBeanDefinition
@@ -115,7 +115,8 @@ abstract class ConfigurationClassUtils {
 				return false;
 			}
 		}
-		// 判断是否全配置类 setAttribute = full
+		// 判断是否全配置类: 存在@Configuration注解 setAttribute = full
+		// 这里在spring5.3版本做了修改, @Configuration注解添加了属性: proxyBeanMethods,
 		if (isFullConfigurationCandidate(metadata)) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
 		}
@@ -138,6 +139,7 @@ abstract class ConfigurationClassUtils {
 	}
 
 	/**
+	 * 是否为配置类
 	 * Check the given metadata for a configuration class candidate
 	 * (or nested component class declared within a configuration/component class).
 	 * @param metadata the metadata of the annotated class
@@ -145,6 +147,7 @@ abstract class ConfigurationClassUtils {
 	 * reflection-detected bean definition; {@code false} otherwise
 	 */
 	public static boolean isConfigurationCandidate(AnnotationMetadata metadata) {
+		// 是不是全配置类 或者 简化配置类
 		return (isFullConfigurationCandidate(metadata) || isLiteConfigurationCandidate(metadata));
 	}
 
@@ -166,6 +169,8 @@ abstract class ConfigurationClassUtils {
 	 * @param metadata the metadata of the annotated class
 	 * @return {@code true} if the given class is to be processed as a lite
 	 * configuration class, just registering it and scanning it for {@code @Bean} methods
+	 *
+	 * 判断是否加了Component/ComponentScan/Import/ImportResource注解, 是否存在@Bean的方法
 	 */
 	public static boolean isLiteConfigurationCandidate(AnnotationMetadata metadata) {
 		// Do not consider an interface or an annotation...
@@ -174,6 +179,7 @@ abstract class ConfigurationClassUtils {
 		}
 
 		// Any of the typical annotations found?
+		// candidateIndicators: Component/ComponentScan/Import/ImportResource
 		for (String indicator : candidateIndicators) {
 			if (metadata.isAnnotated(indicator)) {
 				return true;
@@ -195,7 +201,7 @@ abstract class ConfigurationClassUtils {
 	/**
 	 * Determine whether the given bean definition indicates a full {@code @Configuration}
 	 * class, through checking {@link #checkConfigurationClassCandidate}'s metadata marker.
-	 * 通过检查{#checkConfigurationClassCandidate}的元数据标记，确定给定的bean定义是否指示完整的{@Configuration}类。
+	 * 通过检查{#checkConfigurationClassCandidate}的元数据标记，确定给定的bean定义是否指示完整的{@link Configuration}类。
 	 */
 	public static boolean isFullConfigurationClass(BeanDefinition beanDef) {
 		// BeanDefinition extends AttributeAccessor, BeanMetadataElement

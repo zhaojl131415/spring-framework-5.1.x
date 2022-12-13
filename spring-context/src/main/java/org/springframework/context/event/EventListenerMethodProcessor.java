@@ -67,7 +67,8 @@ import org.springframework.util.CollectionUtils;
  * 在这个阅读器的构造方法{@link AnnotatedBeanDefinitionReader#AnnotatedBeanDefinitionReader(BeanDefinitionRegistry, Environment)}中,
  * 注册了几个spring内置的关键处理器的BD, 存入了BDMap, 其中就包括当前处理器,
  * 这些被存入BDMap的处理器, 最后也会走spring bean的生命周期.
- * 这个处理器实现了{@link SmartInitializingSingleton}接口, 重写了{@link #afterSingletonsInstantiated()}方法, 在完成spring生命周期实例化后,会调用此方法.
+ * 这个处理器实现了{@link SmartInitializingSingleton}接口, 重写了{@link #afterSingletonsInstantiated()}方法, 在完成spring生命周期实例化后,
+ * 会调用此方法, 会找到所有加了@EventListener的方法, 构建成ApplicationListener, 加入到spring的监听器集合中
  */
 public class EventListenerMethodProcessor
 		implements SmartInitializingSingleton, ApplicationContextAware, BeanFactoryPostProcessor {
@@ -106,8 +107,9 @@ public class EventListenerMethodProcessor
 	}
 
 	/**
-	 * 在完成spring生命周期实例化后,会调用此方法.
+	 * 在完成spring生命周期实例化后, 会调用此方法,
 	 * 因为这个处理器实现了{@link SmartInitializingSingleton}接口, 重写了{@link #afterSingletonsInstantiated()}方法
+	 * 会找到所有加了@EventListener的方法, 构建成ApplicationListener, 加入到spring的监听器集合中
 	 */
 	@Override
 	public void afterSingletonsInstantiated() {
