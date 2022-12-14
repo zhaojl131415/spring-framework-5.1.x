@@ -1,7 +1,11 @@
-package com.zhao.zhaoBatis;
+package com.zhao.zhaoBatis.mapper;
 
+import com.zhao.zhaoBatis.User;
 import com.zhao.zhaoBatis.annotation.ZhaoMapper;
 import com.zhao.zhaoBatis.annotation.ZhaoSelect;
+import org.apache.ibatis.annotations.Select;
+
+import java.util.List;
 
 /**
  * @author zhaojinliang
@@ -12,7 +16,7 @@ import com.zhao.zhaoBatis.annotation.ZhaoSelect;
 @ZhaoMapper
 public interface UserMapper {
 
-	@ZhaoSelect("select * from user")
-	public void queryUser();
+	@Select("select * from user")
+	public List<User> queryUser();
 
 }

@@ -1,10 +1,10 @@
 package com.zhao.zhaoBatis;
 
-import com.zhao.config.AppConfig;
-import com.zhao.zhaoBatis.annotation.ZhaoMapper;
 import com.zhao.zhaoBatis.config.MybatisAppConfig;
+import com.zhao.zhaoBatis.mapper.UserMapper;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.core.type.filter.AnnotationTypeFilter;
+
+import java.util.List;
 
 /**
  * @author zhaojinliang
@@ -15,19 +15,21 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 public class ZhaoBatisTest {
 
 	public static void main(String[] args) {
-		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext();
-		ac.register(MybatisAppConfig.class);
-		ac.refresh();
+		try {
+
+			AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext();
+			ac.register(MybatisAppConfig.class);
+			ac.refresh();
 
 
-		ZhaoScanner scanner = new ZhaoScanner(ac);
-		scanner.addIncludeFilter(new AnnotationTypeFilter(ZhaoMapper.class));
-		int scan = scanner.scan("com.zhao.zhaoBatis");
-		System.out.println(scan);
-
-
-
-
+//		ZhaoScanner scanner = new ZhaoScanner(ac);
+//		scanner.addIncludeFilter(new AnnotationTypeFilter(ZhaoMapper.class));
+//		int scan = scanner.scan("com.zhao.zhaoBatis");
+//		System.out.println(scan);
+//
+//
+//
+//
 //		// 能够得到一个实现了UserMapper的代理对象
 //		UserMapper userMapper = (UserMapper) ZhaoBatisFactory.getMapper(UserMapper.class);
 //		OrderMapper orderMapper = (OrderMapper) ZhaoBatisFactory.getMapper(OrderMapper.class);
@@ -38,8 +40,11 @@ public class ZhaoBatisTest {
 //		orderMapper.queryOrder();
 
 
-
-		UserMapper userMapper = ac.getBean(UserMapper.class);
-		userMapper.queryUser();
+			UserMapper userMapper = (UserMapper) ac.getBean("userMapper");
+			List<User> users = userMapper.queryUser();
+			users.forEach(System.out::println);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

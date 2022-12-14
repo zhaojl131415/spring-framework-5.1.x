@@ -1,4 +1,4 @@
-package com.zhao.zhaoBatis;
+package com.zhao.zhaoBatis.mapper;
 
 import com.zhao.zhaoBatis.annotation.ZhaoMapper;
 import com.zhao.zhaoBatis.annotation.ZhaoSelect;

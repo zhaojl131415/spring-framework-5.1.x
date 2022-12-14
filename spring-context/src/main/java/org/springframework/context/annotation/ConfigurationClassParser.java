@@ -355,7 +355,7 @@ class ConfigurationClassParser {
 		 * 包括@Import支持的4种类型：ImportSelector、ImportBeanDefinitionRegistrar、@Configuration和普通java类
 		 * 普通java类会被按@Configuration方式处理
 		 *
-		 * mybatis @MapperScan注解中@Import(MapperScannerRegistrar.class)
+		 * mybatis: @MapperScan注解中@Import(MapperScannerRegistrar.class)
 		 */
 		processImports(configClass, sourceClass, getImports(sourceClass), true);
 
