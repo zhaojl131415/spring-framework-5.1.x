@@ -17,6 +17,7 @@ dependencies {
     compile project(':spring-instrument')
     compile group: 'org.aspectj', name: 'aspectjweaver', version: '1.9.0'
     compile group: 'org.mybatis', name: 'mybatis', version: '3.5.4'
-    compile group: 'org.mybatis', name: 'mybatis-spring', version: '2.0.4'
+    compile group: 'org.mybatis', name: 'mybatis-spring', version: '2.0.6'
     compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.31'
+    compile group: 'com.alibaba', name: 'druid', version: '1.2.8'
 }
