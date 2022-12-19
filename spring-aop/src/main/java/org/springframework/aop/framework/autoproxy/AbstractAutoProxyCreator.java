@@ -32,7 +32,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.aop.Advisor;
 import org.springframework.aop.Pointcut;
 import org.springframework.aop.TargetSource;
-import org.springframework.aop.aspectj.annotation.InstantiationModelAwarePointcutAdvisorImpl;
 import org.springframework.aop.framework.AopInfrastructureBean;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.framework.ProxyProcessorSupport;
@@ -410,7 +409,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		 *
 		 * 抽象方法, 调用子类的实现
 		 * @see AbstractAdvisorAutoProxyCreator#getAdvicesAndAdvisorsForBean(java.lang.Class, java.lang.String, org.springframework.aop.TargetSource)
-		 * 返回的是个Advisor集合: 集合内对象: {@link InstantiationModelAwarePointcutAdvisorImpl}
+		 * 返回的是个Advisor集合: 集合内对象: {@link org.springframework.aop.aspectj.annotation.InstantiationModelAwarePointcutAdvisorImpl}
 		 *
 		 * seata有扩展, 返回的是个拦截器:
 		 * AT模式: GlobalTransactionalInterceptor
