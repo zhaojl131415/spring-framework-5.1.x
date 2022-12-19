@@ -79,6 +79,7 @@ import org.springframework.core.NamedThreadLocal;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.core.PriorityOrdered;
 import org.springframework.core.ResolvableType;
+import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -463,12 +464,16 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		for (BeanPostProcessor processor : getBeanPostProcessors()) {
 			/**
 			 * 后续版本对这里有过优化, 添加了判断后置处理器是否实现了InstantiationAwareBeanPostProcessor
-			 * aop
+			 * aop:
+			 * 通过{@link org.springframework.context.annotation.EnableAspectJAutoProxy}注解, 导入了{@link org.springframework.context.annotation.AspectJAutoProxyRegistrar},
+			 * 在spring启动时, 会执行其registerBeanDefinitions()方法, 将{@link org.springframework.aop.aspectj.annotation.AnnotationAwareAspectJAutoProxyCreator}存入BDMap中,
+			 * 这个AnnotationAwareAspectJAutoProxyCreator是AbstractAutoProxyCreator的子类, AbstractAutoProxyCreator是一个bean后置处理器, 所以在这里可以获取到, 而进入对应方法.
 			 * @see org.springframework.aop.framework.autoproxy.AbstractAutoProxyCreator#postProcessAfterInitialization(java.lang.Object, java.lang.String)
 			 *
 			 * 注解@Async
 			 * @see org.springframework.aop.framework.AbstractAdvisingBeanPostProcessor#postProcessAfterInitialization(Object, String)
 			 */
+
 			Object current = processor.postProcessAfterInitialization(result, beanName);
 			if (current == null) {
 				return result;

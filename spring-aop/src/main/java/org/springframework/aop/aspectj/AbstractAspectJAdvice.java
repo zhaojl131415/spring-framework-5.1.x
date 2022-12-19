@@ -36,6 +36,7 @@ import org.springframework.aop.AopInvocationException;
 import org.springframework.aop.MethodMatcher;
 import org.springframework.aop.Pointcut;
 import org.springframework.aop.ProxyMethodInvocation;
+import org.springframework.aop.aspectj.annotation.LazySingletonAspectInstanceFactoryDecorator;
 import org.springframework.aop.interceptor.ExposeInvocationInterceptor;
 import org.springframework.aop.support.ComposablePointcut;
 import org.springframework.aop.support.MethodMatchers;
@@ -638,9 +639,14 @@ public abstract class AbstractAspectJAdvice implements Advice, AspectJPrecedence
 		if (this.aspectJAdviceMethod.getParameterCount() == 0) {
 			actualArgs = null;
 		}
+		// 发射调用aspectJAdviceMethod
 		try {
 			ReflectionUtils.makeAccessible(this.aspectJAdviceMethod);
 			// TODO AopUtils.invokeJoinpointUsingReflection
+			/**
+			 * 执行被AspectJ注解(@Before等)修饰的方法
+			 * 通过{@link LazySingletonAspectInstanceFactoryDecorator#getAspectInstance()}, 拿到Advice中所记录的切面实例, 在执行对应的方法
+			 */
 			return this.aspectJAdviceMethod.invoke(this.aspectInstanceFactory.getAspectInstance(), actualArgs);
 		}
 		catch (IllegalArgumentException ex) {

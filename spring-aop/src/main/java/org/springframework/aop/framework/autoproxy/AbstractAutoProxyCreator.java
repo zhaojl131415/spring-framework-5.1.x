@@ -32,6 +32,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.aop.Advisor;
 import org.springframework.aop.Pointcut;
 import org.springframework.aop.TargetSource;
+import org.springframework.aop.aspectj.annotation.InstantiationModelAwarePointcutAdvisorImpl;
 import org.springframework.aop.framework.AopInfrastructureBean;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.framework.ProxyProcessorSupport;
@@ -409,13 +410,14 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		 *
 		 * 抽象方法, 调用子类的实现
 		 * @see AbstractAdvisorAutoProxyCreator#getAdvicesAndAdvisorsForBean(java.lang.Class, java.lang.String, org.springframework.aop.TargetSource)
-		 * 返回的是个Advisor集合
+		 * 返回的是个Advisor集合: 集合内对象: {@link InstantiationModelAwarePointcutAdvisorImpl}
 		 *
 		 * seata有扩展, 返回的是个拦截器:
 		 * AT模式: GlobalTransactionalInterceptor
 		 * TCC模式: TccActionInterceptor
 		 */
 		Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
+		// 如果指定的拦截器(Advisor集合)不为空, 表示需要被代理.
 		if (specificInterceptors != DO_NOT_PROXY) {
 			// 执行代理前,把当前bean放入advisedBeans, 表示已经代理过了
 			this.advisedBeans.put(cacheKey, Boolean.TRUE);

@@ -103,6 +103,7 @@ public abstract class AopProxyUtils {
 	}
 
 	/**
+	 * 确定要代理给定 AOP 配置的完整接口集。
 	 * Determine the complete set of interfaces to proxy for the given AOP configuration.
 	 * <p>This will always add the {@link Advised} interface unless the AdvisedSupport's
 	 * {@link AdvisedSupport#setOpaque "opaque"} flag is on. Always adds the

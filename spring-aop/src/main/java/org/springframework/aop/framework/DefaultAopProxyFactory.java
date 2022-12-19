@@ -56,8 +56,9 @@ public class DefaultAopProxyFactory implements AopProxyFactory, Serializable {
 	 */
 	@Override
 	public AopProxy createAopProxy(AdvisedSupport config) throws AopConfigException {
-		// isOptimize: 优化策略, 默认为false, 注解方式没有找到修改的地方
+		// isOptimize: 优化策略, 默认为false
 		// isProxyTargetClass: 使用cglib,默认为false, 可修改:@EnableAspectJAutoProxy(proxyTargetClass = true)
+		// hasNoUserSuppliedProxyInterfaces: 用户是否提供代理接口, 调用addInterface添加
 		if (config.isOptimize() || config.isProxyTargetClass() || hasNoUserSuppliedProxyInterfaces(config)) {
 			Class<?> targetClass = config.getTargetClass();
 			if (targetClass == null) {

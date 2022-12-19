@@ -124,6 +124,8 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 	 * Will create a SingletonTargetSource for the object.
 	 * @see #setTargetSource
 	 * @see org.springframework.aop.target.SingletonTargetSource
+	 *
+	 * 指定需要被代理的目标对象
 	 */
 	public void setTarget(Object target) {
 		setTargetSource(new SingletonTargetSource(target));
@@ -191,6 +193,7 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 
 	/**
 	 * Set the interfaces to be proxied.
+	 * 指定被代理的接口类
 	 */
 	public void setInterfaces(Class<?>... interfaces) {
 		Assert.notNull(interfaces, "Interfaces must not be null");
@@ -247,6 +250,10 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 		return this.advisorArray;
 	}
 
+	/**
+	 * 添加切面
+	 * @param advisor the advisor to add to the end of the chain
+	 */
 	@Override
 	public void addAdvisor(Advisor advisor) {
 		int pos = this.advisors.size();
@@ -385,6 +392,11 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 	}
 
 
+	/**
+	 * 往链上添加增强建议: 会按照add顺序加入链来执行
+	 * @param advice advice to add to the tail of the chain
+	 * @throws AopConfigException
+	 */
 	@Override
 	public void addAdvice(Advice advice) throws AopConfigException {
 		int pos = this.advisors.size();
@@ -477,9 +489,15 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 	 * @return a List of MethodInterceptors (may also include InterceptorAndDynamicMethodMatchers)
 	 */
 	public List<Object> getInterceptorsAndDynamicInterceptionAdvice(Method method, @Nullable Class<?> targetClass) {
+		// 代理对象在执行某个方法时, 会根据当前ProxyFactory中所设置的Advisor根据当前method再次进行过滤
+
 		MethodCacheKey cacheKey = new MethodCacheKey(method);
+		// Advice链
 		List<Object> cached = this.methodCache.get(cacheKey);
 		if (cached == null) {
+			/**
+			 * @see DefaultAdvisorChainFactory#getInterceptorsAndDynamicInterceptionAdvice(Advised, Method, Class)
+			 */
 			cached = this.advisorChainFactory.getInterceptorsAndDynamicInterceptionAdvice(
 					this, method, targetClass);
 			this.methodCache.put(cacheKey, cached);

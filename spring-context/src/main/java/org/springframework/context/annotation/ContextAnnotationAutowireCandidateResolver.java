@@ -75,10 +75,17 @@ public class ContextAnnotationAutowireCandidateResolver extends QualifierAnnotat
 		return false;
 	}
 
+	/**
+	 * 构建Lazy的代理对象
+	 * @param descriptor
+	 * @param beanName
+	 * @return
+	 */
 	protected Object buildLazyResolutionProxy(final DependencyDescriptor descriptor, final @Nullable String beanName) {
 		Assert.state(getBeanFactory() instanceof DefaultListableBeanFactory,
 				"BeanFactory needs to be a DefaultListableBeanFactory");
 		final DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) getBeanFactory();
+		// 构建一个TargetSource: 被代理对象的来源
 		TargetSource ts = new TargetSource() {
 			@Override
 			public Class<?> getTargetClass() {
@@ -91,7 +98,7 @@ public class ContextAnnotationAutowireCandidateResolver extends QualifierAnnotat
 			@Override
 			public Object getTarget() {
 				// 当注入的代理对象使用的时候, 才会通过spring容器根据依赖描述符找到对应的对象, 再去使用
-				// todo: 构造器/方法等解决循环依赖的关键?
+				// 构造器/方法等解决循环依赖的关键, 注入的是一个代理对象, 而不是真正的目标对象, 目标对象在注入时都没有完成实例化, 所以不会有循环依赖的问题.
 				Object target = beanFactory.doResolveDependency(descriptor, beanName, null, null);
 				if (target == null) {
 					Class<?> type = getTargetClass();
@@ -107,13 +114,16 @@ public class ContextAnnotationAutowireCandidateResolver extends QualifierAnnotat
 					throw new NoSuchBeanDefinitionException(descriptor.getResolvableType(),
 							"Optional dependency not present for lazy injection point");
 				}
+				// 返回真正被代理的对象
 				return target;
 			}
 			@Override
 			public void releaseTarget(Object target) {
 			}
 		};
+		// 实例化一个代理工厂对象
 		ProxyFactory pf = new ProxyFactory();
+		// 指定被代理对象的来源
 		pf.setTargetSource(ts);
 		Class<?> dependencyType = descriptor.getDependencyType();
 		if (dependencyType.isInterface()) {

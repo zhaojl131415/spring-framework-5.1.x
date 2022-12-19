@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.springframework.aop.Advisor;
 import org.springframework.aop.TargetSource;
+import org.springframework.aop.aspectj.annotation.AnnotationAwareAspectJAutoProxyCreator;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -77,6 +78,7 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 			Class<?> beanClass, String beanName, @Nullable TargetSource targetSource) {
 		// 寻找Advisors，过滤，并做排序
 		List<Advisor> advisors = findEligibleAdvisors(beanClass, beanName);
+		// 如果advisors为空, 则表示不需要代理
 		if (advisors.isEmpty()) {
 			return DO_NOT_PROXY;
 		}
@@ -94,7 +96,11 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	 * @see #extendAdvisors
 	 */
 	protected List<Advisor> findEligibleAdvisors(Class<?> beanClass, String beanName) {
-		// 寻找候选集
+		//
+		/**
+		 * 寻找Advisor候选集
+		 * @see AnnotationAwareAspectJAutoProxyCreator#findCandidateAdvisors()
+		 */
 		List<Advisor> candidateAdvisors = findCandidateAdvisors();
 		// 对候选集进行过滤
 		List<Advisor> eligibleAdvisors = findAdvisorsThatCanApply(candidateAdvisors, beanClass, beanName);

@@ -105,6 +105,9 @@ public class ProxyCreatorSupport extends AdvisedSupport {
 		// getAopProxyFactory() 获取AopProxyFactory
 		// 先获取创建AopProxy的工厂, 再由此创建AopProxy
 		// 用AopProxyFactory创建AopProxy, 再用AopProxy创建代理对象，这里的AopProxyFactory默认是DefaultAopProxyFactory
+		/**
+		 * @see DefaultAopProxyFactory#createAopProxy(AdvisedSupport)
+		 */
 		return getAopProxyFactory().createAopProxy(this);
 	}
 

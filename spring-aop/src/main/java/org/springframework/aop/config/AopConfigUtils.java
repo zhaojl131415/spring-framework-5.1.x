@@ -105,7 +105,7 @@ public abstract class AopConfigUtils {
 			BeanDefinitionRegistry registry, @Nullable Object source) {
 
 		/**
-		 * 根据需要注册或升级 自动代理创建器: 其实就是将AnnotationAwareAspectJAutoProxyCreator解析成bd, 并存入bdMap
+		 * 根据需要注册或升级 自动代理创建器: 其实就是将{@link AnnotationAwareAspectJAutoProxyCreator}解析成bd, 并存入bdMap
 		 * @see AnnotationAwareAspectJAutoProxyCreator 通过多层继承/实现 最终实现了 {@link BeanPostProcessor}接口
 		 */
 		return registerOrEscalateApcAsRequired(AnnotationAwareAspectJAutoProxyCreator.class, registry, source);

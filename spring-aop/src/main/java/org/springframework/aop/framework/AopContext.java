@@ -46,6 +46,8 @@ public final class AopContext {
 	 * Will contain {@code null} unless the "exposeProxy" property on
 	 * the controlling proxy configuration has been set to "true".
 	 * @see ProxyConfig#setExposeProxy
+	 *
+	 * 用于存储当前线程的代理对象.
 	 */
 	private static final ThreadLocal<Object> currentProxy = new NamedThreadLocal<>("Current AOP proxy");
 

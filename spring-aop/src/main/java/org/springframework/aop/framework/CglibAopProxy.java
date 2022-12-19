@@ -162,12 +162,16 @@ class CglibAopProxy implements AopProxy, Serializable {
 		}
 
 		try {
+			// 获取被代理的类
 			Class<?> rootClass = this.advised.getTargetClass();
 			Assert.state(rootClass != null, "Target class must be available for creating a CGLIB proxy");
 
 			Class<?> proxySuperClass = rootClass;
+			//  检查被代理的类是否为 CGLIB 生成的类
 			if (ClassUtils.isCglibProxyClass(rootClass)) {
+				// 如果是, 获取真正的被代理类
 				proxySuperClass = rootClass.getSuperclass();
+				// 获取被代理类所实现的接口
 				Class<?>[] additionalInterfaces = rootClass.getInterfaces();
 				for (Class<?> additionalInterface : additionalInterfaces) {
 					this.advised.addInterface(additionalInterface);
@@ -177,7 +181,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 			// Validate the class, writing log messages as necessary.
 			validateClassIfNecessary(proxySuperClass, classLoader);
 
-			// Configure CGLIB Enhancer...
+			// Configure CGLIB Enhancer... CGLib 增强器
 			Enhancer enhancer = createEnhancer();
 			if (classLoader != null) {
 				enhancer.setClassLoader(classLoader);
@@ -186,11 +190,13 @@ class CglibAopProxy implements AopProxy, Serializable {
 					enhancer.setUseCache(false);
 				}
 			}
+			// 被代理类, 代理类的父类
 			enhancer.setSuperclass(proxySuperClass);
+			// 代理类额外要实现的接口
 			enhancer.setInterfaces(AopProxyUtils.completeProxiedInterfaces(this.advised));
 			enhancer.setNamingPolicy(SpringNamingPolicy.INSTANCE);
 			enhancer.setStrategy(new ClassLoaderAwareUndeclaredThrowableStrategy(classLoader));
-
+			// 获取被代理类所匹配的Advised: 方法拦截器
 			Callback[] callbacks = getCallbacks(rootClass);
 			Class<?>[] types = new Class<?>[callbacks.length];
 			for (int x = 0; x < types.length; x++) {
@@ -201,7 +207,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 					this.advised.getConfigurationOnlyCopy(), this.fixedInterceptorMap, this.fixedInterceptorOffset));
 			enhancer.setCallbackTypes(types);
 
-			// Generate the proxy class and create a proxy instance.
+			// Generate the proxy class and create a proxy instance. 生成代理类并创建代理实例.
 			return createProxyClassAndInstance(enhancer, callbacks);
 		}
 		catch (CodeGenerationException | IllegalArgumentException ex) {

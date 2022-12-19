@@ -58,7 +58,7 @@ import org.springframework.lang.Nullable;
 public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFactory {
 
 	private static final String AJC_MAGIC = "ajc$";
-
+	// AspectJ注解类数组
 	private static final Class<?>[] ASPECTJ_ANNOTATION_CLASSES = new Class<?>[] {
 			Pointcut.class, Around.class, Before.class, After.class, AfterReturning.class, AfterThrowing.class};
 
@@ -130,6 +130,7 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 	@SuppressWarnings("unchecked")
 	@Nullable
 	protected static AspectJAnnotation<?> findAspectJAnnotationOnMethod(Method method) {
+		// 遍历AspectJ注解类数组, 判断方法上是否存在AspectJ注解, 如果存在则返回
 		for (Class<?> clazz : ASPECTJ_ANNOTATION_CLASSES) {
 			AspectJAnnotation<?> foundAnnotation = findAnnotation(method, (Class<Annotation>) clazz);
 			if (foundAnnotation != null) {
@@ -141,8 +142,10 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 
 	@Nullable
 	private static <A extends Annotation> AspectJAnnotation<A> findAnnotation(Method method, Class<A> toLookFor) {
+		// 查找方法上是否存在AspectJ注解类
 		A result = AnnotationUtils.findAnnotation(method, toLookFor);
 		if (result != null) {
+			// 如果存在则构建一个AspectJ注解对象返回
 			return new AspectJAnnotation<>(result);
 		}
 		else {
@@ -152,6 +155,7 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 
 
 	/**
+	 * AspectJ 注解类型的枚举
 	 * Enum for AspectJ annotation types.
 	 * @see AspectJAnnotation#getAnnotationType()
 	 */
@@ -169,7 +173,7 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 	protected static class AspectJAnnotation<A extends Annotation> {
 
 		private static final String[] EXPRESSION_ATTRIBUTES = new String[] {"pointcut", "value"};
-
+		// AspectJ 注释类型的Map
 		private static Map<Class<?>, AspectJAnnotationType> annotationTypeMap = new HashMap<>(8);
 
 		static {
@@ -202,6 +206,11 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 			}
 		}
 
+		/**
+		 * 确定注释类型
+		 * @param annotation
+		 * @return
+		 */
 		private AspectJAnnotationType determineAnnotationType(A annotation) {
 			AspectJAnnotationType type = annotationTypeMap.get(annotation.annotationType());
 			if (type != null) {

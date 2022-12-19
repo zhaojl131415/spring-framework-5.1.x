@@ -22,6 +22,8 @@ import org.springframework.aop.TargetSource;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 
+import java.lang.reflect.Method;
+
 /**
  * Factory for AOP proxies for programmatic use, rather than via declarative
  * setup in a bean factory. This class provides a simple way of obtaining
@@ -31,6 +33,8 @@ import org.springframework.util.ClassUtils;
  * @author Juergen Hoeller
  * @author Rob Harrop
  * @since 14.03.2003
+ *
+ * 代理工厂
  */
 @SuppressWarnings("serial")
 public class ProxyFactory extends ProxyCreatorSupport {
@@ -92,6 +96,8 @@ public class ProxyFactory extends ProxyCreatorSupport {
 	 * <p>Uses a default class loader: Usually, the thread context class loader
 	 * (if necessary for proxy creation).
 	 * @return the proxy object
+	 *
+	 * 生成代理类
 	 */
 	public Object getProxy() {
 		return createAopProxy().getProxy();
@@ -111,6 +117,16 @@ public class ProxyFactory extends ProxyCreatorSupport {
 		// createAopProxy() 创建代理
 		// 用ProxyFactory创建AopProxy, 然后用AopProxy创建Proxy, 所以这里重要的是看获取的AopProxy对象是什么,
 		// 然后进去看怎么创建动态代理, 提供了两种：jdk proxy, cglib
+		/**
+		 * Cglib生成代理类
+		 * @see CglibAopProxy#getProxy(ClassLoader)
+		 * Cglib代理实现方式, 执行方法
+		 *
+		 * Jdk动态代理生成代理类
+		 * @see JdkDynamicAopProxy#getProxy(ClassLoader)
+		 * Jdk动态代理实现方式, 方法执行时会进入一下方法
+		 * @see JdkDynamicAopProxy#invoke(Object, Method, Object[]) JdkDynamicAopProxy#invoke(Object, Method, Object[])
+		 */
 		return createAopProxy().getProxy(classLoader);
 	}
 

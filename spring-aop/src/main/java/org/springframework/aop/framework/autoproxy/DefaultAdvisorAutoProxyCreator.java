@@ -34,6 +34,9 @@ import org.springframework.lang.Nullable;
  *
  * @author Rod Johnson
  * @author Rob Harrop
+ *
+ * 默认Advisor自动代理创建器
+ *
  */
 @SuppressWarnings("serial")
 public class DefaultAdvisorAutoProxyCreator extends AbstractAdvisorAutoProxyCreator implements BeanNameAware {

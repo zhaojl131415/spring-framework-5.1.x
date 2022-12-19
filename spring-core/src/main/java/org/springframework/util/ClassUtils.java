@@ -864,6 +864,7 @@ public abstract class ClassUtils {
 	}
 
 	/**
+	 * 检查指定的类是否为 CGLIB 生成的类。
 	 * Check whether the specified class is a CGLIB-generated class.
 	 * @param clazz the class to check
 	 * @see #isCglibProxyClassName(String)
@@ -873,6 +874,7 @@ public abstract class ClassUtils {
 	}
 
 	/**
+	 * 检查指定的类名是否为 CGLIB 生成的类。
 	 * Check whether the specified class name is a CGLIB-generated class.
 	 * @param className the class name to check
 	 */

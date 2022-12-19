@@ -26,6 +26,7 @@ import org.springframework.aop.MethodBeforeAdvice;
 import org.springframework.util.Assert;
 
 /**
+ * 方法前置通知拦截器
  * Interceptor to wrap am {@link org.springframework.aop.MethodBeforeAdvice}.
  * Used internally by the AOP framework; application developers should not need
  * to use this class directly.
@@ -36,7 +37,7 @@ import org.springframework.util.Assert;
  */
 @SuppressWarnings("serial")
 public class MethodBeforeAdviceInterceptor implements MethodInterceptor, BeforeAdvice, Serializable {
-
+	// 方法前置通知
 	private final MethodBeforeAdvice advice;
 
 
@@ -49,10 +50,17 @@ public class MethodBeforeAdviceInterceptor implements MethodInterceptor, BeforeA
 		this.advice = advice;
 	}
 
-
+	/**
+	 * 方法前置通知拦截器执行拦截
+	 * @param mi the method invocation joinpoint
+	 * @return
+	 * @throws Throwable
+	 */
 	@Override
 	public Object invoke(MethodInvocation mi) throws Throwable {
+		// 执行方法前置通知的before()方法
 		this.advice.before(mi.getMethod(), mi.getArguments(), mi.getThis());
+		// 执行业务方法
 		return mi.proceed();
 	}
 

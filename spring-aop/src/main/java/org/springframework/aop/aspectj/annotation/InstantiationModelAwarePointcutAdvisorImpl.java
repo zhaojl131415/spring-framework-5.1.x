@@ -135,6 +135,7 @@ final class InstantiationModelAwarePointcutAdvisorImpl
 	}
 
 	/**
+	 * 如有必要，懒惰地实例化建议。
 	 * Lazily instantiate advice if necessary.
 	 */
 	@Override
@@ -145,7 +146,16 @@ final class InstantiationModelAwarePointcutAdvisorImpl
 		return this.instantiatedAdvice;
 	}
 
+	/**
+	 * 实例化Advice
+	 * @param pointcut
+	 * @return
+	 */
 	private Advice instantiateAdvice(AspectJExpressionPointcut pointcut) {
+		/**
+		 * 根据方法上的AspectJ注解, 创建对应的Advice
+		 * @see ReflectiveAspectJAdvisorFactory#getAdvice(Method, AspectJExpressionPointcut, MetadataAwareAspectInstanceFactory, int, String)
+		 */
 		Advice advice = this.aspectJAdvisorFactory.getAdvice(this.aspectJAdviceMethod, pointcut,
 				this.aspectInstanceFactory, this.declarationOrder, this.aspectName);
 		return (advice != null ? advice : EMPTY_ADVICE);

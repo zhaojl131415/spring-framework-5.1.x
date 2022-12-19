@@ -222,6 +222,7 @@ public abstract class AopUtils {
 	 */
 	public static boolean canApply(Pointcut pc, Class<?> targetClass, boolean hasIntroductions) {
 		Assert.notNull(pc, "Pointcut must not be null");
+		// 先判断类, 判断targetClass是不是和当前Pointcut匹配
 		if (!pc.getClassFilter().matches(targetClass)) {
 			return false;
 		}
@@ -247,6 +248,7 @@ public abstract class AopUtils {
 			Method[] methods = ReflectionUtils.getAllDeclaredMethods(clazz);
 			for (Method method : methods) {
 				if (introductionAwareMethodMatcher != null ?
+						// 方法匹配器匹配
 						introductionAwareMethodMatcher.matches(method, targetClass, hasIntroductions) :
 						methodMatcher.matches(method, targetClass)) {
 					return true;
@@ -294,6 +296,7 @@ public abstract class AopUtils {
 	}
 
 	/**
+	 * 确定适用于给定类的列表的 candidateAdvisors 子列表。
 	 * Determine the sublist of the {@code candidateAdvisors} list
 	 * that is applicable to the given class.
 	 * @param candidateAdvisors the Advisors to evaluate
@@ -306,6 +309,7 @@ public abstract class AopUtils {
 			return candidateAdvisors;
 		}
 		List<Advisor> eligibleAdvisors = new ArrayList<>();
+		// 遍历候选Advisor集合
 		for (Advisor candidate : candidateAdvisors) {
 			if (candidate instanceof IntroductionAdvisor && canApply(candidate, clazz)) {
 				eligibleAdvisors.add(candidate);
@@ -325,6 +329,7 @@ public abstract class AopUtils {
 	}
 
 	/**
+	 * 通过 反射 执行 连接点的方法(被代理的方法)
 	 * Invoke the given target via reflection, as part of an AOP method invocation.
 	 * @param target the target object
 	 * @param method the method to invoke

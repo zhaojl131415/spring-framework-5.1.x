@@ -89,8 +89,10 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 				if (aspectNames == null) {
 					List<Advisor> advisors = new ArrayList<>();
 					aspectNames = new ArrayList<>();
+					// 把所有的bean找出来
 					String[] beanNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
 							this.beanFactory, Object.class, true, false);
+					// 遍历
 					for (String beanName : beanNames) {
 						if (!isEligibleBean(beanName)) {
 							continue;
@@ -101,13 +103,21 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 						if (beanType == null) {
 							continue;
 						}
+						// 判断类上是否存在@Aspect注解
 						if (this.advisorFactory.isAspect(beanType)) {
 							aspectNames.add(beanName);
+							// 切面的注解信息
 							AspectMetadata amd = new AspectMetadata(beanType, beanName);
+							// 根据@Aspect注解的value值, 如果不是perthis/pertarget等, 默认一个切面只会生成一个单例对象, 并会将该切面中所对应的Advisor对象缓存.
 							if (amd.getAjType().getPerClause().getKind() == PerClauseKind.SINGLETON) {
 								MetadataAwareAspectInstanceFactory factory =
 										new BeanFactoryAspectInstanceFactory(this.beanFactory, beanName);
+								/**
+								 * 利用BeanFactoryAspectInstanceFactory来解析Aspect类
+								 * @see ReflectiveAspectJAdvisorFactory#getAdvisors(MetadataAwareAspectInstanceFactory)
+								 */
 								List<Advisor> classAdvisors = this.advisorFactory.getAdvisors(factory);
+								// 如果是单例的, 将该切面中所对应的Advisor对象缓存
 								if (this.beanFactory.isSingleton(beanName)) {
 									this.advisorsCache.put(beanName, classAdvisors);
 								}

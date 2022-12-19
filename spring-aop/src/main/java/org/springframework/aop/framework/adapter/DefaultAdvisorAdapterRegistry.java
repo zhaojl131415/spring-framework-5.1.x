@@ -45,6 +45,7 @@ public class DefaultAdvisorAdapterRegistry implements AdvisorAdapterRegistry, Se
 
 	/**
 	 * Create a new DefaultAdvisorAdapterRegistry, registering well-known adapters.
+	 * 创建一个新的 DefaultAdvisorAdapterRegistry，注册已知的适配器。
 	 */
 	public DefaultAdvisorAdapterRegistry() {
 		registerAdvisorAdapter(new MethodBeforeAdviceAdapter());
@@ -82,8 +83,11 @@ public class DefaultAdvisorAdapterRegistry implements AdvisorAdapterRegistry, Se
 		if (advice instanceof MethodInterceptor) {
 			interceptors.add((MethodInterceptor) advice);
 		}
+		// 遍历适配器
 		for (AdvisorAdapter adapter : this.adapters) {
+			// 适配器匹配
 			if (adapter.supportsAdvice(advice)) {
+				// 获取匹配适配器的拦截器
 				interceptors.add(adapter.getInterceptor(advisor));
 			}
 		}

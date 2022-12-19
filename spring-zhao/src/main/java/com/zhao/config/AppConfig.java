@@ -4,8 +4,15 @@ import com.zhao.importAnnotation.ZhaoDeferredImportSelector;
 import com.zhao.importAnnotation.ZhaoImportSelector;
 import com.zhao.importAnnotation.ZhaoImportService2;
 import com.zhao.service.*;
+import org.springframework.aop.MethodBeforeAdvice;
+import org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator;
+import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
+import org.springframework.aop.support.DefaultPointcutAdvisor;
+import org.springframework.aop.support.NameMatchMethodPointcut;
 import org.springframework.beans.factory.annotation.Autowire;
 import org.springframework.context.annotation.*;
+
+import java.lang.reflect.Method;
 
 
 /**
@@ -60,5 +67,34 @@ public class AppConfig {
 	public AaService aaService2() {
 		return new AaService();
 	}
+
+	// 将通过指定的BeanNames找到符合要求的Bean, 为这些bean生成代理, 并指定对应的代理逻辑
+	@Bean
+	public BeanNameAutoProxyCreator beanNameAutoProxyCreator() {
+		BeanNameAutoProxyCreator proxyCreator = new BeanNameAutoProxyCreator();
+		proxyCreator.setBeanNames("zhaoService", "userSer*");
+		proxyCreator.setInterceptorNames("zhaoThrowsAdvice");
+		return proxyCreator;
+	}
+
+//	// ---------------------------DefaultAdvisor start---------------------------
+//	@Import(DefaultAdvisorAutoProxyCreator.class)
+//
+//	@Bean
+//	public DefaultPointcutAdvisor defaultPointcutAdvisor() {
+//		NameMatchMethodPointcut pointcut= new NameMatchMethodPointcut();
+//		pointcut.setMappedName("test");
+//
+//		DefaultPointcutAdvisor advisor = new DefaultPointcutAdvisor();
+//		advisor.setPointcut(pointcut);
+//		advisor.setAdvice(new MethodBeforeAdvice() {
+//			@Override
+//			public void before(Method method, Object[] args, Object target) throws Throwable {
+//				System.out.println("DefaultPointcutAdvisor advice pointcut test before....");
+//			}
+//		});
+//		return advisor;
+//	}
+//	// ---------------------------DefaultAdvisor end---------------------------
 }
 
