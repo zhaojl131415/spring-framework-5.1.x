@@ -86,22 +86,26 @@ public abstract class TransactionSynchronizationUtils {
 	}
 
 	/**
+	 * 触发提交之前的方法
 	 * Trigger {@code beforeCommit} callbacks on all currently registered synchronizations.
 	 * @param readOnly whether the transaction is defined as read-only transaction
 	 * @throws RuntimeException if thrown by a {@code beforeCommit} callback
 	 * @see TransactionSynchronization#beforeCommit(boolean)
 	 */
 	public static void triggerBeforeCommit(boolean readOnly) {
+		// 遍历执行TransactionSynchronization集合的beforeCommit()方法
 		for (TransactionSynchronization synchronization : TransactionSynchronizationManager.getSynchronizations()) {
 			synchronization.beforeCommit(readOnly);
 		}
 	}
 
 	/**
+	 * 触发完成之前的方法
 	 * Trigger {@code beforeCompletion} callbacks on all currently registered synchronizations.
 	 * @see TransactionSynchronization#beforeCompletion()
 	 */
 	public static void triggerBeforeCompletion() {
+		// 遍历执行TransactionSynchronization集合的beforeCompletion()方法
 		for (TransactionSynchronization synchronization : TransactionSynchronizationManager.getSynchronizations()) {
 			try {
 				synchronization.beforeCompletion();

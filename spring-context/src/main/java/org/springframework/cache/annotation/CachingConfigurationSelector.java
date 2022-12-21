@@ -22,6 +22,8 @@ import java.util.List;
 import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.AdviceModeImportSelector;
 import org.springframework.context.annotation.AutoProxyRegistrar;
+import org.springframework.context.annotation.ImportSelector;
+import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
@@ -37,6 +39,9 @@ import org.springframework.util.StringUtils;
  * @since 3.1
  * @see EnableCaching
  * @see ProxyCachingConfiguration
+ *
+ * 继承了父类: {@link AdviceModeImportSelector}, 父类实现了接口{@link ImportSelector}, 并重写了selectImports()方法,
+ * 所以在spring启动时会执行{@link AdviceModeImportSelector#selectImports(AnnotationMetadata)}
  */
 public class CachingConfigurationSelector extends AdviceModeImportSelector<EnableCaching> {
 

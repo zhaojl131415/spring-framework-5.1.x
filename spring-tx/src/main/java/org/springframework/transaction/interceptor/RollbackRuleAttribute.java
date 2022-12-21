@@ -119,6 +119,7 @@ public class RollbackRuleAttribute implements Serializable{
 		if (exceptionClass == Throwable.class) {
 			return -1;
 		}
+		// 递归父类
 		return getDepth(exceptionClass.getSuperclass(), depth + 1);
 	}
 

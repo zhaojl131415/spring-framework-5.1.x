@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.aop.config.AopConfigUtils;
+import org.springframework.aop.framework.autoproxy.InfrastructureAdvisorAutoProxyCreator;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.type.AnnotationMetadata;
@@ -34,6 +35,8 @@ import org.springframework.core.type.AnnotationMetadata;
  * @author Chris Beams
  * @since 3.1
  * @see EnableAspectJAutoProxy
+ *
+ * 实现了{@link ImportBeanDefinitionRegistrar}接口, 会在spring启动时调用重写方法{@link #registerBeanDefinitions(AnnotationMetadata, BeanDefinitionRegistry)}
  */
 public class AutoProxyRegistrar implements ImportBeanDefinitionRegistrar {
 
@@ -69,8 +72,12 @@ public class AutoProxyRegistrar implements ImportBeanDefinitionRegistrar {
 					Boolean.class == proxyTargetClass.getClass()) {
 				candidateFound = true;
 				if (mode == AdviceMode.PROXY) {
+					/**
+					 * 注册{@link InfrastructureAdvisorAutoProxyCreator}, 才可以进行aop
+					 */
 					AopConfigUtils.registerAutoProxyCreatorIfNecessary(registry);
 					if ((Boolean) proxyTargetClass) {
+						// 设置InfrastructureAdvisorAutoProxyCreator的proxyTargetClass为true
 						AopConfigUtils.forceAutoProxyCreatorToUseClassProxying(registry);
 						return;
 					}

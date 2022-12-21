@@ -19,10 +19,13 @@ package org.springframework.transaction.interceptor;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 
+import org.springframework.aop.ClassFilter;
 import org.springframework.aop.support.StaticMethodMatcherPointcut;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.AnnotationTransactionAttributeSource;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -35,14 +38,36 @@ import org.springframework.util.ObjectUtils;
 @SuppressWarnings("serial")
 abstract class TransactionAttributeSourcePointcut extends StaticMethodMatcherPointcut implements Serializable {
 
+	/**
+	 * 在spring5.3版本中有做调整, 生成了无参构造函数,
+	 * 在无参构造函数内通过setClassFilter()方法实例化了一个TransactionAttributeSourceClassFilter
+	 * 这个类实现了接口: {@link ClassFilter}, 并重写了其匹配方法: {@link ClassFilter#matches(Class)}
+	 * 在这个方法中判断了指定的类是否存在{@link Transactional}注解
+	 */
+
+	/**
+	 * 查找并解析类/方法上的{@link Transactional}注解, 匹配注解的属性是否为空, 不为空返回false
+	 * @param method the candidate method
+	 * @param targetClass the target class
+	 * @return
+	 */
 	@Override
 	public boolean matches(Method method, Class<?> targetClass) {
+		// 匹配判断, 这里基本都不匹配, 不会进入if
 		if (TransactionalProxy.class.isAssignableFrom(targetClass) ||
 				PlatformTransactionManager.class.isAssignableFrom(targetClass) ||
 				PersistenceExceptionTranslator.class.isAssignableFrom(targetClass)) {
 			return false;
 		}
+		/**
+		 * {@link BeanFactoryTransactionAttributeSourceAdvisor#pointcut}内getTransactionAttributeSource
+		 * 获取到的值:{@link AnnotationTransactionAttributeSource}
+		 */
 		TransactionAttributeSource tas = getTransactionAttributeSource();
+		/**
+		 * 所以这里获取事务属性实际上是执行{@link AnnotationTransactionAttributeSource}的父抽象类的方法:
+		 * @see AbstractFallbackTransactionAttributeSource#getTransactionAttribute(Method, Class)
+		 */
 		return (tas == null || tas.getTransactionAttribute(method, targetClass) != null);
 	}
 

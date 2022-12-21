@@ -20,6 +20,7 @@ import org.springframework.aop.ClassFilter;
 import org.springframework.aop.Pointcut;
 import org.springframework.aop.support.AbstractBeanFactoryPointcutAdvisor;
 import org.springframework.lang.Nullable;
+import org.springframework.transaction.annotation.AnnotationTransactionAttributeSource;
 
 /**
  * Advisor driven by a {@link TransactionAttributeSource}, used to include
@@ -34,9 +35,15 @@ import org.springframework.lang.Nullable;
 @SuppressWarnings("serial")
 public class BeanFactoryTransactionAttributeSourceAdvisor extends AbstractBeanFactoryPointcutAdvisor {
 
+	/**
+	 * 通过set方法指定了值为: {@link AnnotationTransactionAttributeSource}
+	 */
 	@Nullable
 	private TransactionAttributeSource transactionAttributeSource;
 
+	/**
+	 * 事务属性切点
+	 */
 	private final TransactionAttributeSourcePointcut pointcut = new TransactionAttributeSourcePointcut() {
 		@Override
 		@Nullable

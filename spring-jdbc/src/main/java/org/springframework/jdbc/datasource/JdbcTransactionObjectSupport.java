@@ -50,13 +50,15 @@ public abstract class JdbcTransactionObjectSupport implements SavepointManager, 
 
 	private static final Log logger = LogFactory.getLog(JdbcTransactionObjectSupport.class);
 
-
+	/** 当前事务对应的数据库连接 */
 	@Nullable
 	private ConnectionHolder connectionHolder;
 
+	/** 当前事务对应的隔离级别 */
 	@Nullable
 	private Integer previousIsolationLevel;
 
+	/** 当前事务是否支持保存点 */
 	private boolean savepointAllowed = false;
 
 
@@ -131,6 +133,7 @@ public abstract class JdbcTransactionObjectSupport implements SavepointManager, 
 	public void rollbackToSavepoint(Object savepoint) throws TransactionException {
 		ConnectionHolder conHolder = getConnectionHolderForSavepoint();
 		try {
+			// 数据库连接 回滚 至保存点
 			conHolder.getConnection().rollback((Savepoint) savepoint);
 			conHolder.resetRollbackOnly();
 		}

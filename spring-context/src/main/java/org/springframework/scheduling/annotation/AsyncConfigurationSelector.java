@@ -18,6 +18,8 @@ package org.springframework.scheduling.annotation;
 
 import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.AdviceModeImportSelector;
+import org.springframework.context.annotation.ImportSelector;
+import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.lang.Nullable;
 
 /**
@@ -30,6 +32,9 @@ import org.springframework.lang.Nullable;
  * @since 3.1
  * @see EnableAsync
  * @see ProxyAsyncConfiguration
+ *
+ * 继承了父类: {@link AdviceModeImportSelector}, 父类实现了接口{@link ImportSelector}, 并重写了selectImports()方法,
+ * 所以在spring启动时会执行{@link AdviceModeImportSelector#selectImports(AnnotationMetadata)}
  */
 public class AsyncConfigurationSelector extends AdviceModeImportSelector<EnableAsync> {
 

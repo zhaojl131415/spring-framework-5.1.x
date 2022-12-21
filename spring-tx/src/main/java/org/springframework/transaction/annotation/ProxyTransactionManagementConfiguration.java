@@ -21,9 +21,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Role;
 import org.springframework.transaction.config.TransactionManagementConfigUtils;
-import org.springframework.transaction.interceptor.BeanFactoryTransactionAttributeSourceAdvisor;
-import org.springframework.transaction.interceptor.TransactionAttributeSource;
-import org.springframework.transaction.interceptor.TransactionInterceptor;
+import org.springframework.transaction.interceptor.*;
 
 /**
  * {@code @Configuration} class that registers the Spring infrastructure beans
@@ -37,11 +35,20 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
 @Configuration
 public class ProxyTransactionManagementConfiguration extends AbstractTransactionManagementConfiguration {
 
+	/**
+	 * BeanFactory事务属性源Advisor, 如果匹配到{@link Transactional}注解, 就会被代理
+	 * @return
+	 */
 	@Bean(name = TransactionManagementConfigUtils.TRANSACTION_ADVISOR_BEAN_NAME)
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public BeanFactoryTransactionAttributeSourceAdvisor transactionAdvisor() {
+		/**
+		 * BeanFactoryTransactionAttributeSourceAdvisor中定义了一个切点: {@link TransactionAttributeSourcePointcut}
+		 */
 		BeanFactoryTransactionAttributeSourceAdvisor advisor = new BeanFactoryTransactionAttributeSourceAdvisor();
+		// 指定事务属性源为: AnnotationTransactionAttributeSource
 		advisor.setTransactionAttributeSource(transactionAttributeSource());
+		// 指定通知为: TransactionInterceptor
 		advisor.setAdvice(transactionInterceptor());
 		if (this.enableTx != null) {
 			advisor.setOrder(this.enableTx.<Integer>getNumber("order"));
@@ -52,9 +59,17 @@ public class ProxyTransactionManagementConfiguration extends AbstractTransaction
 	@Bean
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public TransactionAttributeSource transactionAttributeSource() {
+		/**
+		 * 实例化调用构造方法, 构造方法内添加了一个注解解析器: {@link SpringTransactionAnnotationParser},
+		 * 用来解析{@link Transactional}注解得到一个{@link RuleBasedTransactionAttribute}对象
+		 */
 		return new AnnotationTransactionAttributeSource();
 	}
 
+	/**
+	 * 向spring容器中注入事务拦截器. 用于拦截{@link Transactional}注解需要事务处理的业务方法
+	 * @return
+	 */
 	@Bean
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public TransactionInterceptor transactionInterceptor() {

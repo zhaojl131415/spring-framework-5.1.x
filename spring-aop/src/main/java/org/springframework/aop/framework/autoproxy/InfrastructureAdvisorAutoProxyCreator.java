@@ -26,6 +26,8 @@ import org.springframework.lang.Nullable;
  *
  * @author Juergen Hoeller
  * @since 2.0.7
+ *
+ * 继承了抽象类: {@link AbstractAdvisorAutoProxyCreator}, 开启AOP, 用来获取Advisor通知
  */
 @SuppressWarnings("serial")
 public class InfrastructureAdvisorAutoProxyCreator extends AbstractAdvisorAutoProxyCreator {

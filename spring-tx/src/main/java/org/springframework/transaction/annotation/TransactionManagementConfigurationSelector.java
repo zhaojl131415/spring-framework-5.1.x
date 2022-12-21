@@ -19,6 +19,8 @@ package org.springframework.transaction.annotation;
 import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.AdviceModeImportSelector;
 import org.springframework.context.annotation.AutoProxyRegistrar;
+import org.springframework.context.annotation.ImportSelector;
+import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.transaction.config.TransactionManagementConfigUtils;
 import org.springframework.util.ClassUtils;
 
@@ -34,6 +36,9 @@ import org.springframework.util.ClassUtils;
  * @see ProxyTransactionManagementConfiguration
  * @see TransactionManagementConfigUtils#TRANSACTION_ASPECT_CONFIGURATION_CLASS_NAME
  * @see TransactionManagementConfigUtils#JTA_TRANSACTION_ASPECT_CONFIGURATION_CLASS_NAME
+*
+ * 继承了父类: {@link AdviceModeImportSelector}, 父类实现了接口{@link ImportSelector}, 并重写了selectImports()方法,
+ * 所以在spring启动时会执行{@link AdviceModeImportSelector#selectImports(AnnotationMetadata)}
  */
 public class TransactionManagementConfigurationSelector extends AdviceModeImportSelector<EnableTransactionManagement> {
 
@@ -47,9 +52,15 @@ public class TransactionManagementConfigurationSelector extends AdviceModeImport
 	protected String[] selectImports(AdviceMode adviceMode) {
 		switch (adviceMode) {
 			case PROXY:
+				// 默认是PROXY
+				/**
+				 * AutoProxyRegistrar: 开启AOP, 用来获取Advisor通知
+				 * ProxyTransactionManagementConfiguration: 注入了三个Bean: 开启事务, 创建Advice
+				 */
 				return new String[] {AutoProxyRegistrar.class.getName(),
 						ProxyTransactionManagementConfiguration.class.getName()};
 			case ASPECTJ:
+				// 表示不用动态代理技术, 用ASPECTJ技术, 比较麻烦
 				return new String[] {determineTransactionAspectClass()};
 			default:
 				return null;

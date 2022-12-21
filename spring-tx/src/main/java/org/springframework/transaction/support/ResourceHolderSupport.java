@@ -48,6 +48,7 @@ public abstract class ResourceHolderSupport implements ResourceHolder {
 
 
 	/**
+	 * 将资源标记为与事务同步。
 	 * Mark the resource as synchronized with a transaction.
 	 */
 	public void setSynchronizedWithTransaction(boolean synchronizedWithTransaction) {
@@ -62,6 +63,7 @@ public abstract class ResourceHolderSupport implements ResourceHolder {
 	}
 
 	/**
+	 * 设置当前事务对应数据库连接中的rollbackOnly为true
 	 * Mark the resource transaction as rollback-only.
 	 */
 	public void setRollbackOnly() {

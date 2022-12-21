@@ -53,14 +53,16 @@ public abstract class AopConfigUtils {
 			"org.springframework.aop.config.internalAutoProxyCreator";
 
 	/**
-	 * Stores the auto proxy creator classes in escalation order.
+	 * Stores the auto proxy creator classes in escalation order. 按升级顺序存储自动代理创建器类。
 	 */
 	private static final List<Class<?>> APC_PRIORITY_LIST = new ArrayList<>(3);
 
 	static {
 		// Set up the escalation list...
+		// spring 事务
 		APC_PRIORITY_LIST.add(InfrastructureAdvisorAutoProxyCreator.class);
 		APC_PRIORITY_LIST.add(AspectJAwareAdvisorAutoProxyCreator.class);
+		// AspectJ实现aop
 		APC_PRIORITY_LIST.add(AnnotationAwareAspectJAutoProxyCreator.class);
 	}
 
@@ -73,7 +75,10 @@ public abstract class AopConfigUtils {
 	@Nullable
 	public static BeanDefinition registerAutoProxyCreatorIfNecessary(
 			BeanDefinitionRegistry registry, @Nullable Object source) {
-
+		/**
+		 * 根据需要注册或升级 APC(自动代理创建器): 其实就是将{@link InfrastructureAdvisorAutoProxyCreator}解析成bd, 并存入bdMap
+		 * @see InfrastructureAdvisorAutoProxyCreator 通过多层继承/实现 最终实现了 {@link BeanPostProcessor}接口
+		 */
 		return registerOrEscalateApcAsRequired(InfrastructureAdvisorAutoProxyCreator.class, registry, source);
 	}
 

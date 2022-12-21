@@ -93,6 +93,7 @@ public class AnnotationTransactionAttributeSource extends AbstractFallbackTransa
 		this.publicMethodsOnly = publicMethodsOnly;
 		if (jta12Present || ejb3Present) {
 			this.annotationParsers = new LinkedHashSet<>(4);
+			// Spring事务注解解析器
 			this.annotationParsers.add(new SpringTransactionAnnotationParser());
 			if (jta12Present) {
 				this.annotationParsers.add(new JtaTransactionAnnotationParser());
@@ -102,6 +103,7 @@ public class AnnotationTransactionAttributeSource extends AbstractFallbackTransa
 			}
 		}
 		else {
+			// Spring事务注解解析器
 			this.annotationParsers = Collections.singleton(new SpringTransactionAnnotationParser());
 		}
 	}
@@ -136,13 +138,18 @@ public class AnnotationTransactionAttributeSource extends AbstractFallbackTransa
 		this.annotationParsers = annotationParsers;
 	}
 
-
+	/**
+	 * 在类上查找{@link Transactional}注解并解析
+	 */
 	@Override
 	@Nullable
 	protected TransactionAttribute findTransactionAttribute(Class<?> clazz) {
 		return determineTransactionAttribute(clazz);
 	}
 
+	/**
+	 * 在方法上查找并解析{@link Transactional}注解
+	 */
 	@Override
 	@Nullable
 	protected TransactionAttribute findTransactionAttribute(Method method) {
@@ -161,7 +168,12 @@ public class AnnotationTransactionAttributeSource extends AbstractFallbackTransa
 	 */
 	@Nullable
 	protected TransactionAttribute determineTransactionAttribute(AnnotatedElement element) {
+		// 遍历注解解析器
 		for (TransactionAnnotationParser annotationParser : this.annotationParsers) {
+			/**
+			 * 解析{@link Transactional}注解
+			 * @see SpringTransactionAnnotationParser#parseTransactionAnnotation(AnnotatedElement)
+			 */
 			TransactionAttribute attr = annotationParser.parseTransactionAnnotation(element);
 			if (attr != null) {
 				return attr;

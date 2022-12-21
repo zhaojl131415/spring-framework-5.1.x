@@ -166,6 +166,7 @@ public abstract class DataSourceUtils {
 	}
 
 	/**
+	 * 准备事务的数据库连接, 确定是否只读, 隔离级别
 	 * Prepare the given Connection with the given transaction semantics.
 	 * @param con the Connection to prepare
 	 * @param definition the transaction definition to apply
@@ -179,7 +180,7 @@ public abstract class DataSourceUtils {
 
 		Assert.notNull(con, "No Connection specified");
 
-		// Set read-only flag.
+		// Set read-only flag. 指定只读标识, 表示当前数据库连接是只读的, 不能增删改.
 		if (definition != null && definition.isReadOnly()) {
 			try {
 				if (logger.isDebugEnabled()) {
@@ -201,7 +202,7 @@ public abstract class DataSourceUtils {
 			}
 		}
 
-		// Apply specific isolation level, if any.
+		// Apply specific isolation level, if any. 指定数据库连接的隔离级别
 		Integer previousIsolationLevel = null;
 		if (definition != null && definition.getIsolationLevel() != TransactionDefinition.ISOLATION_DEFAULT) {
 			if (logger.isDebugEnabled()) {
@@ -314,6 +315,7 @@ public abstract class DataSourceUtils {
 	 */
 	public static void releaseConnection(@Nullable Connection con, @Nullable DataSource dataSource) {
 		try {
+			// 释放数据库连接: 关闭
 			doReleaseConnection(con, dataSource);
 		}
 		catch (SQLException ex) {
@@ -347,6 +349,7 @@ public abstract class DataSourceUtils {
 				return;
 			}
 		}
+		// 关闭数据库连接
 		doCloseConnection(con, dataSource);
 	}
 

@@ -29,10 +29,8 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.BeanFactoryAnnotationUtils;
 import org.springframework.core.NamedThreadLocal;
 import org.springframework.lang.Nullable;
-import org.springframework.transaction.NoTransactionException;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.TransactionSystemException;
+import org.springframework.transaction.*;
+import org.springframework.transaction.support.AbstractPlatformTransactionManager;
 import org.springframework.transaction.support.CallbackPreferringPlatformTransactionManager;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -278,30 +276,41 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	protected Object invokeWithinTransaction(Method method, @Nullable Class<?> targetClass,
 			final InvocationCallback invocation) throws Throwable {
 
-		// If the transaction attribute is null, the method is non-transactional.
+		// If the transaction attribute is null, the method is non-transactional.如果事务的属性为空, 表示该方法是非事务的.
 		TransactionAttributeSource tas = getTransactionAttributeSource();
+		// 获取注解@Transactional的属性值
 		final TransactionAttribute txAttr = (tas != null ? tas.getTransactionAttribute(method, targetClass) : null);
+		// 确定事务管理器(spring5.3版本这里有改动)
 		final PlatformTransactionManager tm = determineTransactionManager(txAttr);
+		// 获取连接点唯一标识: 即获取当前执行的事务注解修饰的方法名
 		final String joinpointIdentification = methodIdentification(method, targetClass, txAttr);
 
 		if (txAttr == null || !(tm instanceof CallbackPreferringPlatformTransactionManager)) {
-			// Standard transaction demarcation with getTransaction and commit/rollback calls.
+			// Standard transaction demarcation with getTransaction and commit/rollback calls. 使用 getTransaction 和提交回滚调用进行标准事务划分。
+			/**
+			 * 如有必要，根据给定的事务属性创建事务, 返回事务信息对象, 其中包括: 事务挂起对象
+			 */
 			TransactionInfo txInfo = createTransactionIfNecessary(tm, txAttr, joinpointIdentification);
 
 			Object retVal;
 			try {
 				// This is an around advice: Invoke the next interceptor in the chain.
 				// This will normally result in a target object being invoked.
+				/**
+				 * 执行业务方法
+				 */
 				retVal = invocation.proceedWithInvocation();
 			}
 			catch (Throwable ex) {
 				// target invocation exception
+				// 异常结束事务
 				completeTransactionAfterThrowing(txInfo, ex);
 				throw ex;
 			}
 			finally {
 				cleanupTransactionInfo(txInfo);
 			}
+			// 返回提交事务
 			commitTransactionAfterReturning(txInfo);
 			return retVal;
 		}
@@ -444,6 +453,8 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	}
 
 	/**
+	 * 如有必要，根据给定的事务属性创建事务。
+	 * 允许调用方通过 TransactionAttributeSource 执行自定义事务属性查找
 	 * Create a transaction if necessary based on the given TransactionAttribute.
 	 * <p>Allows callers to perform custom TransactionAttribute lookups through
 	 * the TransactionAttributeSource.
@@ -472,6 +483,10 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		TransactionStatus status = null;
 		if (txAttr != null) {
 			if (tm != null) {
+				/**
+				 * 获取事务
+				 * @see AbstractPlatformTransactionManager#getTransaction(TransactionDefinition)
+				 */
 				status = tm.getTransaction(txAttr);
 			}
 			else {
@@ -495,7 +510,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	protected TransactionInfo prepareTransactionInfo(@Nullable PlatformTransactionManager tm,
 			@Nullable TransactionAttribute txAttr, String joinpointIdentification,
 			@Nullable TransactionStatus status) {
-
+		// 构建一个新的事务信息对象
 		TransactionInfo txInfo = new TransactionInfo(tm, txAttr, joinpointIdentification);
 		if (txAttr != null) {
 			// We need a transaction for this method...
@@ -517,6 +532,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		// We always bind the TransactionInfo to the thread, even if we didn't create
 		// a new transaction here. This guarantees that the TransactionInfo stack
 		// will be managed correctly even if no transaction was created by this aspect.
+		// 把事务信息对象绑定到ThreadLocal中
 		txInfo.bindToThread();
 		return txInfo;
 	}
@@ -531,6 +547,10 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 			if (logger.isTraceEnabled()) {
 				logger.trace("Completing transaction for [" + txInfo.getJoinpointIdentification() + "]");
 			}
+			/**
+			 * 事务管理器提交
+			 * @see AbstractPlatformTransactionManager#commit(TransactionStatus)
+			 */
 			txInfo.getTransactionManager().commit(txInfo.getTransactionStatus());
 		}
 	}
@@ -547,8 +567,16 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 				logger.trace("Completing transaction for [" + txInfo.getJoinpointIdentification() +
 						"] after exception: " + ex);
 			}
+			/**
+			 * 判断事务属性中的回滚异常是否存在 且 异常是否为{@link org.springframework.transaction.annotation.Transactional}注解中rollbackFor等指定的异常:
+			 * @see RuleBasedTransactionAttribute#rollbackOn(Throwable)
+			 */
 			if (txInfo.transactionAttribute != null && txInfo.transactionAttribute.rollbackOn(ex)) {
 				try {
+					/**
+					 * 执行回滚
+					 * @see AbstractPlatformTransactionManager#rollback(TransactionStatus)
+					 */
 					txInfo.getTransactionManager().rollback(txInfo.getTransactionStatus());
 				}
 				catch (TransactionSystemException ex2) {
@@ -565,6 +593,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 				// We don't roll back on this exception.
 				// Will still roll back if TransactionStatus.isRollbackOnly() is true.
 				try {
+					// 提交
 					txInfo.getTransactionManager().commit(txInfo.getTransactionStatus());
 				}
 				catch (TransactionSystemException ex2) {
@@ -609,6 +638,9 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		@Nullable
 		private TransactionStatus transactionStatus;
 
+		/**
+		 * 用于存储被挂起事务的信息
+		 */
 		@Nullable
 		private TransactionInfo oldTransactionInfo;
 

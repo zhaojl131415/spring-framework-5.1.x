@@ -18,10 +18,12 @@ package org.springframework.context.annotation;
 
 import java.lang.annotation.Annotation;
 
+import org.springframework.cache.annotation.CachingConfigurationSelector;
 import org.springframework.core.GenericTypeResolver;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.lang.Nullable;
+import org.springframework.scheduling.annotation.AsyncConfigurationSelector;
 import org.springframework.util.Assert;
 
 /**
@@ -75,6 +77,15 @@ public abstract class AdviceModeImportSelector<A extends Annotation> implements 
 		}
 
 		AdviceMode adviceMode = attributes.getEnum(getAdviceModeAttributeName());
+		/**
+		 * 调用子类实现
+		 * spring事务: @EnableTransactionManagement
+		 * @see org.springframework.transaction.annotation.TransactionManagementConfigurationSelector#selectImports(AdviceMode)
+		 * 异步: @EnableAsync
+		 * @see AsyncConfigurationSelector#selectImports(AdviceMode)
+		 * 缓存: @EnableCaching
+		 * @see CachingConfigurationSelector#selectImports(AdviceMode)
+		 */
 		String[] imports = selectImports(adviceMode);
 		if (imports == null) {
 			throw new IllegalArgumentException("Unknown AdviceMode: " + adviceMode);

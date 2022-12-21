@@ -49,6 +49,9 @@ import org.springframework.util.Assert;
  *
  * 子类:
  * @see org.springframework.aop.aspectj.autoproxy.AspectJAwareAdvisorAutoProxyCreator
+ * @see InfrastructureAdvisorAutoProxyCreator
+ *
+ * 开启AOP的关键: 会获取容器内的Advice对象
  */
 @SuppressWarnings("serial")
 public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyCreator {
