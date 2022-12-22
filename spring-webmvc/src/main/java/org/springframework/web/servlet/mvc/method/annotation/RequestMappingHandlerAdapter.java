@@ -777,24 +777,35 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			HttpServletResponse response, HandlerMethod handlerMethod) throws Exception {
 
 		ModelAndView mav;
+		// 检查给定请求中 方法是否支持 和 会话是否必须
 		checkRequest(request);
 
 		// Execute invokeHandlerMethod in synchronized block if required.
+		/**
+		 * synchronizeOnSession: 默认为false
+		 * 判断当前是否需要支持在同一个Session中, 只能线性的处理请求
+		 * 因为synchronized锁是JVM进程锁, 所以在分布式环境下无法实现同步相同Session的功能.
+		 */
 		if (this.synchronizeOnSession) {
+			// 获取当前请求的Session对象
 			HttpSession session = request.getSession(false);
 			if (session != null) {
+				// 为当前Session生成一个唯一的可以用于锁定的互斥key
 				Object mutex = WebUtils.getSessionMutex(session);
 				synchronized (mutex) {
+					// 对HandlerMethod进行参数等适配处理, 并调用目标处理器后返回视图对象
 					mav = invokeHandlerMethod(request, response, handlerMethod);
 				}
 			}
 			else {
-				// No HttpSession available -> no mutex necessary
+				// No HttpSession available -> no mutex necessary 没有可用Session, 没必要同步互斥执行
+				// 对HandlerMethod进行参数等适配处理, 并调用目标处理器后返回视图对象
 				mav = invokeHandlerMethod(request, response, handlerMethod);
 			}
 		}
 		else {
-			// No synchronization on session demanded at all...
+			// No synchronization on session demanded at all... 不要求会话同步
+			// 对HandlerMethod进行参数等适配处理, 并调用目标处理器后返回视图对象
 			mav = invokeHandlerMethod(request, response, handlerMethod);
 		}
 
@@ -841,6 +852,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 	}
 
 	/**
+	 * 调用 RequestMapping 处理器方法，准备 ModelAndView.
 	 * Invoke the {@link RequestMapping} handler method preparing a {@link ModelAndView}
 	 * if view resolution is required.
 	 * @since 4.2
@@ -852,14 +864,17 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 
 		ServletWebRequest webRequest = new ServletWebRequest(request, response);
 		try {
+			// 获取容器中全局配置的
 			WebDataBinderFactory binderFactory = getDataBinderFactory(handlerMethod);
 			ModelFactory modelFactory = getModelFactory(handlerMethod, binderFactory);
 
 			ServletInvocableHandlerMethod invocableMethod = createInvocableHandlerMethod(handlerMethod);
 			if (this.argumentResolvers != null) {
+				// 指定方法的参数解析器
 				invocableMethod.setHandlerMethodArgumentResolvers(this.argumentResolvers);
 			}
 			if (this.returnValueHandlers != null) {
+				// 指定方法的返回值处理器
 				invocableMethod.setHandlerMethodReturnValueHandlers(this.returnValueHandlers);
 			}
 			invocableMethod.setDataBinderFactory(binderFactory);

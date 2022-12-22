@@ -40,6 +40,7 @@ import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.MethodIntrospector;
 import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.LinkedMultiValueMap;
@@ -48,6 +49,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerMapping;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 /**
  * Abstract base class for {@link HandlerMapping} implementations that define
@@ -197,6 +199,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 */
 	@Override
 	public void afterPropertiesSet() {
+		// 初始化处理器方法
 		initHandlerMethods();
 	}
 
@@ -209,6 +212,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	protected void initHandlerMethods() {
 		for (String beanName : getCandidateBeanNames()) {
 			if (!beanName.startsWith(SCOPED_TARGET_NAME_PREFIX)) {
+				// 处理候选bean
 				processCandidateBean(beanName);
 			}
 		}
@@ -249,7 +253,12 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 				logger.trace("Could not resolve type for bean '" + beanName + "'", ex);
 			}
 		}
+		/**
+		 * 判断类是否为空, 且是否存在 @{@link Controller} 和 @{@link org.springframework.web.bind.annotation.RequestMapping} 注解
+		 * @see RequestMappingHandlerMapping#isHandler(Class)
+		 */
 		if (beanType != null && isHandler(beanType)) {
+			// 检测处理器方法
 			detectHandlerMethods(beanName);
 		}
 	}
@@ -268,6 +277,9 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 			Map<Method, T> methods = MethodIntrospector.selectMethods(userType,
 					(MethodIntrospector.MetadataLookup<T>) method -> {
 						try {
+							/**
+							 * @see RequestMappingHandlerMapping#getMappingForMethod(Method, Class)
+							 */
 							return getMappingForMethod(method, userType);
 						}
 						catch (Throwable ex) {

@@ -43,9 +43,11 @@ public class HandlerExecutionChain {
 
 	private final Object handler;
 
+	/** 处理器拦截器 */
 	@Nullable
 	private HandlerInterceptor[] interceptors;
 
+	/** 处理器拦截器 */
 	@Nullable
 	private List<HandlerInterceptor> interceptorList;
 
@@ -124,6 +126,7 @@ public class HandlerExecutionChain {
 
 
 	/**
+	 * 应用已注册侦听器的预处理方法。
 	 * Apply preHandle methods of registered interceptors.
 	 * @return {@code true} if the execution chain should proceed with the
 	 * next interceptor or the handler itself. Else, DispatcherServlet assumes
