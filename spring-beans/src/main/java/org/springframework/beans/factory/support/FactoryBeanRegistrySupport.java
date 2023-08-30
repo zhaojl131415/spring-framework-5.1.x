@@ -98,7 +98,9 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 		// 如果为单例, 且单例池中存在
 		if (factory.isSingleton() && containsSingleton(beanName)) {
 			synchronized (getSingletonMutex()) {
+				// 再从缓存中获取
 				Object object = this.factoryBeanObjectCache.get(beanName);
+				// 如果不存在
 				if (object == null) {
 					// 调用FactoryBean的getObject()方法, 创建bean
 					object = doGetObjectFromFactoryBean(factory, beanName);

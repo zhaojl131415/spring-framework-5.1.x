@@ -872,13 +872,16 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			 * 因为不是所有的BD的类型都是一样的, 通过@Component/@Bean/xml等注册bean的方式不同, 所以需要在这将其合并, 方便后续处理.
 			 * 一个描述bean的BeanDefinition，可以是RootBeanDefinition、ChildBeanDefinition、GenericBeanDefinition等众多BD的一种，
 			 * 但是这些BeanDefinition可能包含的bean信息都不全，可以通过{@link BeanDefinition#setParentName(String)}指定父BeanDefinition
-			 * 这里合并就是要将描述bean的所有BeanDefinition合并成一个RootBeanDefinition
+			 * 这里合并就是要将描述bean的所有BeanDefinition合并成一个RootBeanDefinition,
 			 *
-			 * 合并父BeanDefinition，beanDefinitionMap.get(beanName)
+			 * level:a 获取合并后的BeanDefinition: 当前BD没指定的属性用父BD的属性, 指定了就用自己的，
+			 * beanDefinitionMap.get(beanName)
+			 *
 			 */
 			RootBeanDefinition bd = getMergedLocalBeanDefinition(beanName);
 			// 判断当前BeanDefinition是否非抽象，是否单例，是否非Lazy初始化
-			// 注意这里是指BeanDefinition抽象, 不是Bean抽象
+			// 注意这里是指BeanDefinition抽象, 不是Bean抽象, 在之前的扫描过程中, 如果class是抽象的, 就已经过滤了(LookUp注解除外), 这里说的是BD的抽象, 在xml中配置bean的时候有属性可配置BD的抽象.
+			// 抽象BD的主要用途: 自己不会生成Bean, 但是可以给别的BD当父类, 让子类继承父类的属性(实操很少见到).
 			if (!bd.isAbstract() && bd.isSingleton() && !bd.isLazyInit()) {
 				// 判断是否为工厂bean
 				if (isFactoryBean(beanName)) {
@@ -902,7 +905,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 							isEagerInit = (factory instanceof SmartFactoryBean &&
 									((SmartFactoryBean<?>) factory).isEagerInit());
 						}
-						// 如果立即初始化
+						// 如果立即初始化: 只有当实现的是SmartFactoryBean的接口且重写了isEagerInit方法返回true, 才会立即初始化
 						if (isEagerInit) {
 							//  调用getBean()方法, 创建FactoryBean创建的实例对象
 							getBean(beanName);
@@ -924,7 +927,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		// 为所有适用的bean触发初始化后回调…
 		// 注册 带@EventListener的方法 为事件监听器
 		for (String beanName : beanNames) {
-			// 获取单例bean对象
+			// 从单例池获取单例bean对象
 			Object singletonInstance = getSingleton(beanName);
 			// 判断单例bean对象是否实现了SmartInitializingSingleton接口
 			if (singletonInstance instanceof SmartInitializingSingleton) {

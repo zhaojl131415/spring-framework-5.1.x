@@ -40,10 +40,8 @@ import org.springframework.lang.Nullable;
  * @see ConfigurableBeanFactory#addBeanPostProcessor
  * @see BeanFactoryPostProcessor
  *
- *
- *
- *
- *
+ * level:s 后置处理器:
+ * 可以通过实现此接口, 来重写 类初始化前, 初始化后的方法
  */
 public interface BeanPostProcessor {
 

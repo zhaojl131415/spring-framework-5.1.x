@@ -79,7 +79,11 @@ public class InitDestroyAnnotationBeanPostProcessor
 
 	protected transient Log logger = LogFactory.getLog(getClass());
 
-	// 初始化注解 @PostConstruct
+	/**
+	 * 初始化注解 @PostConstruct
+	 * 在如下方法中赋值
+	 * @see InitDestroyAnnotationBeanPostProcessor#setInitAnnotationType(Class)
+	 */
 	@Nullable
 	private Class<? extends Annotation> initAnnotationType;
 

@@ -242,6 +242,8 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 * issues:
 	 * https://github.com/spring-projects/spring-framework/issues/25667
 	 * https://github.com/spring-projects/spring-framework/issues/13117
+	 *
+	 * level:a 从单例池中获取单例对象
 	 */
 	@Nullable
 	protected Object getSingleton(String beanName, boolean allowEarlyReference) {
@@ -290,6 +292,8 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	}
 
 	/**
+	 * level:a 返回在给定名称下注册的（原始）单一实例对象，如果尚未注册，则回调创建并注册一个新对象
+	 *
 	 * Return the (raw) singleton object registered under the given name,
 	 * creating and registering a new one if none registered yet.
 	 * @param beanName the name of the bean
@@ -323,7 +327,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 				}
 				try {
 					/**
-					 * 初始化bean
+					 * level:b 初始化bean
 					 *
 					 * 调用singletonFactory.getObject()接口的实现:其实就是调用了createBean(beanName, mbd, args);
 					 * @see AbstractAutowireCapableBeanFactory#createBean(java.lang.String, org.springframework.beans.factory.support.RootBeanDefinition, java.lang.Object[])

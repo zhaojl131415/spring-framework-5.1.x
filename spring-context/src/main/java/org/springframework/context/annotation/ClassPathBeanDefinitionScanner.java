@@ -275,8 +275,9 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 		Set<BeanDefinitionHolder> beanDefinitions = new LinkedHashSet<>();
 		// basePackages需要扫描的包名，可以指定多个
 		for (String basePackage : basePackages) {
-			// 通过包路径找到@Component注解的候选BD集合: 主要获取beanClass属性
+			// 通过包路径找到@Component注解的候选BD集合: 将className赋值给BD中的beanClass属性
 			Set<BeanDefinition> candidates = findCandidateComponents(basePackage);
+			// 遍历候选的BeanDefinition集合
 			for (BeanDefinition candidate : candidates) {
 				/**
 				 * 解析@Scope注解元数据
@@ -304,7 +305,7 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 							AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
 					beanDefinitions.add(definitionHolder);
 					/**
-					 * 注册BD到BDMap中
+					 * 注册BD到BDMap{@link DefaultListableBeanFactory#beanDefinitionMap}中
 					 */
 					registerBeanDefinition(definitionHolder, this.registry);
 				}
@@ -334,6 +335,9 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	 * @param registry the BeanDefinitionRegistry to register the bean with
 	 */
 	protected void registerBeanDefinition(BeanDefinitionHolder definitionHolder, BeanDefinitionRegistry registry) {
+		/**
+		 * 注册BD到BDMap{@link DefaultListableBeanFactory#beanDefinitionMap}中
+		 */
 		BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, registry);
 	}
 

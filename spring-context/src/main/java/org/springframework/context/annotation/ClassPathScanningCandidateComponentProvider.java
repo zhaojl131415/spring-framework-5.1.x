@@ -315,11 +315,12 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 		// 为了完成快速扫描，可以在resources/META-INF目录下创建一个spring.components文件，动态生成索引componentsIndex
 		// 基本上很少用，大部分情况下为null, 要么不配置, 不配置执行else, 要配置就要全配置, 每个需要被扫描的bean都需要配置.
 		if (this.componentsIndex != null && indexSupportsIncludeFilters()) {
+			// 从索引中获取候选对象: 只是配置能扫描的快一点, 对于Bean而言还是必须添加@Component注解才能被扫描到
 			return addCandidateComponentsFromIndex(this.componentsIndex, basePackage);
 		}
 		else {
 			// 默认执行这里
-			// 扫描@Component注解的候选BD集合
+			// 扫描@Component注解的候选BD集合: 将className赋值给BD中的beanClass属性
 			return scanCandidateComponents(basePackage);
 		}
 	}
@@ -377,6 +378,13 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 		return null;
 	}
 
+	/**
+	 * 从索引添加候选组件
+	 *
+	 * @param index
+	 * @param basePackage
+	 * @return
+	 */
 	private Set<BeanDefinition> addCandidateComponentsFromIndex(CandidateComponentsIndex index, String basePackage) {
 		Set<BeanDefinition> candidates = new LinkedHashSet<>();
 		try {
@@ -392,6 +400,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 			boolean debugEnabled = logger.isDebugEnabled();
 			for (String type : types) {
 				MetadataReader metadataReader = getMetadataReaderFactory().getMetadataReader(type);
+				// 判断是不是候选对象: @Component
 				if (isCandidateComponent(metadataReader)) {
 					AnnotatedGenericBeanDefinition sbd = new AnnotatedGenericBeanDefinition(
 							metadataReader.getAnnotationMetadata());
@@ -421,7 +430,9 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	}
 
 	/**
-	 * 扫描添加@Component注解且合理(非接口非抽象类)的候选BD集合
+	 * 扫描添加@Component注解且合理(非接口非抽象类)的类,
+	 * 构建成BD, 将className赋值给BD中的beanClass属性,
+	 * 最后将所有的候选BD集合返回
 	 *
 	 * @param basePackage
 	 * @return
@@ -455,7 +466,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 						 * includeFilters: 默认过滤器会匹配添加了@Component等, 且满足条件匹配(@Conditional)
 						 */
 						if (isCandidateComponent(metadataReader)) {
-							// 实例化BeanDefinition: ScannedGenericBeanDefinition
+							// 实例化BeanDefinition: ScannedGenericBeanDefinition: 将className赋值给beanClass
 							ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);
 							sbd.setResource(resource);
 							sbd.setSource(resource);
@@ -569,7 +580,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 */
 	protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
 		AnnotationMetadata metadata = beanDefinition.getMetadata();
-		// 判断是否为独立类 且 是否为具体类(既不是接口也不是抽象类)
+		// 判断是否为独立类(顶级类或嵌套静态内部类) 且 是否为具体类(既不是接口也不是抽象类)
 		return (metadata.isIndependent() && (metadata.isConcrete() ||
 				// 判断是否为抽象类 且 是否有包含@Lookup注解的方法
 				(metadata.isAbstract() && metadata.hasAnnotatedMethods(Lookup.class.getName()))));

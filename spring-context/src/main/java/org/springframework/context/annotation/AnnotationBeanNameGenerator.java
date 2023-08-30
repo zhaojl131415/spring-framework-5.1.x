@@ -60,6 +60,8 @@ import org.springframework.util.StringUtils;
  * @see org.springframework.stereotype.Service#value()
  * @see org.springframework.stereotype.Controller#value()
  * @see javax.inject.Named#value()
+ *
+ * Bean 名称生成器
  */
 public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 
@@ -71,6 +73,7 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 		if (definition instanceof AnnotatedBeanDefinition) {
 			// 获取注解指定的beanName
 			String beanName = determineBeanNameFromAnnotation((AnnotatedBeanDefinition) definition);
+			// 如果存在直接返回
 			if (StringUtils.hasText(beanName)) {
 				// Explicit bean name found.
 				return beanName;
@@ -94,6 +97,7 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 			AnnotationAttributes attributes = AnnotationConfigUtils.attributesFor(amd, type);
 			// 判断注解是否指定beanName
 			if (attributes != null && isStereotypeWithNameValue(type, amd.getMetaAnnotationTypes(type), attributes)) {
+				// 获取注解中指定的BeanName
 				Object value = attributes.get("value");
 				if (value instanceof String) {
 					String strVal = (String) value;
@@ -120,7 +124,7 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 	 */
 	protected boolean isStereotypeWithNameValue(String annotationType,
 			Set<String> metaAnnotationTypes, @Nullable Map<String, Object> attributes) {
-		// 是否存在@Component/ManagedBean/Named
+		// 判断注解是否等于Component/存在Component(@Repository/@Service/@Controller)/等于ManagedBean/等于Named
 		boolean isStereotype = annotationType.equals(COMPONENT_ANNOTATION_CLASSNAME) ||
 				metaAnnotationTypes.contains(COMPONENT_ANNOTATION_CLASSNAME) ||
 				annotationType.equals("javax.annotation.ManagedBean") ||
@@ -154,7 +158,7 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 		String beanClassName = definition.getBeanClassName();
 		Assert.state(beanClassName != null, "No bean class name set");
 		String shortClassName = ClassUtils.getShortName(beanClassName);
-		// 通过JDK源码构建beanName
+		// 通过JDK构建beanName: 见JDK源码
 		return Introspector.decapitalize(shortClassName);
 	}
 

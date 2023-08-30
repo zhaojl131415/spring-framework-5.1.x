@@ -519,7 +519,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * Central method of this class: creates a bean instance,
 	 * populates the bean instance, applies post-processors, etc.
 	 * @see #doCreateBean
-	 * spring bean正式开始创建
+	 * level:a spring bean正式开始创建
 	 */
 	@Override
 	protected Object createBean(String beanName, RootBeanDefinition mbd, @Nullable Object[] args)
@@ -572,7 +572,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			 * 这一步是aop和事务的关键, 是解析aop切面信息进行缓存
  			 */
 			Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
-			// 这一步并不会产生bean，所以大多数情况: bean == null
+			// 这一步默认并不会产生bean(自定义后置处理器除外)，所以大多数情况: bean == null
 			if (bean != null) {
 				return bean;
 			}
@@ -583,7 +583,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		try {
-			// 创建bean实例对象，核心
+			// level:a 创建bean实例对象，核心
 			// 做了如下事情: 1、创建目标对象 2、将目标对象改为代理对象
 			Object beanInstance = doCreateBean(beanName, mbdToUse, args);
 			if (logger.isTraceEnabled()) {
@@ -686,11 +686,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// Initialize the bean instance.
 		Object exposedObject = bean;
 		try {
-			// 填充属性，也就是依赖注入
+			// level:a 填充属性，也就是依赖注入
 			// 里面会完成第五次和第六次后置处理器的调用
 			populateBean(beanName, mbd, instanceWrapper);
-			// 执行后置处理器，aop就是在这完成的处理
-			// 初始化spring，里面会完成第七次和第八次后置处理器的调用
+			// 执行后置处理器的调用(第七次和第八次)，aop就是在这完成的处理
+			// level:a 初始化Bean
 			exposedObject = initializeBean(beanName, exposedObject, mbd);
 		}
 		catch (Throwable ex) {
@@ -744,6 +744,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// Register bean as disposable.
 		try {
+			// 跟Bean销毁相关
 			registerDisposableBeanIfNecessary(beanName, bean, mbd);
 		}
 		catch (BeanDefinitionValidationException ex) {
@@ -1679,7 +1680,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				if (bp instanceof InstantiationAwareBeanPostProcessor) {
 					InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
 					/**
-					 * 属性依赖注入: 处理@Resource、@Autowired、@Value注解的注入
+					 * level:a 属性依赖注入: 处理@Resource、@Autowired、@Value注解的注入
 					 *
 					 * 处理@Resource注解的注入
 					 * @see org.springframework.context.annotation.CommonAnnotationBeanPostProcessor#postProcessProperties(org.springframework.beans.PropertyValues, java.lang.Object, java.lang.String)
@@ -1691,6 +1692,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 						if (filteredPds == null) {
 							filteredPds = filterPropertyDescriptorsForDependencyCheck(bw, mbd.allowCaching);
 						}
+						// 过期方法, 不用深究
 						pvsToUse = ibp.postProcessPropertyValues(pvs, filteredPds, bw.getWrappedInstance(), beanName);
 						if (pvsToUse == null) {
 							return;
@@ -2060,6 +2062,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 
 	/**
+	 * level:a bean初始化
 	 * 这个方法主要做的几件事
 	 * 1 执行aware
 	 * 2 执行生命周期回调
@@ -2102,7 +2105,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// 执行@PostConstruct
 		Object wrappedBean = bean;
 		if (mbd == null || !mbd.isSynthetic()) {
-			// 调用后置处理器中bean初始化前的方法
+			// level: b 调用后置处理器中bean初始化前的方法
 			// 第七次调用spring的后置处理器BeanPostProcessor接口的postProcessBeforeInitialization() --- @PostConstruct
 			wrappedBean = applyBeanPostProcessorsBeforeInitialization(wrappedBean, beanName);
 		}
