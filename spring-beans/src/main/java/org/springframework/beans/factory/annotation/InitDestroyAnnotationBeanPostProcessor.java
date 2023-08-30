@@ -166,7 +166,7 @@ public class InitDestroyAnnotationBeanPostProcessor
  	 */
 	@Override
 	public void postProcessBeforeDestruction(Object bean, String beanName) throws BeansException {
-		// 获取所有生命周期的元数据: @PostConstruct/@PreDestroy
+		// 获取所有生命周期的元数据
 		LifecycleMetadata metadata = findLifecycleMetadata(bean.getClass());
 		try {
 			// 执行销毁方法: @PreDestroy
@@ -193,6 +193,7 @@ public class InitDestroyAnnotationBeanPostProcessor
 	 */
 	@Override
 	public boolean requiresDestruction(Object bean) {
+		// 根据类找到生命周期元数据中是否有销毁方法
 		return findLifecycleMetadata(bean.getClass()).hasDestroyMethods();
 	}
 
@@ -200,6 +201,7 @@ public class InitDestroyAnnotationBeanPostProcessor
 	private LifecycleMetadata findLifecycleMetadata(Class<?> clazz) {
 		if (this.lifecycleMetadataCache == null) {
 			// Happens after deserialization, during destruction...
+			// 通过Class构建Bean生命周期的元数据(即初始化: @PostConstruct和销毁方法: @PreDestroy)
 			return buildLifecycleMetadata(clazz);
 		}
 		// Quick check on the concurrent map first, with minimal locking.
@@ -255,7 +257,7 @@ public class InitDestroyAnnotationBeanPostProcessor
 			});
 			// 将初始化方法加入集合, 父类初始化方法从头部插入, 说明初始化调用时, 会先执行父类的初始化方法.
 			initMethods.addAll(0, currInitMethods);
-			// 将销毁方法加入集合, 父类销毁方法插入尾部
+			// 将销毁方法加入集合, 父类销毁方法插入尾部, 销毁从子类开始销毁
 			destroyMethods.addAll(currDestroyMethods);
 			targetClass = targetClass.getSuperclass();
 		}
@@ -345,6 +347,12 @@ public class InitDestroyAnnotationBeanPostProcessor
 			}
 		}
 
+		/**
+		 * 执行销毁方法
+		 * @param target
+		 * @param beanName
+		 * @throws Throwable
+		 */
 		public void invokeDestroyMethods(Object target, String beanName) throws Throwable {
 			Collection<LifecycleElement> checkedDestroyMethods = this.checkedDestroyMethods;
 			Collection<LifecycleElement> destroyMethodsToUse =
@@ -354,6 +362,7 @@ public class InitDestroyAnnotationBeanPostProcessor
 					if (logger.isTraceEnabled()) {
 						logger.trace("Invoking destroy method on bean '" + beanName + "': " + element.getMethod());
 					}
+					// 反射执行销毁方法
 					element.invoke(target);
 				}
 			}

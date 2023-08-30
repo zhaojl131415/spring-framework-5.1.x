@@ -447,7 +447,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	}
 
 	/**
-	 * bean对象初始化后执行Bean后置处理器
+	 * level:a bean对象初始化后执行Bean后置处理器
 	 * 这个方法有两处调用:
 	 * 1.在创建bean之前调用一次
 	 * 2.在bean对象创建, 完成属性填充, 执行完初始化之后, 还会在调用一次
@@ -473,7 +473,6 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			 * 注解@Async
 			 * @see org.springframework.aop.framework.AbstractAdvisingBeanPostProcessor#postProcessAfterInitialization(Object, String)
 			 */
-
 			Object current = processor.postProcessAfterInitialization(result, beanName);
 			if (current == null) {
 				return result;
@@ -1214,6 +1213,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	}
 
 	/**
+	 * 执行Bean后置处理器的实例化前的方法
 	 * Apply before-instantiation post-processors, resolving whether there is a
 	 * before-instantiation shortcut for the specified bean.
 	 * @param beanName the name of the bean
@@ -1233,13 +1233,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				// 确定目标类
 				Class<?> targetType = determineTargetType(beanName, mbd);
 				if (targetType != null) {
-					// 代理对象
-					// 获取自定义TargetSource: , 如果没有获取到
+					// 代理对象: 获取自定义TargetSource: , 如果没有获取到
+					// 执行Bean后置处理器的实例化前的方法
 					bean = applyBeanPostProcessorsBeforeInstantiation(targetType, beanName);
 					if (bean != null) {
 						/**
 						 * 创建代理，逻辑跟上面一样，唯一不同的是创建了个默认的TargetSource （SingletonTargetSource）
-						 * 如果已经获取到bean, 则执行后置处理器的实例化后方法.
+						 * 如果已经获取到bean, 则执行Bean后置处理器的初始化后方法.
 						 */
 						bean = applyBeanPostProcessorsAfterInitialization(bean, beanName);
 					}

@@ -126,7 +126,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	private boolean singletonsCurrentlyInDestruction = false;
 
 	/** Disposable bean instances: bean name to disposable instance. */
-	// 缓存BeanName对应的bean销毁适配器
+	// 缓存需要销毁的Bean: BeanName对应的bean销毁适配器(适配器模式)
 	private final Map<String, Object> disposableBeans = new LinkedHashMap<>();
 
 	/** Map between containing bean names: bean name to Set of bean names that the bean contains. */
@@ -645,6 +645,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 		}
 		// 清空容器中的缓存map
 		this.containedBeanMap.clear();
+		// 清理bean的依赖和被依赖缓存
 		this.dependentBeanMap.clear();
 		this.dependenciesForBeanMap.clear();
 		// 清空单例池
@@ -652,6 +653,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	}
 
 	/**
+	 * 清空单例池
 	 * Clear all cached singleton instances in this registry.
 	 * @since 4.3.15
 	 */
@@ -666,6 +668,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	}
 
 	/**
+	 * 销毁指定的bean
 	 * Destroy the given bean. Delegates to {@code destroyBean}
 	 * if a corresponding disposable bean instance is found.
 	 * @param beanName the name of the bean

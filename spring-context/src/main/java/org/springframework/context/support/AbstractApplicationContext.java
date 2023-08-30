@@ -598,7 +598,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 							"cancelling refresh attempt: " + ex);
 				}
 
-				// Destroy already created singletons to avoid dangling resources.
+				// Destroy already created singletons to avoid dangling resources. 销毁已创建的单例以避免悬而未决的资源。
 				destroyBeans();
 
 				// Reset 'active' flag.
