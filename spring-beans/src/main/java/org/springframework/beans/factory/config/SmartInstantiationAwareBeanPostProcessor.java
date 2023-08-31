@@ -34,6 +34,9 @@ import org.springframework.lang.Nullable;
  * @author Juergen Hoeller
  * @since 2.0.3
  * @see InstantiationAwareBeanPostProcessorAdapter
+ *
+ *
+ * level:s 智能实例化AwareBean后置处理器
  */
 public interface SmartInstantiationAwareBeanPostProcessor extends InstantiationAwareBeanPostProcessor {
 
@@ -52,6 +55,8 @@ public interface SmartInstantiationAwareBeanPostProcessor extends InstantiationA
 	}
 
 	/**
+	 * 推断构造方法
+	 *
 	 * Determine the candidate constructors to use for the given bean.
 	 * <p>The default implementation returns {@code null}.
 	 * @param beanClass the raw class of the bean (never {@code null})
@@ -67,6 +72,8 @@ public interface SmartInstantiationAwareBeanPostProcessor extends InstantiationA
 	}
 
 	/**
+	 * 获取早期bean对象引用: 解决循环依赖
+	 *
 	 * Obtain a reference for early access to the specified bean,
 	 * typically for the purpose of resolving a circular reference.
 	 * <p>This callback gives post-processors a chance to expose a wrapper

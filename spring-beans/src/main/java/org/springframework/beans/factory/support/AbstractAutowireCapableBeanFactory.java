@@ -1801,6 +1801,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 						pvs.add(propertyName, autowiredArgument);
 					}
 					for (String autowiredBeanName : autowiredBeanNames) {
+						// 注册依赖关系的Bean
 						registerDependentBean(autowiredBeanName, beanName);
 						if (logger.isTraceEnabled()) {
 							logger.trace("Autowiring by type from bean name '" + beanName + "' via property '" +
@@ -1840,8 +1841,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		for (PropertyDescriptor pd : pds) {
 			// 什么样的属性能进行自动注入
 			// 该属性有对应的set方法
-			// 没有在ignoredDependencyTypes集合中
-			// 如果该属性对应的set方法是实现了某个接口中所定义的, 那么这个接口没有在ignoredDependencyInterfaces中
+			// 没有在ignoredDependencyTypes集合中, 如果该属性对应的set方法是实现了某个接口中所定义的, 那么这个接口没有在ignoredDependencyInterfaces中
+			// BD中属性值不包含该属性, 即没有提前给属性赋值.
 			// 属性类型不是简单类型, 比如Number/Date/数组等(但是其中一些是可以通过@Autowired注解自动装配的)
 			if (pd.getWriteMethod() != null && !isExcludedFromDependencyCheck(pd) && !pvs.contains(pd.getName()) &&
 					!BeanUtils.isSimpleProperty(pd.getPropertyType())) {

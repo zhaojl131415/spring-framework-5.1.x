@@ -37,6 +37,8 @@ import org.springframework.lang.Nullable;
  * @author Rod Johnson
  * @author Juergen Hoeller
  * @since 2.0
+ *
+ * level:s 实例化AwareBean后置处理器适配器
  */
 public abstract class InstantiationAwareBeanPostProcessorAdapter implements SmartInstantiationAwareBeanPostProcessor {
 

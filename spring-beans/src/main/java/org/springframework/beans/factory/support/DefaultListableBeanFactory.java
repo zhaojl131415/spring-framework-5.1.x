@@ -1245,7 +1245,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	}
 
 	/**
-	 * 获取注入对象
+	 * level:a 获取依赖注入对象
 	 *
 	 * @param descriptor the descriptor for the dependency (field/method/constructor) 依赖描述符: 可能是属性/方法参数/构造器参数
 	 * @param requestingBeanName the name of the bean which declares the given dependency

@@ -512,7 +512,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 			final List<InjectionMetadata.InjectedElement> currElements = new ArrayList<>();
 			// 遍历bean的所有field
 			ReflectionUtils.doWithLocalFields(targetClass, field -> {
-				// 查找field的注解属性
+				// 查找field的@Autowired/@Value/@Inject注解属性
 				AnnotationAttributes ann = findAutowiredAnnotation(field);
 				if (ann != null) {
 					// 如果找到字段上的@Autowired/@Value/@Inject注入注解, 判断字段是否为静态的
@@ -533,7 +533,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 					 * 例: @Autowired(required = true), 表示属性必须要注入
 					 */
 					boolean required = determineRequiredStatus(ann);
-					// 构造注入点
+					// 构造注入点添加到集合中
 					currElements.add(new AutowiredFieldElement(field, required));
 				}
 			});
@@ -562,6 +562,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 						}
 					}
 					boolean required = determineRequiredStatus(ann);
+					// 属性描述器
 					PropertyDescriptor pd = BeanUtils.findPropertyForMethod(bridgedMethod, clazz);
 					currElements.add(new AutowiredMethodElement(method, required, pd));
 				}
@@ -580,7 +581,10 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 	@Nullable
 	private AnnotationAttributes findAutowiredAnnotation(AccessibleObject ao) {
 		if (ao.getAnnotations().length > 0) {  // autowiring annotations have to be local 自动装配注解必须是本地的
-			// this.autowiredAnnotationTypes: @Autowired/@Value/@Inject
+			/**
+			 * 在当前后置处理器的构造方法中给{@link autowiredAnnotationTypes}添加了注解: @Autowired/@Value/@Inject
+			 * @see AutowiredAnnotationBeanPostProcessor#AutowiredAnnotationBeanPostProcessor()
+			 */
 			for (Class<? extends Annotation> type : this.autowiredAnnotationTypes) {
 				// 获取@Autowired/@Value/@Inject注解的属性
 				// 因为autowiredAnnotationTypes是一个LinkedHashSet, 所以会按照顺序去判断是否有@Autowired/@Value/@Inject注解, 只有其中一个存在就返回
